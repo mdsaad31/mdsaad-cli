@@ -84,6 +84,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce:**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -96,6 +97,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment:**
+
 - OS: [e.g. Windows 10, macOS 11.0, Ubuntu 20.04]
 - Node.js version: [e.g. 16.14.0]
 - CLI version: [e.g. 1.0.0]
@@ -138,31 +140,36 @@ We encourage community plugin development. See our [Plugin Development Guide](do
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
+
    ```bash
    git clone https://github.com/your-username/mdsaad-cli.git
    cd mdsaad-cli
    ```
 
 3. **Add the upstream repository**:
+
    ```bash
    git remote add upstream https://github.com/mdsaad/mdsaad-cli.git
    ```
 
 4. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 5. **Create a new branch** for your feature:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 6. **Set up your development environment**:
+
    ```bash
    # Link the CLI for global testing
    npm link
-   
+
    # Verify the setup
    mdsaad --version
    ```
@@ -183,9 +190,9 @@ The project uses several development tools:
 
 - **main**: Production-ready code
 - **develop**: Integration branch for features
-- **feature/***: Individual feature development
-- **hotfix/***: Critical bug fixes
-- **release/***: Release preparation
+- **feature/\***: Individual feature development
+- **hotfix/\***: Critical bug fixes
+- **release/\***: Release preparation
 
 ### Commit Message Format
 
@@ -200,6 +207,7 @@ We follow the [Conventional Commits](https://conventionalcommits.org/) specifica
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -211,6 +219,7 @@ We follow the [Conventional Commits](https://conventionalcommits.org/) specifica
 - `security`: Security improvements
 
 **Examples:**
+
 ```bash
 feat(calculator): add support for complex numbers
 fix(security): resolve rate limiting bypass vulnerability
@@ -316,8 +325,9 @@ describe('Component Name', () => {
 describe('Input Validation', () => {
   test('should prevent SQL injection', () => {
     const maliciousInput = "'; DROP TABLE users; --";
-    expect(() => validator.validate(maliciousInput, 'text'))
-      .toThrow('Invalid input detected');
+    expect(() => validator.validate(maliciousInput, 'text')).toThrow(
+      'Invalid input detected'
+    );
   });
 
   test('should sanitize XSS attempts', () => {
@@ -411,12 +421,14 @@ When adding new features:
 ### Before Submitting
 
 1. **Rebase your branch** on the latest upstream/main:
+
    ```bash
    git fetch upstream
    git rebase upstream/main
    ```
 
 2. **Run the full test suite**:
+
    ```bash
    npm run build
    ```
@@ -431,9 +443,11 @@ Use this template for your pull request:
 
 ```markdown
 ## Description
+
 Brief description of changes made.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -441,27 +455,32 @@ Brief description of changes made.
 - [ ] Security improvement
 
 ## Testing
+
 - [ ] Unit tests pass
 - [ ] Integration tests pass
 - [ ] Security tests pass
 - [ ] Manual testing completed
 
 ## Security Checklist
+
 - [ ] Input validation implemented
 - [ ] Authentication/authorization considered
 - [ ] Sensitive data handling reviewed
 - [ ] Security tests added/updated
 
 ## Documentation
+
 - [ ] README updated (if needed)
 - [ ] API documentation updated (if needed)
 - [ ] Code comments added/updated
 - [ ] CHANGELOG updated
 
 ## Screenshots
+
 If applicable, add screenshots to help explain your changes.
 
 ## Additional Notes
+
 Any additional information reviewers should know.
 ```
 

@@ -29,11 +29,13 @@
 ## 🚀 **Quick Start**
 
 ### Installation
+
 ```bash
 npm install -g mdsaad-cli
 ```
 
 ### Usage
+
 ```bash
 # AI Chat
 mdsaad ai "Explain quantum computing"
@@ -41,7 +43,7 @@ mdsaad ai "Explain quantum computing"
 # Weather
 mdsaad weather London
 
-# Math Calculator  
+# Math Calculator
 mdsaad calc "sin(45) + cos(30)"
 
 # ASCII Art
@@ -59,12 +61,14 @@ mdsaad help
 If you get `'mdsaad' is not recognized` after installation:
 
 **Quick Fix (Works Everywhere):**
+
 ```bash
 npx mdsaad-cli --version
 npx mdsaad-cli ai "Hello!"
 ```
 
 **Permanent Fix:**
+
 - **Windows**: Restart your terminal, or download our [fix script](https://github.com/mdsaad31/mdsaad-cli/raw/main/scripts/fix-windows.bat)
 - **macOS/Linux**: Run `echo 'export PATH=$(npm config get prefix)/bin:$PATH' >> ~/.bashrc && source ~/.bashrc`
 
@@ -75,19 +79,22 @@ npx mdsaad-cli ai "Hello!"
 ## 🎯 **Command Categories**
 
 ### 🤖 **AI & Chat**
+
 ```bash
 mdsaad ai "your question"          # Chat with AI
-mdsaad explain "code snippet"      # Code explanation  
+mdsaad explain "code snippet"      # Code explanation
 mdsaad code "create a function"    # Code generation
 ```
 
 ### 🌤️ **Weather & Environment**
+
 ```bash
 mdsaad weather <location>          # Current weather
 mdsaad weather <location> --forecast # 5-day forecast
 ```
 
 ### 🧮 **Mathematics & Calculations**
+
 ```bash
 mdsaad calc "2 + 2 * 3"           # Basic math
 mdsaad calc "sqrt(16) + log(10)"  # Advanced functions
@@ -95,6 +102,7 @@ mdsaad stats 1,2,3,4,5            # Statistical analysis
 ```
 
 ### 💱 **Converters & Tools**
+
 ```bash
 mdsaad currency 100 USD EUR       # Currency conversion
 mdsaad units 100 kg lb            # Unit conversion
@@ -103,6 +111,7 @@ mdsaad time "New York"            # Time zones
 ```
 
 ### 🎨 **Text & Art**
+
 ```bash
 mdsaad ascii "Hello"              # ASCII art
 mdsaad qr "https://example.com"   # QR code generation
@@ -110,6 +119,7 @@ mdsaad text "hello" upper         # Text transformation
 ```
 
 ### 🔒 **Security & System**
+
 ```bash
 mdsaad hash "text" sha256         # Hash generation
 mdsaad password 16 --secure       # Password generation
@@ -119,6 +129,7 @@ mdsaad ip                         # IP utilities
 ```
 
 ### 🎲 **Fun & Random**
+
 ```bash
 mdsaad random 1 100               # Random numbers
 mdsaad joke                       # Random jokes
@@ -136,28 +147,28 @@ mdsaad dice 6                     # Dice roll
 
 ## 📖 **Full Command List**
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `ai` | Chat with AI assistant | `mdsaad ai "What is Node.js?"` |
-| `weather` | Get weather information | `mdsaad weather Paris` |
-| `calc` | Mathematical calculator | `mdsaad calc "2^8 + sqrt(64)"` |
-| `ascii` | Generate ASCII art | `mdsaad ascii "HELLO"` |
-| `currency` | Convert currencies | `mdsaad currency 50 GBP USD` |
-| `units` | Unit conversions | `mdsaad units 25 C F` |
-| `base` | Number system conversion | `mdsaad base 255 dec hex` |
-| `time` | Time zone information | `mdsaad time Tokyo` |
-| `stats` | Statistical analysis | `mdsaad stats 1,2,3,4,5` |
-| `hash` | Generate hashes | `mdsaad hash "secret" md5` |
-| `password` | Generate passwords | `mdsaad password 12 --secure` |
-| `uuid` | Generate UUIDs | `mdsaad uuid` |
-| `qr` | Generate QR codes | `mdsaad qr "Hello World"` |
-| `text` | Text transformations | `mdsaad text "hello" title` |
-| `random` | Random numbers | `mdsaad random 10 99` |
-| `system` | System information | `mdsaad system` |
-| `ip` | IP address utilities | `mdsaad ip` |
-| `joke` | Random jokes | `mdsaad joke` |
-| `quote` | Inspirational quotes | `mdsaad quote` |
-| `dice` | Roll dice | `mdsaad dice 20` |
+| Command    | Description              | Example                        |
+| ---------- | ------------------------ | ------------------------------ |
+| `ai`       | Chat with AI assistant   | `mdsaad ai "What is Node.js?"` |
+| `weather`  | Get weather information  | `mdsaad weather Paris`         |
+| `calc`     | Mathematical calculator  | `mdsaad calc "2^8 + sqrt(64)"` |
+| `ascii`    | Generate ASCII art       | `mdsaad ascii "HELLO"`         |
+| `currency` | Convert currencies       | `mdsaad currency 50 GBP USD`   |
+| `units`    | Unit conversions         | `mdsaad units 25 C F`          |
+| `base`     | Number system conversion | `mdsaad base 255 dec hex`      |
+| `time`     | Time zone information    | `mdsaad time Tokyo`            |
+| `stats`    | Statistical analysis     | `mdsaad stats 1,2,3,4,5`       |
+| `hash`     | Generate hashes          | `mdsaad hash "secret" md5`     |
+| `password` | Generate passwords       | `mdsaad password 12 --secure`  |
+| `uuid`     | Generate UUIDs           | `mdsaad uuid`                  |
+| `qr`       | Generate QR codes        | `mdsaad qr "Hello World"`      |
+| `text`     | Text transformations     | `mdsaad text "hello" title`    |
+| `random`   | Random numbers           | `mdsaad random 10 99`          |
+| `system`   | System information       | `mdsaad system`                |
+| `ip`       | IP address utilities     | `mdsaad ip`                    |
+| `joke`     | Random jokes             | `mdsaad joke`                  |
+| `quote`    | Inspirational quotes     | `mdsaad quote`                 |
+| `dice`     | Roll dice                | `mdsaad dice 20`               |
 
 ## 🛠️ **Requirements**
 
@@ -176,6 +187,7 @@ mdsaad dice 6                     # Dice roll
 The CLI works out-of-the-box with no configuration required. All API calls are routed through our secure proxy service.
 
 ### Optional: Update Check
+
 ```bash
 mdsaad --version        # Check version
 mdsaad --help          # Full help
@@ -187,6 +199,7 @@ mdsaad <command> --help # Command-specific help
 We welcome contributions! Please see our [Contributing Guide](https://github.com/mdsaad31/mdsaad-cli/blob/main/CONTRIBUTING.md).
 
 ### Development Setup
+
 ```bash
 git clone https://github.com/mdsaad31/mdsaad-cli.git
 cd mdsaad-cli

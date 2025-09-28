@@ -15,12 +15,12 @@ class ConfigManager {
     this.keysFile = path.join(this.configDir, 'keys.json');
     this.preferencesFile = path.join(this.configDir, 'preferences.json');
     this.historyFile = path.join(this.configDir, 'history.json');
-    
+
     this.defaultConfig = {
       version: '1.0.0',
       created: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
-      
+
       // Display preferences
       display: {
         theme: 'default',
@@ -29,9 +29,9 @@ class ConfigManager {
         emojis: true,
         progressBars: true,
         tables: true,
-        formatting: 'enhanced' // basic, enhanced, minimal
+        formatting: 'enhanced', // basic, enhanced, minimal
       },
-      
+
       // Output preferences
       output: {
         verbose: false,
@@ -40,25 +40,25 @@ class ConfigManager {
         showMetrics: true,
         pageSize: 20,
         maxWidth: 120,
-        wrapText: true
+        wrapText: true,
       },
-      
+
       // Language and localization
       locale: {
         language: 'en',
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         dateFormat: 'YYYY-MM-DD',
         timeFormat: '24h',
-        currency: 'USD'
+        currency: 'USD',
       },
-      
+
       // Command defaults
       commands: {
         weather: {
           defaultLocation: null,
           units: 'metric',
           showAlerts: true,
-          cacheTime: 300 // 5 minutes
+          cacheTime: 300, // 5 minutes
         },
         ai: {
           defaultModel: 'gemini',
@@ -66,21 +66,21 @@ class ConfigManager {
           temperature: 0.7,
           maxTokens: 1000,
           stream: true,
-          context: true
+          context: true,
         },
         convert: {
           defaultPrecision: 4,
           showRates: false,
           autoFavorites: true,
-          cacheTime: 3600 // 1 hour
+          cacheTime: 3600, // 1 hour
         },
         calculate: {
           precision: 10,
           showHistory: false,
-          angleUnit: 'radians' // radians, degrees
-        }
+          angleUnit: 'radians', // radians, degrees
+        },
       },
-      
+
       // Performance settings
       performance: {
         caching: true,
@@ -88,16 +88,16 @@ class ConfigManager {
         maxCacheSize: 100,
         requestTimeout: 30000,
         retryAttempts: 3,
-        rateLimiting: true
+        rateLimiting: true,
       },
-      
+
       // Privacy settings
       privacy: {
         trackUsage: false,
         shareErrors: false,
         logLevel: 'info', // error, warn, info, debug
-        anonymizeData: true
-      }
+        anonymizeData: true,
+      },
     };
 
     this.defaultPreferences = {
@@ -105,16 +105,16 @@ class ConfigManager {
         conversions: [],
         locations: [],
         calculations: [],
-        aiPrompts: []
+        aiPrompts: [],
       },
-      
+
       shortcuts: {},
-      
+
       customCommands: {},
-      
+
       themes: {
-        custom: {}
-      }
+        custom: {},
+      },
     };
 
     this.config = null;
@@ -128,12 +128,12 @@ class ConfigManager {
   async initialize() {
     try {
       await fs.ensureDir(this.configDir);
-      
+
       // Load or create config files
       await this.loadConfig();
       await this.loadPreferences();
       await this.loadKeys();
-      
+
       console.log('✅ Configuration system initialized');
     } catch (error) {
       console.error('❌ Failed to initialize configuration:', error.message);
@@ -277,16 +277,16 @@ class ConfigManager {
     if (!this.preferences.favorites[category]) {
       this.preferences.favorites[category] = [];
     }
-    
+
     // Check if already exists
-    const exists = this.preferences.favorites[category].some(fav => 
-      JSON.stringify(fav) === JSON.stringify(item)
+    const exists = this.preferences.favorites[category].some(
+      fav => JSON.stringify(fav) === JSON.stringify(item)
     );
-    
+
     if (!exists) {
       this.preferences.favorites[category].push({
         ...item,
-        addedAt: new Date().toISOString()
+        addedAt: new Date().toISOString(),
       });
       await this.savePreferences();
     }
@@ -297,8 +297,9 @@ class ConfigManager {
    */
   async removeFavorite(category, item) {
     if (this.preferences.favorites[category]) {
-      this.preferences.favorites[category] = this.preferences.favorites[category]
-        .filter(fav => JSON.stringify(fav) !== JSON.stringify(item));
+      this.preferences.favorites[category] = this.preferences.favorites[
+        category
+      ].filter(fav => JSON.stringify(fav) !== JSON.stringify(item));
       await this.savePreferences();
     }
   }
@@ -317,7 +318,7 @@ class ConfigManager {
     const exportData = {
       config: this.config,
       preferences: this.preferences,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     if (includeKeys) {
@@ -333,7 +334,7 @@ class ConfigManager {
    */
   async importConfig(filePath, overwrite = false) {
     const importData = await fs.readJson(filePath);
-    
+
     if (overwrite) {
       this.config = importData.config || this.config;
       this.preferences = importData.preferences || this.preferences;
@@ -352,7 +353,7 @@ class ConfigManager {
     await Promise.all([
       this.saveConfig(),
       this.savePreferences(),
-      this.saveKeys()
+      this.saveKeys(),
     ]);
   }
 
@@ -380,7 +381,7 @@ class ConfigManager {
         await Promise.all([
           this.saveConfig(),
           this.savePreferences(),
-          this.saveKeys()
+          this.saveKeys(),
         ]);
         break;
     }
@@ -397,8 +398,10 @@ class ConfigManager {
       theme: this.config.display.theme,
       language: this.config.locale.language,
       keysConfigured: Object.keys(this.keys).length,
-      favoritesCount: Object.values(this.preferences.favorites)
-        .reduce((sum, favs) => sum + favs.length, 0)
+      favoritesCount: Object.values(this.preferences.favorites).reduce(
+        (sum, favs) => sum + favs.length,
+        0
+      ),
     };
   }
 
@@ -407,7 +410,7 @@ class ConfigManager {
   getNestedValue(obj, path, defaultValue = null) {
     const keys = path.split('.');
     let current = obj;
-    
+
     for (const key of keys) {
       if (current && typeof current === 'object' && key in current) {
         current = current[key];
@@ -415,14 +418,14 @@ class ConfigManager {
         return defaultValue;
       }
     }
-    
+
     return current;
   }
 
   setNestedValue(obj, path, value) {
     const keys = path.split('.');
     let current = obj;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current) || typeof current[key] !== 'object') {
@@ -430,64 +433,78 @@ class ConfigManager {
       }
       current = current[key];
     }
-    
+
     current[keys[keys.length - 1]] = value;
   }
 
   mergeWithDefaults(source, defaults) {
     const result = { ...defaults };
-    
+
     for (const key in source) {
-      if (typeof source[key] === 'object' && !Array.isArray(source[key]) && 
-          typeof result[key] === 'object' && !Array.isArray(result[key])) {
+      if (
+        typeof source[key] === 'object' &&
+        !Array.isArray(source[key]) &&
+        typeof result[key] === 'object' &&
+        !Array.isArray(result[key])
+      ) {
         result[key] = this.mergeWithDefaults(source[key], result[key]);
       } else {
         result[key] = source[key];
       }
     }
-    
+
     return result;
   }
 
   encryptKeys(keys) {
     if (Object.keys(keys).length === 0) return {};
-    
+
     const algorithm = 'aes-256-gcm';
     const password = os.hostname() + os.userInfo().username;
     const salt = crypto.randomBytes(16);
     const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
     const iv = crypto.randomBytes(16);
-    
+
     const cipher = crypto.createCipherGCM(algorithm, key, iv);
-    
+
     let encrypted = cipher.update(JSON.stringify(keys), 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     const authTag = cipher.getAuthTag();
-    
+
     return {
       algorithm,
       salt: salt.toString('hex'),
       iv: iv.toString('hex'),
       authTag: authTag.toString('hex'),
-      data: encrypted
+      data: encrypted,
     };
   }
 
   decryptKeys(encryptedData) {
     if (!encryptedData.data) return {};
-    
+
     try {
       const { algorithm, salt, iv, authTag, data } = encryptedData;
       const password = os.hostname() + os.userInfo().username;
-      const key = crypto.pbkdf2Sync(password, Buffer.from(salt, 'hex'), 100000, 32, 'sha256');
-      
-      const decipher = crypto.createDecipherGCM(algorithm, key, Buffer.from(iv, 'hex'));
+      const key = crypto.pbkdf2Sync(
+        password,
+        Buffer.from(salt, 'hex'),
+        100000,
+        32,
+        'sha256'
+      );
+
+      const decipher = crypto.createDecipherGCM(
+        algorithm,
+        key,
+        Buffer.from(iv, 'hex')
+      );
       decipher.setAuthTag(Buffer.from(authTag, 'hex'));
-      
+
       let decrypted = decipher.update(data, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      
+
       return JSON.parse(decrypted);
     } catch (error) {
       console.warn('Failed to decrypt keys, using empty set');

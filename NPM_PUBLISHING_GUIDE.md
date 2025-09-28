@@ -9,6 +9,7 @@ This guide will help you publish the MDSAAD CLI tool to npm so anyone can instal
 ## 📋 **Pre-Publishing Checklist**
 
 ### ✅ **Package Ready**
+
 - [x] **package.json** - Complete with all metadata
 - [x] **README.md** - Comprehensive documentation (290 lines)
 - [x] **LICENSE** - MIT license included
@@ -17,6 +18,7 @@ This guide will help you publish the MDSAAD CLI tool to npm so anyone can instal
 - [x] **Documentation** - API docs, contributing guide, changelog
 
 ### ✅ **Required Files Present**
+
 - [x] `package.json` - Package metadata and configuration
 - [x] `README.md` - Installation and usage instructions
 - [x] `LICENSE` - MIT license file
@@ -28,6 +30,7 @@ This guide will help you publish the MDSAAD CLI tool to npm so anyone can instal
 ## 🔧 **Step 1: Final Package Preparation**
 
 ### 1.1 Update Author Information
+
 Your current package.json has placeholder values. Update these:
 
 ```json
@@ -49,6 +52,7 @@ Your current package.json has placeholder values. Update these:
 ```
 
 ### 1.2 Create .npmignore File
+
 ```bash
 # Create .npmignore to exclude unnecessary files
 echo "tests/" > .npmignore
@@ -62,7 +66,9 @@ echo "jest.config.js" >> .npmignore
 ```
 
 ### 1.3 Verify CLI Executable
+
 Make sure `src/cli.js` has the proper shebang:
+
 ```javascript
 #!/usr/bin/env node
 ```
@@ -72,7 +78,9 @@ Make sure `src/cli.js` has the proper shebang:
 ## 📝 **Step 2: npm Account Setup**
 
 ### 2.1 Create npm Account
+
 If you don't have one:
+
 ```bash
 # Visit https://www.npmjs.com/signup
 # Or create via CLI
@@ -80,16 +88,20 @@ npm adduser
 ```
 
 ### 2.2 Login to npm
+
 ```bash
 npm login
 ```
+
 Enter your:
+
 - Username
-- Password  
+- Password
 - Email
 - OTP (if 2FA enabled)
 
 ### 2.3 Verify Login
+
 ```bash
 npm whoami
 ```
@@ -99,6 +111,7 @@ npm whoami
 ## 🔍 **Step 3: Pre-Publication Testing**
 
 ### 3.1 Test Package Locally
+
 ```bash
 # Install globally from local directory
 npm install -g .
@@ -114,6 +127,7 @@ npm uninstall -g mdsaad-cli
 ```
 
 ### 3.2 Check Package Contents
+
 ```bash
 # See what files will be published
 npm pack --dry-run
@@ -123,6 +137,7 @@ npm pack
 ```
 
 ### 3.3 Validate Package
+
 ```bash
 # Check for issues
 npm publish --dry-run
@@ -133,19 +148,22 @@ npm publish --dry-run
 ## 🚀 **Step 4: Publish to npm**
 
 ### 4.1 Choose Version Strategy
+
 Your current version is `1.0.0`. For updates:
+
 ```bash
 # Patch version (1.0.1) - bug fixes
 npm version patch
 
 # Minor version (1.1.0) - new features
-npm version minor  
+npm version minor
 
 # Major version (2.0.0) - breaking changes
 npm version major
 ```
 
 ### 4.2 Publish Package
+
 ```bash
 # Publish to npm (public)
 npm publish
@@ -155,6 +173,7 @@ npm publish --access public
 ```
 
 ### 4.3 Verify Publication
+
 ```bash
 # Check on npm website
 open https://www.npmjs.com/package/mdsaad-cli
@@ -169,14 +188,17 @@ mdsaad --help
 ## 📊 **Step 5: Post-Publication**
 
 ### 5.1 Update Documentation
+
 - Update GitHub repository with npm installation instructions
 - Add npm badge to README
 - Create GitHub release with changelog
 
 ### 5.2 Social Sharing
+
 Share your tool:
+
 - GitHub repository
-- Twitter/LinkedIn announcement  
+- Twitter/LinkedIn announcement
 - Dev community posts
 - Documentation site
 
@@ -188,7 +210,7 @@ Share your tool:
 # 1. Final preparation
 npm run build
 
-# 2. Login to npm  
+# 2. Login to npm
 npm login
 
 # 3. Test locally
@@ -226,6 +248,7 @@ mdsaad show cat
 Your CLI tool includes:
 
 ### ✅ **Professional Package**
+
 - **Cross-platform**: Windows, macOS, Linux
 - **Global binary**: `mdsaad` command available everywhere
 - **Auto-completion**: Tab completion for shells
@@ -233,6 +256,7 @@ Your CLI tool includes:
 - **Performance**: Optimized startup and caching
 
 ### ✅ **Rich Features**
+
 - **Mathematics**: Advanced calculations
 - **AI Integration**: OpenRouter/DeepSeek support
 - **Weather**: Real-time weather data
@@ -242,6 +266,7 @@ Your CLI tool includes:
 - **Security**: Encrypted API key storage
 
 ### ✅ **Developer Experience**
+
 - **Comprehensive help**: Built-in help system
 - **Error handling**: Graceful error messages
 - **Logging**: Debug and verbose modes
@@ -253,6 +278,7 @@ Your CLI tool includes:
 ## 📈 **Expected npm Package Stats**
 
 Once published, users will see:
+
 - **Install size**: ~15-20MB (including dependencies)
 - **Weekly downloads**: Depends on promotion and usage
 - **Dependencies**: 11 production dependencies
@@ -280,6 +306,7 @@ Once published, users will see:
 5. **Share** with the community!
 
 Your CLI tool is **production-ready** and will provide users with:
+
 - Professional command-line experience
 - Real-time data access (weather, currency, AI)
 - Advanced mathematical capabilities

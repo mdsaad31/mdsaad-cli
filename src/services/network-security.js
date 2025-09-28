@@ -12,7 +12,7 @@ class NetworkSecurity {
     this.timeout = 30000; // 30 seconds
     this.maxRedirects = 3;
     this.allowedProtocols = ['https:'];
-    
+
     // Certificate pinning for critical services (SHA-256 fingerprints)
     this.pinnedCertificates = new Map([
       ['api.weatherapi.com', []],
@@ -21,7 +21,7 @@ class NetworkSecurity {
       ['api.groq.com', []],
       ['generativelanguage.googleapis.com', []],
       ['openrouter.ai', []],
-      ['integrate.api.nvidia.com', []]
+      ['integrate.api.nvidia.com', []],
     ]);
 
     // Rate limiting configuration
@@ -29,7 +29,7 @@ class NetworkSecurity {
     this.defaultRateLimit = {
       requests: 60,
       window: 60000, // 1 minute
-      burst: 10
+      burst: 10,
     };
   }
 
@@ -49,10 +49,10 @@ class NetworkSecurity {
         'ECDHE-RSA-AES128-GCM-SHA256',
         'ECDHE-RSA-AES256-GCM-SHA384',
         'ECDHE-RSA-AES128-SHA256',
-        'ECDHE-RSA-AES256-SHA384'
+        'ECDHE-RSA-AES256-SHA384',
       ].join(':'),
       honorCipherOrder: true,
-      checkServerIdentity: this.checkServerIdentity.bind(this)
+      checkServerIdentity: this.checkServerIdentity.bind(this),
     });
   }
 
@@ -91,11 +91,11 @@ class NetworkSecurity {
   validateHeaders(headers) {
     const secureHeaders = {
       'User-Agent': this.userAgent,
-      'Accept': 'application/json',
+      Accept: 'application/json',
       'Accept-Encoding': 'gzip, deflate',
-      'Connection': 'keep-alive',
+      Connection: 'keep-alive',
       'Cache-Control': 'no-cache',
-      'DNT': '1' // Do Not Track
+      DNT: '1', // Do Not Track
     };
 
     // Remove potentially dangerous headers
@@ -103,7 +103,7 @@ class NetworkSecurity {
       'X-Forwarded-For',
       'X-Real-IP',
       'X-Originating-IP',
-      'CF-Connecting-IP'
+      'CF-Connecting-IP',
     ];
 
     const cleanHeaders = { ...headers };
@@ -121,12 +121,12 @@ class NetworkSecurity {
   checkRateLimit(hostname, endpoint = '/') {
     const key = `${hostname}${endpoint}`;
     const now = Date.now();
-    
+
     let limiter = this.rateLimits.get(key);
     if (!limiter) {
       limiter = {
         requests: [],
-        config: this.defaultRateLimit
+        config: this.defaultRateLimit,
       };
       this.rateLimits.set(key, limiter);
     }
@@ -141,7 +141,7 @@ class NetworkSecurity {
       const oldestRequest = Math.min(...limiter.requests);
       const resetTime = oldestRequest + limiter.config.window;
       const waitTime = Math.ceil((resetTime - now) / 1000);
-      
+
       throw new Error(`Rate limit exceeded. Try again in ${waitTime} seconds`);
     }
 
@@ -149,7 +149,7 @@ class NetworkSecurity {
     const recentRequests = limiter.requests.filter(
       time => now - time < 1000 // Last second
     );
-    
+
     if (recentRequests.length >= limiter.config.burst) {
       throw new Error('Burst limit exceeded. Please slow down requests');
     }
@@ -164,7 +164,7 @@ class NetworkSecurity {
    */
   async secureRequest(url, options = {}) {
     const parsedUrl = new URL(url);
-    
+
     // Protocol validation
     if (!this.allowedProtocols.includes(parsedUrl.protocol)) {
       throw new Error(`Protocol ${parsedUrl.protocol} not allowed`);
@@ -179,7 +179,7 @@ class NetworkSecurity {
       agent: this.createSecureAgent(),
       timeout: this.timeout,
       headers: this.validateHeaders(options.headers || {}),
-      maxRedirects: this.maxRedirects
+      maxRedirects: this.maxRedirects,
     };
 
     // Add request signature for integrity
@@ -201,7 +201,7 @@ class NetworkSecurity {
       .createHmac('sha256', 'mdsaad-cli-secret')
       .update(payload)
       .digest('hex');
-    
+
     return `${timestamp}.${signature}`;
   }
 
@@ -214,7 +214,10 @@ class NetworkSecurity {
     }
 
     const [timestamp, signature] = expectedSignature.split('.');
-    const payload = JSON.stringify({ data: response, timestamp: parseInt(timestamp) });
+    const payload = JSON.stringify({
+      data: response,
+      timestamp: parseInt(timestamp),
+    });
     const expectedSig = crypto
       .createHmac('sha256', 'mdsaad-cli-secret')
       .update(payload)
@@ -272,7 +275,9 @@ class NetworkSecurity {
         const value = obj[key];
         if (typeof type === 'string') {
           if (typeof value !== type) {
-            throw new Error(`Invalid type for ${key}: expected ${type}, got ${typeof value}`);
+            throw new Error(
+              `Invalid type for ${key}: expected ${type}, got ${typeof value}`
+            );
           }
         } else if (typeof type === 'object' && type !== null) {
           if (typeof value !== 'object' || value === null) {
@@ -292,7 +297,7 @@ class NetworkSecurity {
    */
   createSecureWebSocket(url, options = {}) {
     const parsedUrl = new URL(url);
-    
+
     if (parsedUrl.protocol !== 'wss:') {
       throw new Error('Only secure WebSocket connections (wss:) are allowed');
     }
@@ -303,10 +308,10 @@ class NetworkSecurity {
       headers: {
         ...options.headers,
         'User-Agent': this.userAgent,
-        'Origin': parsedUrl.origin
+        Origin: parsedUrl.origin,
       },
       rejectUnauthorized: true,
-      checkServerIdentity: this.checkServerIdentity.bind(this)
+      checkServerIdentity: this.checkServerIdentity.bind(this),
     };
 
     return secureOptions;
@@ -325,22 +330,28 @@ class NetworkSecurity {
       pinnedCertificates: Array.from(this.pinnedCertificates.keys()),
       rateLimits: {
         activeEndpoints: this.rateLimits.size,
-        defaultConfig: this.defaultRateLimit
+        defaultConfig: this.defaultRateLimit,
       },
-      recommendations: []
+      recommendations: [],
     };
 
     // Security recommendations
     if (this.timeout > 60000) {
-      report.recommendations.push('Consider reducing request timeout for better security');
+      report.recommendations.push(
+        'Consider reducing request timeout for better security'
+      );
     }
 
     if (this.maxRedirects > 5) {
-      report.recommendations.push('Consider reducing max redirects to prevent redirect loops');
+      report.recommendations.push(
+        'Consider reducing max redirects to prevent redirect loops'
+      );
     }
 
     if (this.pinnedCertificates.size === 0) {
-      report.recommendations.push('Consider implementing certificate pinning for critical services');
+      report.recommendations.push(
+        'Consider implementing certificate pinning for critical services'
+      );
     }
 
     return report;

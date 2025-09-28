@@ -1,6 +1,6 @@
 /**
  * MDSAAD Proxy API Service
- * 
+ *
  * This service acts as a proxy between the CLI and external APIs.
  * Benefits:
  * - Users don't need API keys
@@ -21,9 +21,9 @@ class ProxyAPIService {
       process.env.MDSAAD_PROXY_API,
       'https://mdsaad-proxy-api.onrender.com/v1',
       'https://cli-server-q7mymwmli-md-saads-projects.vercel.app/v1',
-      'http://localhost:3000/v1'
+      'http://localhost:3000/v1',
     ].filter(Boolean);
-    
+
     this.baseUrl = this.proxyUrls[0];
     this.clientId = this.generateClientId();
     this.rateLimiter = new Map();
@@ -36,7 +36,11 @@ class ProxyAPIService {
   generateClientId() {
     // Generate a unique but anonymous client ID
     const machineId = require('os').hostname() + require('os').platform();
-    return crypto.createHash('sha256').update(machineId).digest('hex').substring(0, 16);
+    return crypto
+      .createHash('sha256')
+      .update(machineId)
+      .digest('hex')
+      .substring(0, 16);
   }
 
   /**
@@ -44,7 +48,7 @@ class ProxyAPIService {
    */
   async makeRequestWithFallback(requestFn) {
     let lastError;
-    
+
     for (let i = 0; i < this.proxyUrls.length; i++) {
       try {
         this.baseUrl = this.proxyUrls[i];
@@ -53,15 +57,21 @@ class ProxyAPIService {
         return await requestFn();
       } catch (error) {
         lastError = error;
-        console.log(`❌ Proxy URL ${this.proxyUrls[i]} failed: ${error.message}`);
-        
+        console.log(
+          `❌ Proxy URL ${this.proxyUrls[i]} failed: ${error.message}`
+        );
+
         // If it's a network error, try next URL
-        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || 
-            error.code === 'ETIMEDOUT' || error.response?.status >= 500) {
+        if (
+          error.code === 'ECONNREFUSED' ||
+          error.code === 'ENOTFOUND' ||
+          error.code === 'ETIMEDOUT' ||
+          error.response?.status >= 500
+        ) {
           console.log(`⏭️ Trying next proxy URL...`);
           continue;
         }
-        
+
         // If it's a client error (400-499), don't retry
         if (error.response?.status >= 400 && error.response?.status < 500) {
           console.log(`🚫 Client error, not retrying other URLs`);
@@ -69,13 +79,13 @@ class ProxyAPIService {
         }
       }
     }
-    
+
     // Return error object instead of throwing
     return {
       success: false,
       error: `All proxy URLs failed. Last error: ${lastError?.message || 'Unknown error'}`,
       code: 'CONNECTION_ERROR',
-      fallback: true
+      fallback: true,
     };
   }
 
@@ -84,37 +94,41 @@ class ProxyAPIService {
    */
   async aiRequest(prompt, options = {}) {
     // Check client-side rate limiting first
-    if (!this.checkRateLimit('ai', 100, 3600000)) { // 100 requests per hour (matching server)
+    if (!this.checkRateLimit('ai', 100, 3600000)) {
+      // 100 requests per hour (matching server)
       return {
         success: false,
-        error: 'Rate limit exceeded. Please wait before making more AI requests.',
-        code: 'RATE_LIMIT_EXCEEDED'
+        error:
+          'Rate limit exceeded. Please wait before making more AI requests.',
+        code: 'RATE_LIMIT_EXCEEDED',
       };
     }
 
     const result = await this.makeRequestWithFallback(async () => {
       // Use OpenAI compatible format
-      const response = await axios.post(`${this.baseUrl}/chat/completions`, {
-        model: options.model || 'gpt-3.5-turbo',
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: options.maxTokens || 1000,
-        temperature: options.temperature || 0.7
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': `mdsaad-cli/${require('../../package.json').version}`,
-          'X-Client-ID': this.clientId
+      const response = await axios.post(
+        `${this.baseUrl}/chat/completions`,
+        {
+          model: options.model || 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: options.maxTokens || 1000,
+          temperature: options.temperature || 0.7,
         },
-        timeout: 30000
-      });
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': `mdsaad-cli/${require('../../package.json').version}`,
+            'X-Client-ID': this.clientId,
+          },
+          timeout: 30000,
+        }
+      );
 
       return {
         success: true,
         data: response.data.choices[0]?.message?.content || 'No response',
         model: response.data.model,
-        usage: response.data.usage
+        usage: response.data.usage,
       };
     });
 
@@ -125,11 +139,13 @@ class ProxyAPIService {
    * Make weather requests through your proxy API
    */
   async weatherRequest(location, options = {}) {
-    if (!this.checkRateLimit('weather', 100, 3600000)) { // 100 requests per hour
+    if (!this.checkRateLimit('weather', 100, 3600000)) {
+      // 100 requests per hour
       return {
         success: false,
-        error: 'Rate limit exceeded. Please wait before making more weather requests.',
-        code: 'RATE_LIMIT_EXCEEDED'
+        error:
+          'Rate limit exceeded. Please wait before making more weather requests.',
+        code: 'RATE_LIMIT_EXCEEDED',
       };
     }
 
@@ -141,18 +157,18 @@ class ProxyAPIService {
           language: options.language || 'en',
           forecast: options.forecast || false,
           days: options.days || 1,
-          client_id: this.clientId
+          client_id: this.clientId,
         },
         headers: {
           'User-Agent': `mdsaad-cli/${require('../../package.json').version}`,
-          'X-Client-ID': this.clientId
+          'X-Client-ID': this.clientId,
         },
-        timeout: 15000
+        timeout: 15000,
       });
 
       return {
         success: true,
-        data: response.data
+        data: response.data,
       };
     });
 
@@ -165,13 +181,13 @@ class ProxyAPIService {
   checkRateLimit(service, maxRequests, windowMs) {
     const now = Date.now();
     const key = `${service}_${this.clientId}`;
-    
+
     if (!this.rateLimiter.has(key)) {
       this.rateLimiter.set(key, { count: 0, resetTime: now + windowMs });
     }
 
     const limit = this.rateLimiter.get(key);
-    
+
     if (now > limit.resetTime) {
       limit.count = 0;
       limit.resetTime = now + windowMs;
@@ -198,25 +214,26 @@ class ProxyAPIService {
           return {
             success: false,
             error: 'Rate limit exceeded. Please try again later.',
-            code: 'RATE_LIMIT_EXCEEDED'
+            code: 'RATE_LIMIT_EXCEEDED',
           };
         case 503:
           return {
             success: false,
             error: `${service} service temporarily unavailable. Please try again later.`,
-            code: 'SERVICE_UNAVAILABLE'
+            code: 'SERVICE_UNAVAILABLE',
           };
         case 402:
           return {
             success: false,
-            error: 'Service quota exceeded. Please contact support for increased limits.',
-            code: 'QUOTA_EXCEEDED'
+            error:
+              'Service quota exceeded. Please contact support for increased limits.',
+            code: 'QUOTA_EXCEEDED',
           };
         default:
           return {
             success: false,
             error: `${service} service error: ${message}`,
-            code: 'API_ERROR'
+            code: 'API_ERROR',
           };
       }
     } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
@@ -224,13 +241,13 @@ class ProxyAPIService {
         success: false,
         error: `Cannot connect to ${service} service. Please check your internet connection.`,
         code: 'CONNECTION_ERROR',
-        fallback: true
+        fallback: true,
       };
     } else {
       return {
         success: false,
         error: `${service} request failed: ${error.message}`,
-        code: 'REQUEST_ERROR'
+        code: 'REQUEST_ERROR',
       };
     }
   }
@@ -243,21 +260,21 @@ class ProxyAPIService {
       const response = await axios.get(`${this.baseUrl}/status`, {
         headers: {
           'User-Agent': `mdsaad-cli/${require('../../package.json').version}`,
-          'X-Client-ID': this.clientId
+          'X-Client-ID': this.clientId,
         },
-        timeout: 5000
+        timeout: 5000,
       });
 
       return {
         success: true,
         status: response.data.status,
         services: response.data.services,
-        limits: response.data.limits
+        limits: response.data.limits,
       };
     } catch (error) {
       return {
         success: false,
-        error: 'Cannot connect to MDSAAD API service'
+        error: 'Cannot connect to MDSAAD API service',
       };
     }
   }
@@ -267,22 +284,25 @@ class ProxyAPIService {
    */
   async getUsageStats() {
     try {
-      const response = await axios.get(`${this.baseUrl}/usage/${this.clientId}`, {
-        headers: {
-          'User-Agent': `mdsaad-cli/${require('../../package.json').version}`,
-          'X-Client-ID': this.clientId
-        },
-        timeout: 5000
-      });
+      const response = await axios.get(
+        `${this.baseUrl}/usage/${this.clientId}`,
+        {
+          headers: {
+            'User-Agent': `mdsaad-cli/${require('../../package.json').version}`,
+            'X-Client-ID': this.clientId,
+          },
+          timeout: 5000,
+        }
+      );
 
       return {
         success: true,
-        usage: response.data
+        usage: response.data,
       };
     } catch (error) {
       return {
         success: false,
-        error: 'Cannot retrieve usage statistics'
+        error: 'Cannot retrieve usage statistics',
       };
     }
   }

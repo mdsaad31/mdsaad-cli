@@ -20,7 +20,7 @@ describe('Configuration Service', () => {
   describe('initialization', () => {
     test('should initialize with default configuration', async () => {
       await config.initialize();
-      
+
       expect(config.get('language')).toBe('en');
       expect(config.get('theme')).toBe('default');
       expect(config.get('cacheEnabled')).toBe(true);
@@ -28,8 +28,10 @@ describe('Configuration Service', () => {
 
     test('should create config directory if it does not exist', async () => {
       await config.initialize();
-      
-      const configExists = await fs.pathExists(global.testUtils.TEST_CONFIG_DIR);
+
+      const configExists = await fs.pathExists(
+        global.testUtils.TEST_CONFIG_DIR
+      );
       expect(configExists).toBe(true);
     });
 
@@ -37,12 +39,12 @@ describe('Configuration Service', () => {
       const customConfig = {
         language: 'es',
         theme: 'dark',
-        cacheEnabled: false
+        cacheEnabled: false,
       };
-      
+
       await global.testUtils.createMockConfig(customConfig);
       await config.initialize();
-      
+
       expect(config.get('language')).toBe('es');
       expect(config.get('theme')).toBe('dark');
       expect(config.get('cacheEnabled')).toBe(false);
@@ -75,10 +77,10 @@ describe('Configuration Service', () => {
         enabled: true,
         settings: {
           timeout: 5000,
-          retries: 3
-        }
+          retries: 3,
+        },
       };
-      
+
       config.set('complex', complexValue);
       expect(config.get('complex')).toEqual(complexValue);
     });
@@ -92,23 +94,31 @@ describe('Configuration Service', () => {
     test('should save configuration to file', async () => {
       config.set('language', 'de');
       config.set('theme', 'dark');
-      
+
       await config.save();
-      
-      const configPath = path.join(global.testUtils.TEST_CONFIG_DIR, 'config.json');
+
+      const configPath = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'config.json'
+      );
       const savedConfig = await fs.readJson(configPath);
-      
+
       expect(savedConfig.language).toBe('de');
       expect(savedConfig.theme).toBe('dark');
     });
 
     test('should handle save errors gracefully', async () => {
       // Make directory read-only to force save error
-      const configPath = path.join(global.testUtils.TEST_CONFIG_DIR, 'config.json');
-      
+      const configPath = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'config.json'
+      );
+
       // Mock fs.writeJson to throw error
-      jest.spyOn(fs, 'writeJson').mockRejectedValueOnce(new Error('Permission denied'));
-      
+      jest
+        .spyOn(fs, 'writeJson')
+        .mockRejectedValueOnce(new Error('Permission denied'));
+
       await expect(config.save()).resolves.not.toThrow();
     });
   });
@@ -130,7 +140,7 @@ describe('Configuration Service', () => {
     test('should list all API keys', () => {
       config.setApiKey('weather', 'weather-key');
       config.setApiKey('currency', 'currency-key');
-      
+
       const keys = config.listApiKeys();
       expect(keys).toEqual(['weather', 'currency']);
     });
@@ -138,7 +148,7 @@ describe('Configuration Service', () => {
     test('should remove API keys', () => {
       config.setApiKey('temp', 'temp-key');
       expect(config.getApiKey('temp')).toBe('temp-key');
-      
+
       config.removeApiKey('temp');
       expect(config.getApiKey('temp')).toBeNull();
     });
@@ -171,13 +181,13 @@ describe('Configuration Service', () => {
   describe('configuration reset', () => {
     test('should reset configuration to defaults', async () => {
       await config.initialize();
-      
+
       config.set('language', 'es');
       config.set('theme', 'dark');
       config.setApiKey('test', 'test-key');
-      
+
       await config.reset();
-      
+
       expect(config.get('language')).toBe('en');
       expect(config.get('theme')).toBe('default');
       expect(config.getApiKey('test')).toBeNull();
@@ -186,10 +196,13 @@ describe('Configuration Service', () => {
     test('should remove configuration file on reset', async () => {
       await config.initialize();
       await config.save();
-      
-      const configPath = path.join(global.testUtils.TEST_CONFIG_DIR, 'config.json');
+
+      const configPath = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'config.json'
+      );
       expect(await fs.pathExists(configPath)).toBe(true);
-      
+
       await config.reset();
       expect(await fs.pathExists(configPath)).toBe(false);
     });
@@ -203,9 +216,9 @@ describe('Configuration Service', () => {
     test('should export configuration', () => {
       config.set('language', 'fr');
       config.setApiKey('test', 'test-key');
-      
+
       const exported = config.export();
-      
+
       expect(exported.language).toBe('fr');
       expect(exported.apiKeys.test).toBe('test-key');
     });
@@ -215,12 +228,12 @@ describe('Configuration Service', () => {
         language: 'de',
         theme: 'dark',
         apiKeys: {
-          weather: 'weather-key'
-        }
+          weather: 'weather-key',
+        },
       };
-      
+
       config.import(importData);
-      
+
       expect(config.get('language')).toBe('de');
       expect(config.get('theme')).toBe('dark');
       expect(config.getApiKey('weather')).toBe('weather-key');
@@ -229,9 +242,9 @@ describe('Configuration Service', () => {
     test('should validate imported configuration', () => {
       const invalidImport = {
         language: 'invalid',
-        theme: 'invalid'
+        theme: 'invalid',
       };
-      
+
       expect(() => config.import(invalidImport)).toThrow();
     });
   });
@@ -240,20 +253,23 @@ describe('Configuration Service', () => {
     test('should handle missing config directory', async () => {
       // Remove the test directory
       await fs.remove(global.testUtils.TEST_DIR);
-      
+
       await expect(config.initialize()).resolves.not.toThrow();
-      
+
       // Directory should be created
       expect(await fs.pathExists(global.testUtils.TEST_CONFIG_DIR)).toBe(true);
     });
 
     test('should handle corrupted config file', async () => {
       // Create corrupted config file
-      const configPath = path.join(global.testUtils.TEST_CONFIG_DIR, 'config.json');
+      const configPath = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'config.json'
+      );
       await fs.writeFile(configPath, 'invalid json content');
-      
+
       await expect(config.initialize()).resolves.not.toThrow();
-      
+
       // Should fall back to defaults
       expect(config.get('language')).toBe('en');
     });
@@ -261,9 +277,11 @@ describe('Configuration Service', () => {
     test('should handle read permission errors', async () => {
       // Create config file then mock read error
       await global.testUtils.createMockConfig();
-      
-      jest.spyOn(fs, 'readJson').mockRejectedValueOnce(new Error('Permission denied'));
-      
+
+      jest
+        .spyOn(fs, 'readJson')
+        .mockRejectedValueOnce(new Error('Permission denied'));
+
       await expect(config.initialize()).resolves.not.toThrow();
     });
   });
@@ -275,29 +293,29 @@ describe('Configuration Service', () => {
 
     test('should detect configuration changes', async () => {
       let changeDetected = false;
-      
+
       config.onChange(() => {
         changeDetected = true;
       });
-      
+
       config.set('language', 'es');
-      
+
       // Wait for change detection
       await global.testUtils.wait(50);
-      
+
       expect(changeDetected).toBe(true);
     });
 
     test('should support multiple change listeners', async () => {
       let changes = 0;
-      
+
       config.onChange(() => changes++);
       config.onChange(() => changes++);
-      
+
       config.set('language', 'fr');
-      
+
       await global.testUtils.wait(50);
-      
+
       expect(changes).toBe(2);
     });
   });

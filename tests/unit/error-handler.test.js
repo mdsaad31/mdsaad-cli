@@ -9,18 +9,18 @@ const path = require('path');
 describe('Error Handler Service', () => {
   let errorHandler;
   let mockConsole;
-  
+
   beforeEach(async () => {
     await global.testUtils.setupTestDirs();
     errorHandler = new ErrorHandler();
-    
+
     // Mock console methods
     mockConsole = {
       error: jest.fn(),
       warn: jest.fn(),
-      log: jest.fn()
+      log: jest.fn(),
     };
-    
+
     jest.spyOn(console, 'error').mockImplementation(mockConsole.error);
     jest.spyOn(console, 'warn').mockImplementation(mockConsole.warn);
     jest.spyOn(console, 'log').mockImplementation(mockConsole.log);
@@ -135,7 +135,7 @@ describe('Error Handler Service', () => {
       const errors = [
         new Error('Network error'),
         new Error('Validation error'),
-        new Error('API error')
+        new Error('API error'),
       ];
 
       const results = await Promise.all(
@@ -155,7 +155,7 @@ describe('Error Handler Service', () => {
       const context = {
         operation: 'test-operation',
         userInput: 'test input',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const enrichedError = errorHandler.enrichError(error, context);
@@ -166,7 +166,7 @@ describe('Error Handler Service', () => {
 
     test('should include stack trace in error context', () => {
       const error = new Error('Test error with stack');
-      
+
       const enrichedError = errorHandler.enrichError(error);
 
       expect(enrichedError.stack).toBeTruthy();
@@ -178,7 +178,7 @@ describe('Error Handler Service', () => {
       const context = {
         apiKey: 'secret-api-key-12345',
         password: 'user-password',
-        operation: 'api-call'
+        operation: 'api-call',
       };
 
       const sanitizedError = errorHandler.sanitizeError(error, context);
@@ -206,7 +206,7 @@ describe('Error Handler Service', () => {
       const context = {
         operation: 'calculate',
         input: '2+2',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const report = errorHandler.createErrorReport(error, context);
@@ -219,13 +219,16 @@ describe('Error Handler Service', () => {
     });
 
     test('should export error logs', async () => {
-      const logFile = path.join(global.testUtils.TEST_CONFIG_DIR, 'error-export.json');
-      
+      const logFile = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'error-export.json'
+      );
+
       // Generate some errors
       const errors = [
         new Error('Error 1'),
         new Error('Error 2'),
-        new Error('Error 3')
+        new Error('Error 3'),
       ];
 
       for (const error of errors) {
@@ -235,7 +238,7 @@ describe('Error Handler Service', () => {
       await errorHandler.exportLogs(logFile);
 
       expect(await fs.pathExists(logFile)).toBe(true);
-      
+
       const exportData = await fs.readJSON(logFile);
       expect(exportData.errors).toBeInstanceOf(Array);
       expect(exportData.errors.length).toBeGreaterThan(0);
@@ -253,7 +256,9 @@ describe('Error Handler Service', () => {
         return 'success';
       };
 
-      const result = await errorHandler.withRetry(flakyOperation, { maxRetries: 3 });
+      const result = await errorHandler.withRetry(flakyOperation, {
+        maxRetries: 3,
+      });
 
       expect(result).toBe('success');
       expect(attempts).toBe(3);
@@ -269,10 +274,10 @@ describe('Error Handler Service', () => {
       };
 
       try {
-        await errorHandler.withRetry(failingOperation, { 
-          maxRetries: 3, 
+        await errorHandler.withRetry(failingOperation, {
+          maxRetries: 3,
           backoff: 'exponential',
-          baseDelay: 10 
+          baseDelay: 10,
         });
       } catch (error) {
         // Expected to fail
@@ -294,7 +299,10 @@ describe('Error Handler Service', () => {
         return 'fallback result';
       };
 
-      const result = await errorHandler.withFallback(primaryOperation, fallbackOperation);
+      const result = await errorHandler.withFallback(
+        primaryOperation,
+        fallbackOperation
+      );
 
       expect(result).toBe('fallback result');
     });
@@ -306,7 +314,7 @@ describe('Error Handler Service', () => {
 
       const circuitBreaker = errorHandler.createCircuitBreaker(failingService, {
         failureThreshold: 3,
-        timeout: 100
+        timeout: 100,
       });
 
       // Should fail and increment failure count
@@ -329,7 +337,7 @@ describe('Error Handler Service', () => {
         new Error('Network error'),
         new Error('Network error'),
         new Error('API error'),
-        new Error('Validation error')
+        new Error('Validation error'),
       ];
 
       for (const error of errors) {
@@ -345,12 +353,12 @@ describe('Error Handler Service', () => {
 
     test('should identify error trends', async () => {
       const now = Date.now();
-      
+
       // Create errors with timestamps
       const errors = [
         { error: new Error('Trend error 1'), timestamp: now - 1000 },
         { error: new Error('Trend error 2'), timestamp: now - 500 },
-        { error: new Error('Trend error 3'), timestamp: now }
+        { error: new Error('Trend error 3'), timestamp: now },
       ];
 
       for (const { error, timestamp } of errors) {
@@ -367,7 +375,7 @@ describe('Error Handler Service', () => {
     test('should generate error summary reports', async () => {
       // Generate various types of errors
       const errorTypes = ['Network', 'API', 'Validation', 'System'];
-      
+
       for (let i = 0; i < 20; i++) {
         const errorType = errorTypes[i % errorTypes.length];
         const error = new Error(`${errorType} error ${i}`);
@@ -388,23 +396,27 @@ describe('Error Handler Service', () => {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1 },
-          age: { type: 'number', minimum: 0 }
+          age: { type: 'number', minimum: 0 },
         },
-        required: ['name']
+        required: ['name'],
       };
 
       const validInput = { name: 'John', age: 30 };
       const invalidInput = { age: -5 };
 
-      expect(errorHandler.validateInput(validInput, validationRules)).toBe(true);
-      expect(() => errorHandler.validateInput(invalidInput, validationRules)).toThrow();
+      expect(errorHandler.validateInput(validInput, validationRules)).toBe(
+        true
+      );
+      expect(() =>
+        errorHandler.validateInput(invalidInput, validationRules)
+      ).toThrow();
     });
 
     test('should provide input sanitization', () => {
       const maliciousInput = {
         name: '<script>alert("xss")</script>',
         description: 'Normal text',
-        code: 'rm -rf /'
+        code: 'rm -rf /',
       };
 
       const sanitized = errorHandler.sanitizeInput(maliciousInput);
@@ -415,9 +427,9 @@ describe('Error Handler Service', () => {
     });
 
     test('should implement rate limiting', async () => {
-      const rateLimiter = errorHandler.createRateLimiter({ 
-        maxRequests: 3, 
-        windowMs: 1000 
+      const rateLimiter = errorHandler.createRateLimiter({
+        maxRequests: 3,
+        windowMs: 1000,
       });
 
       // Should allow first 3 requests
@@ -433,7 +445,7 @@ describe('Error Handler Service', () => {
   describe('debugging support', () => {
     test('should provide debug information', () => {
       const error = new Error('Debug test error');
-      
+
       const debugInfo = errorHandler.getDebugInfo(error);
 
       expect(debugInfo.errorMessage).toBe(error.message);
@@ -445,7 +457,7 @@ describe('Error Handler Service', () => {
 
     test('should capture system state during errors', async () => {
       const error = new Error('System state error');
-      
+
       const systemState = await errorHandler.captureSystemState(error);
 
       expect(systemState.memory).toBeTruthy();
@@ -455,15 +467,18 @@ describe('Error Handler Service', () => {
     });
 
     test('should create diagnostic dumps', async () => {
-      const dumpFile = path.join(global.testUtils.TEST_CONFIG_DIR, 'diagnostic-dump.json');
-      
+      const dumpFile = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'diagnostic-dump.json'
+      );
+
       const error = new Error('Diagnostic test error');
       await errorHandler.handleError(error);
 
       await errorHandler.createDiagnosticDump(dumpFile);
 
       expect(await fs.pathExists(dumpFile)).toBe(true);
-      
+
       const dump = await fs.readJSON(dumpFile);
       expect(dump.errors).toBeTruthy();
       expect(dump.systemInfo).toBeTruthy();

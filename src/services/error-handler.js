@@ -14,7 +14,7 @@ class ErrorHandler {
     this.errorCategories = {
       NETWORK: 'network',
       API: 'api',
-      CONFIGURATION: 'configuration', 
+      CONFIGURATION: 'configuration',
       VALIDATION: 'validation',
       FILE_SYSTEM: 'filesystem',
       PERMISSION: 'permission',
@@ -22,7 +22,7 @@ class ErrorHandler {
       AUTHENTICATION: 'authentication',
       PARSING: 'parsing',
       DEPENDENCY: 'dependency',
-      UNKNOWN: 'unknown'
+      UNKNOWN: 'unknown',
     };
 
     this.severityLevels = {
@@ -30,7 +30,7 @@ class ErrorHandler {
       HIGH: 3,
       MEDIUM: 2,
       LOW: 1,
-      INFO: 0
+      INFO: 0,
     };
 
     this.errorLog = [];
@@ -38,7 +38,7 @@ class ErrorHandler {
     this.logFile = path.join(os.homedir(), '.mdsaad', 'error.log');
     this.recoveryStrategies = new Map();
     this.isInitialized = false;
-    
+
     this.initializeRecoveryStrategies();
   }
 
@@ -69,11 +69,11 @@ class ErrorHandler {
         'Check your internet connection',
         'Try again in a few moments',
         'Use --timeout <seconds> to increase timeout',
-        'Check if the service is temporarily down'
+        'Check if the service is temporarily down',
       ],
       autoRetry: true,
       maxRetries: 3,
-      retryDelay: 2000
+      retryDelay: 2000,
     });
 
     this.recoveryStrategies.set('NETWORK_OFFLINE', {
@@ -82,10 +82,10 @@ class ErrorHandler {
         'Connect to the internet and try again',
         'Check your network settings',
         'Use cached data where available',
-        'Enable offline mode with --offline'
+        'Enable offline mode with --offline',
       ],
       autoRetry: false,
-      fallbackMode: 'offline'
+      fallbackMode: 'offline',
     });
 
     // API errors
@@ -95,9 +95,9 @@ class ErrorHandler {
         'Check your API key configuration with: mdsaad config --get apiKeys',
         'Update your API key with: mdsaad config --set apiKeys.<service>=<key>',
         'Visit the service provider to get a new API key',
-        'Use alternative providers if available'
+        'Use alternative providers if available',
       ],
-      severity: this.severityLevels.HIGH
+      severity: this.severityLevels.HIGH,
     });
 
     this.recoveryStrategies.set('API_RATE_LIMITED', {
@@ -106,11 +106,11 @@ class ErrorHandler {
         'Wait before making more requests',
         'Use --cache to reduce API calls',
         'Consider upgrading to a higher tier plan',
-        'Use alternative providers'
+        'Use alternative providers',
       ],
       autoRetry: true,
       maxRetries: 1,
-      retryDelay: 60000
+      retryDelay: 60000,
     });
 
     // Configuration errors
@@ -120,10 +120,10 @@ class ErrorHandler {
         'Reset configuration: mdsaad enhanced config --reset',
         'Import from backup: mdsaad enhanced config --import backup.json',
         'Manually edit ~/.mdsaad/config.json',
-        'Contact support if the issue persists'
+        'Contact support if the issue persists',
       ],
       severity: this.severityLevels.MEDIUM,
-      autoFix: true
+      autoFix: true,
     });
 
     // File system errors
@@ -133,9 +133,9 @@ class ErrorHandler {
         'Check if the file path is correct',
         'Ensure the file exists and is readable',
         'Check file permissions',
-        'Run setup again if it\'s a system file'
+        "Run setup again if it's a system file",
       ],
-      severity: this.severityLevels.MEDIUM
+      severity: this.severityLevels.MEDIUM,
     });
 
     this.recoveryStrategies.set('PERMISSION_DENIED', {
@@ -144,9 +144,9 @@ class ErrorHandler {
         'Run with appropriate permissions',
         'Check file/directory ownership',
         'Use sudo if necessary (Linux/Mac)',
-        'Run as Administrator (Windows)'
+        'Run as Administrator (Windows)',
       ],
-      severity: this.severityLevels.HIGH
+      severity: this.severityLevels.HIGH,
     });
 
     // Validation errors
@@ -156,9 +156,9 @@ class ErrorHandler {
         'Check the command syntax with --help',
         'Verify input format and requirements',
         'Use examples provided in help',
-        'Check for typos in command arguments'
+        'Check for typos in command arguments',
       ],
-      severity: this.severityLevels.LOW
+      severity: this.severityLevels.LOW,
     });
   }
 
@@ -169,36 +169,51 @@ class ErrorHandler {
     try {
       // Classify the error
       const classification = this.classifyError(error, context);
-      
+
       // Log the error
       await this.logError(error, classification, context);
-      
+
       // Get recovery strategy
       const recovery = this.getRecoveryStrategy(classification);
-      
+
       // Display user-friendly error
       this.displayError(error, classification, recovery, context);
-      
+
       // Attempt automatic recovery if configured
-      if (recovery.autoRetry && context.retryCount < (recovery.maxRetries || 0)) {
-        return await this.attemptAutoRecovery(error, classification, recovery, context);
+      if (
+        recovery.autoRetry &&
+        context.retryCount < (recovery.maxRetries || 0)
+      ) {
+        return await this.attemptAutoRecovery(
+          error,
+          classification,
+          recovery,
+          context
+        );
       }
 
       // Suggest manual recovery
       if (recovery.autoFix && !context.skipAutoFix) {
-        return await this.attemptAutoFix(error, classification, recovery, context);
+        return await this.attemptAutoFix(
+          error,
+          classification,
+          recovery,
+          context
+        );
       }
 
       return {
         handled: true,
         recovered: false,
         classification,
-        recovery
+        recovery,
       };
-
     } catch (handlerError) {
       // Fallback error handling
-      console.error(chalk.red('❌ Error handler failed:'), handlerError.message);
+      console.error(
+        chalk.red('❌ Error handler failed:'),
+        handlerError.message
+      );
       console.error(chalk.red('❌ Original error:'), error.message);
       return { handled: false, recovered: false };
     }
@@ -214,49 +229,104 @@ class ErrorHandler {
 
     // Network errors
     if (errorCode === 'ENOTFOUND' || errorCode === 'ECONNREFUSED') {
-      return { category: 'NETWORK', type: 'NETWORK_OFFLINE', severity: this.severityLevels.HIGH };
+      return {
+        category: 'NETWORK',
+        type: 'NETWORK_OFFLINE',
+        severity: this.severityLevels.HIGH,
+      };
     }
     if (errorCode === 'ETIMEDOUT' || errorMessage.includes('timeout')) {
-      return { category: 'NETWORK', type: 'NETWORK_TIMEOUT', severity: this.severityLevels.MEDIUM };
+      return {
+        category: 'NETWORK',
+        type: 'NETWORK_TIMEOUT',
+        severity: this.severityLevels.MEDIUM,
+      };
     }
 
     // API errors
-    if (error.status === 401 || errorMessage.includes('unauthorized') || errorMessage.includes('invalid api key')) {
-      return { category: 'API', type: 'API_KEY_INVALID', severity: this.severityLevels.HIGH };
+    if (
+      error.status === 401 ||
+      errorMessage.includes('unauthorized') ||
+      errorMessage.includes('invalid api key')
+    ) {
+      return {
+        category: 'API',
+        type: 'API_KEY_INVALID',
+        severity: this.severityLevels.HIGH,
+      };
     }
-    if (error.status === 429 || errorMessage.includes('rate limit') || errorMessage.includes('too many requests')) {
-      return { category: 'API', type: 'API_RATE_LIMITED', severity: this.severityLevels.MEDIUM };
+    if (
+      error.status === 429 ||
+      errorMessage.includes('rate limit') ||
+      errorMessage.includes('too many requests')
+    ) {
+      return {
+        category: 'API',
+        type: 'API_RATE_LIMITED',
+        severity: this.severityLevels.MEDIUM,
+      };
     }
 
     // File system errors
     if (errorCode === 'ENOENT' || errorMessage.includes('no such file')) {
-      return { category: 'FILE_SYSTEM', type: 'FILE_NOT_FOUND', severity: this.severityLevels.MEDIUM };
+      return {
+        category: 'FILE_SYSTEM',
+        type: 'FILE_NOT_FOUND',
+        severity: this.severityLevels.MEDIUM,
+      };
     }
-    if (errorCode === 'EACCES' || errorCode === 'EPERM' || errorMessage.includes('permission denied')) {
-      return { category: 'FILE_SYSTEM', type: 'PERMISSION_DENIED', severity: this.severityLevels.HIGH };
+    if (
+      errorCode === 'EACCES' ||
+      errorCode === 'EPERM' ||
+      errorMessage.includes('permission denied')
+    ) {
+      return {
+        category: 'FILE_SYSTEM',
+        type: 'PERMISSION_DENIED',
+        severity: this.severityLevels.HIGH,
+      };
     }
 
     // Configuration errors
-    if (errorMessage.includes('config') && (errorMessage.includes('corrupt') || errorMessage.includes('invalid json'))) {
-      return { category: 'CONFIGURATION', type: 'CONFIG_CORRUPTED', severity: this.severityLevels.MEDIUM };
+    if (
+      errorMessage.includes('config') &&
+      (errorMessage.includes('corrupt') ||
+        errorMessage.includes('invalid json'))
+    ) {
+      return {
+        category: 'CONFIGURATION',
+        type: 'CONFIG_CORRUPTED',
+        severity: this.severityLevels.MEDIUM,
+      };
     }
 
     // Validation errors
     if (errorName === 'ValidationError' || context.isValidationError) {
-      return { category: 'VALIDATION', type: 'INVALID_INPUT', severity: this.severityLevels.LOW };
+      return {
+        category: 'VALIDATION',
+        type: 'INVALID_INPUT',
+        severity: this.severityLevels.LOW,
+      };
     }
 
     // Parsing errors
-    if (errorName === 'SyntaxError' || errorMessage.includes('unexpected token')) {
-      return { category: 'PARSING', type: 'PARSING_ERROR', severity: this.severityLevels.MEDIUM };
+    if (
+      errorName === 'SyntaxError' ||
+      errorMessage.includes('unexpected token')
+    ) {
+      return {
+        category: 'PARSING',
+        type: 'PARSING_ERROR',
+        severity: this.severityLevels.MEDIUM,
+      };
     }
 
     // Default classification
-    return { 
-      category: 'UNKNOWN', 
-      type: 'UNKNOWN_ERROR', 
+    return {
+      category: 'UNKNOWN',
+      type: 'UNKNOWN_ERROR',
       severity: this.severityLevels.MEDIUM,
-      originalError: errorName
+      originalError: errorName,
     };
   }
 
@@ -276,9 +346,9 @@ class ErrorHandler {
         'Try the command again',
         'Check your input for any typos',
         'Use --debug for more detailed error information',
-        'Report this issue if it persists'
+        'Report this issue if it persists',
       ],
-      severity: classification.severity || this.severityLevels.MEDIUM
+      severity: classification.severity || this.severityLevels.MEDIUM,
     };
   }
 
@@ -291,14 +361,20 @@ class ErrorHandler {
     // Error header with appropriate severity styling
     const severityIcon = this.getSeverityIcon(recovery.severity);
     const severityColor = this.getSeverityColor(recovery.severity);
-    
-    console.log(chalk[severityColor](`${severityIcon} ${recovery.message || 'Error occurred'}`));
-    
+
+    console.log(
+      chalk[severityColor](
+        `${severityIcon} ${recovery.message || 'Error occurred'}`
+      )
+    );
+
     // Show original error in debug mode
     if (context.debug || process.env.NODE_ENV === 'development') {
       console.log(chalk.gray(`   Technical details: ${error.message}`));
       if (error.stack) {
-        console.log(chalk.gray(`   Stack trace: ${error.stack.split('\n')[1]}`));
+        console.log(
+          chalk.gray(`   Stack trace: ${error.stack.split('\n')[1]}`)
+        );
       }
     }
 
@@ -315,14 +391,22 @@ class ErrorHandler {
 
     // Additional context-specific help
     if (context.command) {
-      console.log(outputFormatter.info(`📖 For help with the '${context.command}' command:`));
+      console.log(
+        outputFormatter.info(
+          `📖 For help with the '${context.command}' command:`
+        )
+      );
       console.log(`   Run: ${chalk.cyan(`mdsaad ${context.command} --help`)}`);
       console.log();
     }
 
     // Auto-retry information
     if (recovery.autoRetry && context.retryCount < (recovery.maxRetries || 0)) {
-      console.log(chalk.yellow(`🔄 Auto-retry in ${(recovery.retryDelay || 1000) / 1000} seconds... (${context.retryCount + 1}/${recovery.maxRetries})`));
+      console.log(
+        chalk.yellow(
+          `🔄 Auto-retry in ${(recovery.retryDelay || 1000) / 1000} seconds... (${context.retryCount + 1}/${recovery.maxRetries})`
+        )
+      );
     }
   }
 
@@ -331,9 +415,13 @@ class ErrorHandler {
    */
   async attemptAutoRecovery(error, classification, recovery, context) {
     context.retryCount = (context.retryCount || 0) + 1;
-    
-    console.log(chalk.yellow(`🔄 Attempting automatic recovery... (attempt ${context.retryCount}/${recovery.maxRetries})`));
-    
+
+    console.log(
+      chalk.yellow(
+        `🔄 Attempting automatic recovery... (attempt ${context.retryCount}/${recovery.maxRetries})`
+      )
+    );
+
     // Wait for retry delay
     if (recovery.retryDelay) {
       await new Promise(resolve => setTimeout(resolve, recovery.retryDelay));
@@ -341,16 +429,24 @@ class ErrorHandler {
 
     try {
       // If the context has a retry function, use it
-      if (context.retryFunction && typeof context.retryFunction === 'function') {
+      if (
+        context.retryFunction &&
+        typeof context.retryFunction === 'function'
+      ) {
         await context.retryFunction();
-        console.log(outputFormatter.success('✅ Automatic recovery successful'));
+        console.log(
+          outputFormatter.success('✅ Automatic recovery successful')
+        );
         return { handled: true, recovered: true };
       }
 
       return { handled: true, recovered: false, needsManualIntervention: true };
     } catch (retryError) {
       console.log(outputFormatter.warning('⚠️ Automatic recovery failed'));
-      return await this.handleError(retryError, { ...context, skipAutoRetry: true });
+      return await this.handleError(retryError, {
+        ...context,
+        skipAutoRetry: true,
+      });
     }
   }
 
@@ -364,12 +460,16 @@ class ErrorHandler {
       switch (classification.type) {
         case 'CONFIG_CORRUPTED':
           return await this.fixCorruptedConfig();
-        
+
         case 'FILE_NOT_FOUND':
           return await this.createMissingFile(context);
-        
+
         default:
-          return { handled: true, recovered: false, needsManualIntervention: true };
+          return {
+            handled: true,
+            recovered: false,
+            needsManualIntervention: true,
+          };
       }
     } catch (fixError) {
       console.log(outputFormatter.warning('⚠️ Automatic fix failed'));
@@ -384,7 +484,9 @@ class ErrorHandler {
     try {
       const configManager = require('./config-manager');
       await configManager.reset('config');
-      console.log(outputFormatter.success('✅ Configuration reset to defaults'));
+      console.log(
+        outputFormatter.success('✅ Configuration reset to defaults')
+      );
       return { handled: true, recovered: true };
     } catch (error) {
       throw new Error(`Failed to reset configuration: ${error.message}`);
@@ -399,7 +501,11 @@ class ErrorHandler {
       try {
         await fs.ensureDir(path.dirname(context.expectedFile));
         await fs.writeFile(context.expectedFile, context.defaultContent);
-        console.log(outputFormatter.success(`✅ Created missing file: ${context.expectedFile}`));
+        console.log(
+          outputFormatter.success(
+            `✅ Created missing file: ${context.expectedFile}`
+          )
+        );
         return { handled: true, recovered: true };
       } catch (error) {
         throw new Error(`Failed to create file: ${error.message}`);
@@ -418,7 +524,7 @@ class ErrorHandler {
         message: error.message,
         name: error.name,
         code: error.code,
-        stack: error.stack
+        stack: error.stack,
       },
       classification,
       context: {
@@ -426,9 +532,9 @@ class ErrorHandler {
         args: context.args,
         platform: os.platform(),
         nodeVersion: process.version,
-        retryCount: context.retryCount || 0
+        retryCount: context.retryCount || 0,
       },
-      id: this.generateErrorId()
+      id: this.generateErrorId(),
     };
 
     this.errorLog.push(logEntry);
@@ -467,8 +573,8 @@ class ErrorHandler {
    */
   getErrorStatistics(days = 7) {
     const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const recentErrors = this.errorLog.filter(entry => 
-      new Date(entry.timestamp) > cutoffDate
+    const recentErrors = this.errorLog.filter(
+      entry => new Date(entry.timestamp) > cutoffDate
     );
 
     const stats = {
@@ -476,7 +582,7 @@ class ErrorHandler {
       byCategory: {},
       byType: {},
       bySeverity: {},
-      byDay: {}
+      byDay: {},
     };
 
     recentErrors.forEach(entry => {
@@ -506,11 +612,16 @@ class ErrorHandler {
    */
   getSeverityIcon(severity) {
     switch (severity) {
-      case this.severityLevels.CRITICAL: return '🚨';
-      case this.severityLevels.HIGH: return '❌';
-      case this.severityLevels.MEDIUM: return '⚠️';
-      case this.severityLevels.LOW: return '💡';
-      default: return 'ℹ️';
+      case this.severityLevels.CRITICAL:
+        return '🚨';
+      case this.severityLevels.HIGH:
+        return '❌';
+      case this.severityLevels.MEDIUM:
+        return '⚠️';
+      case this.severityLevels.LOW:
+        return '💡';
+      default:
+        return 'ℹ️';
     }
   }
 
@@ -519,11 +630,16 @@ class ErrorHandler {
    */
   getSeverityColor(severity) {
     switch (severity) {
-      case this.severityLevels.CRITICAL: return 'redBright';
-      case this.severityLevels.HIGH: return 'red';
-      case this.severityLevels.MEDIUM: return 'yellow';
-      case this.severityLevels.LOW: return 'blue';
-      default: return 'cyan';
+      case this.severityLevels.CRITICAL:
+        return 'redBright';
+      case this.severityLevels.HIGH:
+        return 'red';
+      case this.severityLevels.MEDIUM:
+        return 'yellow';
+      case this.severityLevels.LOW:
+        return 'blue';
+      default:
+        return 'cyan';
     }
   }
 

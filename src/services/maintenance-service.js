@@ -32,7 +32,9 @@ class MaintenanceService {
       debugService.debug('Maintenance service initialized');
       return true;
     } catch (error) {
-      debugService.debug('Maintenance service initialization failed', { error: error.message });
+      debugService.debug('Maintenance service initialization failed', {
+        error: error.message,
+      });
       return false;
     }
   }
@@ -46,7 +48,7 @@ class MaintenanceService {
       deletedFiles: 0,
       totalSize: 0,
       freedSpace: 0,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -58,23 +60,26 @@ class MaintenanceService {
       results.totalSize = cacheStats.size;
 
       const cacheDir = cacheService.getCacheDir();
-      
+
       if (await fs.pathExists(cacheDir)) {
         const files = await fs.readdir(cacheDir);
-        
+
         for (const file of files) {
           const filePath = path.join(cacheDir, file);
           const stats = await fs.stat(filePath);
-          
+
           let shouldDelete = false;
-          
+
           if (options.all) {
             shouldDelete = true;
           } else if (options.expired) {
             // Check if cache entry is expired
             try {
               const cacheData = await fs.readJson(filePath);
-              if (cacheData.expiresAt && new Date(cacheData.expiresAt) < new Date()) {
+              if (
+                cacheData.expiresAt &&
+                new Date(cacheData.expiresAt) < new Date()
+              ) {
                 shouldDelete = true;
               }
             } catch (error) {
@@ -82,12 +87,13 @@ class MaintenanceService {
               shouldDelete = true;
             }
           } else if (options.olderThan) {
-            const ageInDays = (Date.now() - stats.mtime.getTime()) / (1000 * 60 * 60 * 24);
+            const ageInDays =
+              (Date.now() - stats.mtime.getTime()) / (1000 * 60 * 60 * 24);
             if (ageInDays > options.olderThan) {
               shouldDelete = true;
             }
           }
-          
+
           if (shouldDelete) {
             try {
               await fs.remove(filePath);
@@ -116,13 +122,13 @@ class MaintenanceService {
     const results = {
       deletedFiles: 0,
       freedSpace: 0,
-      errors: []
+      errors: [],
     };
 
     try {
       if (await fs.pathExists(this.tempDir)) {
         const files = await fs.readdir(this.tempDir);
-        
+
         for (const file of files) {
           const filePath = path.join(this.tempDir, file);
           try {
@@ -131,7 +137,9 @@ class MaintenanceService {
             results.deletedFiles++;
             results.freedSpace += stats.size;
           } catch (error) {
-            results.errors.push(`Failed to delete temp file ${file}: ${error.message}`);
+            results.errors.push(
+              `Failed to delete temp file ${file}: ${error.message}`
+            );
           }
         }
       }
@@ -152,14 +160,14 @@ class MaintenanceService {
     const results = {
       deletedFiles: 0,
       freedSpace: 0,
-      errors: []
+      errors: [],
     };
 
     try {
       if (await fs.pathExists(this.logsDir)) {
         const files = await fs.readdir(this.logsDir);
-        const cutoffDate = Date.now() - (maxAgeDays * 24 * 60 * 60 * 1000);
-        
+        const cutoffDate = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
+
         for (const file of files) {
           const filePath = path.join(this.logsDir, file);
           try {
@@ -170,7 +178,9 @@ class MaintenanceService {
               results.freedSpace += stats.size;
             }
           } catch (error) {
-            results.errors.push(`Failed to delete log file ${file}: ${error.message}`);
+            results.errors.push(
+              `Failed to delete log file ${file}: ${error.message}`
+            );
           }
         }
       }
@@ -196,15 +206,15 @@ class MaintenanceService {
       cache: await this.getCacheStatus(),
       network: await this.getNetworkStatus(),
       permissions: await this.getPermissionsStatus(),
-      health: { overall: 'unknown', issues: [] }
+      health: { overall: 'unknown', issues: [] },
     };
 
     // Analyze diagnostic results
     diagnostics.health = this.analyzeHealth(diagnostics);
 
-    debugService.debug('Diagnostics completed', { 
-      overall: diagnostics.health.overall, 
-      issues: diagnostics.health.issues.length 
+    debugService.debug('Diagnostics completed', {
+      overall: diagnostics.health.overall,
+      issues: diagnostics.health.issues.length,
     });
 
     return diagnostics;
@@ -227,12 +237,15 @@ class MaintenanceService {
       npmVersion: null,
       shell: process.env.SHELL || process.env.COMSPEC,
       home: os.homedir(),
-      tempDir: os.tmpdir()
+      tempDir: os.tmpdir(),
     };
 
     // Get npm version
     try {
-      systemInfo.npmVersion = execSync('npm --version', { encoding: 'utf8', timeout: 5000 }).trim();
+      systemInfo.npmVersion = execSync('npm --version', {
+        encoding: 'utf8',
+        timeout: 5000,
+      }).trim();
     } catch (error) {
       systemInfo.npmVersion = 'unknown';
     }
@@ -245,17 +258,19 @@ class MaintenanceService {
    */
   async getMdsaadInfo() {
     const packageJson = require('../../package.json');
-    
+
     const mdsaadInfo = {
       version: packageJson.version,
       installPath: __dirname,
       configDir: this.mdsaadDir,
-      configExists: await fs.pathExists(path.join(this.mdsaadDir, 'config.json')),
+      configExists: await fs.pathExists(
+        path.join(this.mdsaadDir, 'config.json')
+      ),
       cacheDir: path.join(this.mdsaadDir, 'cache'),
       cacheExists: await fs.pathExists(path.join(this.mdsaadDir, 'cache')),
       pluginsDir: path.join(this.mdsaadDir, 'plugins'),
       pluginsExists: await fs.pathExists(path.join(this.mdsaadDir, 'plugins')),
-      dependencies: packageJson.dependencies
+      dependencies: packageJson.dependencies,
     };
 
     return mdsaadInfo;
@@ -270,7 +285,7 @@ class MaintenanceService {
       valid: false,
       version: null,
       keys: [],
-      issues: []
+      issues: [],
     };
 
     try {
@@ -281,7 +296,9 @@ class MaintenanceService {
         const config = configService.getAll();
         configStatus.valid = true;
         configStatus.version = config.version;
-        configStatus.keys = Object.keys(config).filter(key => key !== 'version');
+        configStatus.keys = Object.keys(config).filter(
+          key => key !== 'version'
+        );
 
         // Check for required configurations
         const requiredKeys = ['language'];
@@ -310,14 +327,14 @@ class MaintenanceService {
       return {
         ...stats,
         healthy: true,
-        issues: []
+        issues: [],
       };
     } catch (error) {
       return {
         files: 0,
         size: 0,
         healthy: false,
-        issues: [`Cache error: ${error.message}`]
+        issues: [`Cache error: ${error.message}`],
       };
     }
   }
@@ -329,7 +346,7 @@ class MaintenanceService {
     const networkStatus = {
       connected: false,
       apiReachable: {},
-      issues: []
+      issues: [],
     };
 
     // Test basic connectivity
@@ -345,7 +362,7 @@ class MaintenanceService {
     const apis = [
       { name: 'WeatherAPI', url: 'https://api.weatherapi.com' },
       { name: 'ExchangeRate-API', url: 'https://api.exchangerate-api.com' },
-      { name: 'npm Registry', url: 'https://registry.npmjs.org' }
+      { name: 'npm Registry', url: 'https://registry.npmjs.org' },
     ];
 
     for (const api of apis) {
@@ -369,19 +386,22 @@ class MaintenanceService {
   testConnection(url, timeout = 5000) {
     const https = require('https');
     const { URL } = require('url');
-    
+
     return new Promise((resolve, reject) => {
       const parsedUrl = new URL(url);
-      
-      const request = https.request({
-        hostname: parsedUrl.hostname,
-        port: parsedUrl.port || 443,
-        path: '/',
-        method: 'HEAD',
-        timeout
-      }, (response) => {
-        resolve(response.statusCode < 400);
-      });
+
+      const request = https.request(
+        {
+          hostname: parsedUrl.hostname,
+          port: parsedUrl.port || 443,
+          path: '/',
+          method: 'HEAD',
+          timeout,
+        },
+        response => {
+          resolve(response.statusCode < 400);
+        }
+      );
 
       request.on('error', reject);
       request.on('timeout', () => {
@@ -401,7 +421,7 @@ class MaintenanceService {
       configDirReadable: false,
       configDirWritable: false,
       tempDirWritable: false,
-      issues: []
+      issues: [],
     };
 
     try {
@@ -437,7 +457,7 @@ class MaintenanceService {
       overall: 'healthy',
       issues: [],
       warnings: [],
-      recommendations: []
+      recommendations: [],
     };
 
     // Check configuration health
@@ -465,7 +485,8 @@ class MaintenanceService {
     }
 
     // Check disk space
-    const freeSpacePercent = (diagnostics.system.freeMemory / diagnostics.system.totalMemory) * 100;
+    const freeSpacePercent =
+      (diagnostics.system.freeMemory / diagnostics.system.totalMemory) * 100;
     if (freeSpacePercent < 10) {
       health.warnings.push('Low system memory available');
       if (health.overall === 'healthy') {
@@ -475,15 +496,21 @@ class MaintenanceService {
 
     // Generate recommendations
     if (diagnostics.cache.files > 100) {
-      health.recommendations.push('Consider cleaning cache with: mdsaad maintenance --clean-cache');
+      health.recommendations.push(
+        'Consider cleaning cache with: mdsaad maintenance --clean-cache'
+      );
     }
 
     if (!diagnostics.network.connected) {
-      health.recommendations.push('Check your internet connection for full functionality');
+      health.recommendations.push(
+        'Check your internet connection for full functionality'
+      );
     }
 
     if (diagnostics.configuration.issues.length > 0) {
-      health.recommendations.push('Fix configuration issues with: mdsaad config --setup');
+      health.recommendations.push(
+        'Fix configuration issues with: mdsaad config --setup'
+      );
     }
 
     return health;
@@ -519,7 +546,9 @@ class MaintenanceService {
 
       return { success: true, migrated: false };
     } catch (error) {
-      debugService.debug('Configuration migration failed', { error: error.message });
+      debugService.debug('Configuration migration failed', {
+        error: error.message,
+      });
       return { success: false, error: error.message };
     }
   }
@@ -533,7 +562,7 @@ class MaintenanceService {
       cacheCleared: false,
       tempCleared: false,
       logsCleared: false,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -577,7 +606,7 @@ class MaintenanceService {
       temp: 0,
       logs: 0,
       plugins: 0,
-      other: 0
+      other: 0,
     };
 
     try {
@@ -587,9 +616,9 @@ class MaintenanceService {
         for (const item of items) {
           const itemPath = path.join(this.mdsaadDir, item.name);
           const size = await this.getDirectorySize(itemPath);
-          
+
           stats.total += size;
-          
+
           switch (item.name) {
             case 'config.json':
               stats.config += size;
@@ -614,7 +643,9 @@ class MaintenanceService {
 
       return stats;
     } catch (error) {
-      debugService.debug('Failed to get storage stats', { error: error.message });
+      debugService.debug('Failed to get storage stats', {
+        error: error.message,
+      });
       return stats;
     }
   }
@@ -625,23 +656,23 @@ class MaintenanceService {
   async getDirectorySize(dirPath) {
     try {
       const stats = await fs.stat(dirPath);
-      
+
       if (stats.isFile()) {
         return stats.size;
       }
-      
+
       if (stats.isDirectory()) {
         const files = await fs.readdir(dirPath);
         let totalSize = 0;
-        
+
         for (const file of files) {
           const filePath = path.join(dirPath, file);
           totalSize += await this.getDirectorySize(filePath);
         }
-        
+
         return totalSize;
       }
-      
+
       return 0;
     } catch (error) {
       return 0;
@@ -653,11 +684,11 @@ class MaintenanceService {
    */
   formatBytes(bytes) {
     if (bytes === 0) return '0 B';
-    
+
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }

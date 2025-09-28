@@ -25,16 +25,20 @@ class InstallationService {
       await platformService.initialize();
       this.packageManagers = platformService.availablePackageManagers;
       this.detectInstallationMethods();
-      
+
       this.isInitialized = true;
       debugService.debug('Installation service initialized', {
-        packageManagers: Object.keys(this.packageManagers).filter(pm => this.packageManagers[pm].available),
-        methods: this.installationMethods.length
+        packageManagers: Object.keys(this.packageManagers).filter(
+          pm => this.packageManagers[pm].available
+        ),
+        methods: this.installationMethods.length,
       });
-      
+
       return true;
     } catch (error) {
-      debugService.debug('Installation service initialization failed', { error: error.message });
+      debugService.debug('Installation service initialization failed', {
+        error: error.message,
+      });
       return false;
     }
   }
@@ -53,7 +57,7 @@ class InstallationService {
           manager,
           version: info.version,
           global: info.global,
-          recommended: manager === 'npm' // npm is most common
+          recommended: manager === 'npm', // npm is most common
         });
       }
     }
@@ -63,7 +67,7 @@ class InstallationService {
       type: 'source',
       manager: 'git',
       description: 'Install from source code',
-      recommended: false
+      recommended: false,
     });
 
     // Binary installation (future enhancement)
@@ -72,7 +76,7 @@ class InstallationService {
       manager: 'manual',
       description: 'Download pre-built binary',
       recommended: false,
-      available: false // Not implemented yet
+      available: false, // Not implemented yet
     });
   }
 
@@ -88,15 +92,15 @@ class InstallationService {
       global: false,
       packageManager: null,
       issues: [],
-      recommendations: []
+      recommendations: [],
     };
 
     try {
       // Check if mdsaad command is available
-      const output = execSync('mdsaad --version', { 
-        encoding: 'utf8', 
+      const output = execSync('mdsaad --version', {
+        encoding: 'utf8',
         timeout: 5000,
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       verification.installed = true;
@@ -104,7 +108,6 @@ class InstallationService {
 
       // Determine installation method and location
       await this.detectInstallationDetails(verification);
-
     } catch (error) {
       verification.installed = false;
       verification.issues.push('mdsaad command not found in PATH');
@@ -126,7 +129,7 @@ class InstallationService {
 
       try {
         let command, checkPattern;
-        
+
         switch (manager) {
           case 'npm':
             command = 'npm list -g mdsaad --depth=0';
@@ -144,10 +147,10 @@ class InstallationService {
             continue;
         }
 
-        const output = execSync(command, { 
-          encoding: 'utf8', 
+        const output = execSync(command, {
+          encoding: 'utf8',
           timeout: 10000,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
 
         const match = output.match(checkPattern);
@@ -166,15 +169,17 @@ class InstallationService {
     // If not found in package managers, check for local/source installation
     if (verification.method === 'unknown') {
       try {
-        const whichCommand = platformService.isWindows ? 'where mdsaad' : 'which mdsaad';
-        const location = execSync(whichCommand, { 
-          encoding: 'utf8', 
+        const whichCommand = platformService.isWindows
+          ? 'where mdsaad'
+          : 'which mdsaad';
+        const location = execSync(whichCommand, {
+          encoding: 'utf8',
           timeout: 5000,
-          stdio: 'pipe'
+          stdio: 'pipe',
         }).trim();
 
         verification.location = location;
-        
+
         // Determine if it's a source installation
         if (location.includes('node_modules') && !location.includes('global')) {
           verification.method = 'local-package';
@@ -198,7 +203,7 @@ class InstallationService {
   async getGlobalPackageLocation(manager) {
     try {
       let command;
-      
+
       switch (manager) {
         case 'npm':
           command = 'npm root -g';
@@ -213,10 +218,10 @@ class InstallationService {
           return 'unknown';
       }
 
-      const globalRoot = execSync(command, { 
-        encoding: 'utf8', 
+      const globalRoot = execSync(command, {
+        encoding: 'utf8',
         timeout: 5000,
-        stdio: 'pipe'
+        stdio: 'pipe',
       }).trim();
 
       return path.join(globalRoot, 'mdsaad');
@@ -242,10 +247,16 @@ class InstallationService {
     if (verification.installed && verification.global) {
       const pathDirs = (process.env.PATH || '').split(path.delimiter);
       const installDir = path.dirname(verification.location || '');
-      
-      if (!pathDirs.some(dir => path.resolve(dir) === path.resolve(installDir))) {
-        verification.issues.push(`Installation directory not in PATH: ${installDir}`);
-        verification.recommendations.push('Add the installation directory to your PATH environment variable');
+
+      if (
+        !pathDirs.some(dir => path.resolve(dir) === path.resolve(installDir))
+      ) {
+        verification.issues.push(
+          `Installation directory not in PATH: ${installDir}`
+        );
+        verification.recommendations.push(
+          'Add the installation directory to your PATH environment variable'
+        );
       }
     }
 
@@ -255,10 +266,17 @@ class InstallationService {
     // Check permissions
     if (verification.location && verification.location !== 'unknown') {
       try {
-        await fs.access(verification.location, fs.constants.R_OK | fs.constants.X_OK);
+        await fs.access(
+          verification.location,
+          fs.constants.R_OK | fs.constants.X_OK
+        );
       } catch (error) {
-        verification.issues.push('Insufficient permissions to access installation');
-        verification.recommendations.push('Check file permissions or reinstall with appropriate privileges');
+        verification.issues.push(
+          'Insufficient permissions to access installation'
+        );
+        verification.recommendations.push(
+          'Check file permissions or reinstall with appropriate privileges'
+        );
       }
     }
   }
@@ -278,7 +296,12 @@ class InstallationService {
 
     // Check for local installations
     try {
-      const localPackageJson = path.join(process.cwd(), 'node_modules', 'mdsaad', 'package.json');
+      const localPackageJson = path.join(
+        process.cwd(),
+        'node_modules',
+        'mdsaad',
+        'package.json'
+      );
       if (await fs.pathExists(localPackageJson)) {
         installations.push({ manager: 'local', type: 'local-package' });
       }
@@ -288,7 +311,9 @@ class InstallationService {
 
     if (installations.length > 1) {
       verification.issues.push('Multiple installations detected');
-      verification.recommendations.push('Uninstall conflicting versions to avoid confusion');
+      verification.recommendations.push(
+        'Uninstall conflicting versions to avoid confusion'
+      );
       verification.multipleInstallations = installations;
     }
   }
@@ -298,15 +323,16 @@ class InstallationService {
    */
   generateInstallationInstructions() {
     const instructions = platformService.getInstallationInstructions();
-    const availableManagers = Object.keys(this.packageManagers)
-      .filter(manager => this.packageManagers[manager].available);
+    const availableManagers = Object.keys(this.packageManagers).filter(
+      manager => this.packageManagers[manager].available
+    );
 
     return {
       ...instructions,
       availableManagers,
       recommended: this.getRecommendedInstallationMethod(),
       platformNotes: instructions.notes,
-      troubleshooting: this.getTroubleshootingTips()
+      troubleshooting: this.getTroubleshootingTips(),
     };
   }
 
@@ -316,21 +342,25 @@ class InstallationService {
   getRecommendedInstallationMethod() {
     // Prefer npm if available, then yarn, then pnpm
     const preference = ['npm', 'yarn', 'pnpm'];
-    
+
     for (const manager of preference) {
       if (this.packageManagers[manager]?.available) {
         return {
           manager,
           command: `${manager} install -g mdsaad`,
-          reason: manager === 'npm' ? 'Most widely supported' : 'Available on your system'
+          reason:
+            manager === 'npm'
+              ? 'Most widely supported'
+              : 'Available on your system',
         };
       }
     }
 
     return {
       manager: 'source',
-      command: 'git clone https://github.com/mdsaad/mdsaad-cli.git && cd mdsaad-cli && npm install',
-      reason: 'Package managers not available'
+      command:
+        'git clone https://github.com/mdsaad/mdsaad-cli.git && cd mdsaad-cli && npm install',
+      reason: 'Package managers not available',
     };
   }
 
@@ -344,56 +374,61 @@ class InstallationService {
     if (platformService.isWindows) {
       tips.push({
         issue: 'Permission denied during installation',
-        solution: 'Run PowerShell as Administrator or use --force flag'
+        solution: 'Run PowerShell as Administrator or use --force flag',
       });
       tips.push({
         issue: 'Command not found after installation',
-        solution: 'Restart your terminal or check if npm global path is in your PATH'
+        solution:
+          'Restart your terminal or check if npm global path is in your PATH',
       });
       tips.push({
         issue: 'Antivirus blocking installation',
-        solution: 'Temporarily disable antivirus or add Node.js/npm to exceptions'
+        solution:
+          'Temporarily disable antivirus or add Node.js/npm to exceptions',
       });
     } else if (platformService.isMacOS) {
       tips.push({
         issue: 'Permission denied during global installation',
-        solution: 'Use sudo npm install -g mdsaad or configure npm prefix'
+        solution: 'Use sudo npm install -g mdsaad or configure npm prefix',
       });
       tips.push({
         issue: 'Command not found after installation',
-        solution: 'Add npm global bin directory to your PATH in ~/.bash_profile or ~/.zshrc'
+        solution:
+          'Add npm global bin directory to your PATH in ~/.bash_profile or ~/.zshrc',
       });
       tips.push({
         issue: 'Node.js not found',
-        solution: 'Install Node.js via Homebrew: brew install node'
+        solution: 'Install Node.js via Homebrew: brew install node',
       });
     } else {
       tips.push({
         issue: 'Permission denied during global installation',
-        solution: 'Use sudo npm install -g mdsaad or configure npm prefix'
+        solution: 'Use sudo npm install -g mdsaad or configure npm prefix',
       });
       tips.push({
         issue: 'Node.js not available',
-        solution: 'Install via package manager: apt install nodejs npm or yum install nodejs npm'
+        solution:
+          'Install via package manager: apt install nodejs npm or yum install nodejs npm',
       });
       tips.push({
         issue: 'Command not found after installation',
-        solution: 'Add ~/.npm-global/bin to your PATH or use npx mdsaad'
+        solution: 'Add ~/.npm-global/bin to your PATH or use npx mdsaad',
       });
     }
 
     // General tips
     tips.push({
       issue: 'Outdated npm version',
-      solution: 'Update npm: npm install -g npm@latest'
+      solution: 'Update npm: npm install -g npm@latest',
     });
     tips.push({
       issue: 'Network connectivity issues',
-      solution: 'Use npm config set registry https://registry.npmjs.org/ and check proxy settings'
+      solution:
+        'Use npm config set registry https://registry.npmjs.org/ and check proxy settings',
     });
     tips.push({
       issue: 'Installation hangs or fails',
-      solution: 'Clear npm cache: npm cache clean --force and try again'
+      solution: 'Clear npm cache: npm cache clean --force and try again',
     });
 
     return tips;
@@ -411,7 +446,7 @@ class InstallationService {
       duration: 0,
       output: [],
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     const startTime = Date.now();
@@ -445,10 +480,10 @@ class InstallationService {
       // Execute installation command
       if (dryRun) {
         // Dry run - just check if command would work
-        const output = execSync(command, { 
-          encoding: 'utf8', 
+        const output = execSync(command, {
+          encoding: 'utf8',
           timeout: 30000,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
         test.output.push(output);
         test.success = true;
@@ -457,7 +492,6 @@ class InstallationService {
         test.warnings.push('Actual installation not recommended in test mode');
         test.success = false;
       }
-
     } catch (error) {
       test.errors.push(error.message);
       test.success = false;
@@ -474,7 +508,7 @@ class InstallationService {
     const instructions = {
       packageManager: {},
       manual: [],
-      cleanup: []
+      cleanup: [],
     };
 
     // Package manager uninstallation
@@ -497,14 +531,16 @@ class InstallationService {
     // Manual cleanup
     const configDir = platformService.getConfigDirectory();
     const cacheDir = platformService.getCacheDirectory();
-    
+
     instructions.manual.push(`Remove configuration directory: ${configDir}`);
     instructions.manual.push(`Remove cache directory: ${cacheDir}`);
-    
+
     if (platformService.isWindows) {
       instructions.manual.push('Remove from Windows PATH if manually added');
     } else {
-      instructions.manual.push('Remove from shell profile (.bashrc, .zshrc) if manually added');
+      instructions.manual.push(
+        'Remove from shell profile (.bashrc, .zshrc) if manually added'
+      );
     }
 
     // Cleanup commands
@@ -522,7 +558,7 @@ class InstallationService {
       overall: true,
       managers: {},
       issues: [],
-      recommendations: []
+      recommendations: [],
     };
 
     for (const [manager, info] of Object.entries(this.packageManagers)) {
@@ -531,16 +567,16 @@ class InstallationService {
         version: info.version,
         globalPath: null,
         issues: [],
-        working: false
+        working: false,
       };
 
       if (info.available) {
         try {
           // Test basic functionality
-          const testOutput = execSync(`${manager} --version`, { 
-            encoding: 'utf8', 
+          const testOutput = execSync(`${manager} --version`, {
+            encoding: 'utf8',
             timeout: 5000,
-            stdio: 'pipe'
+            stdio: 'pipe',
           });
 
           managerValidation.working = true;
@@ -561,10 +597,10 @@ class InstallationService {
             }
 
             if (pathCommand) {
-              const globalPath = execSync(pathCommand, { 
-                encoding: 'utf8', 
+              const globalPath = execSync(pathCommand, {
+                encoding: 'utf8',
                 timeout: 5000,
-                stdio: 'pipe'
+                stdio: 'pipe',
               }).trim();
 
               managerValidation.globalPath = globalPath;
@@ -580,17 +616,24 @@ class InstallationService {
               });
 
               if (!inPath) {
-                managerValidation.issues.push('Global bin directory not in PATH');
-                validation.recommendations.push(`Add ${globalPath} to your PATH environment variable`);
+                managerValidation.issues.push(
+                  'Global bin directory not in PATH'
+                );
+                validation.recommendations.push(
+                  `Add ${globalPath} to your PATH environment variable`
+                );
               }
             }
           } catch (error) {
-            managerValidation.issues.push('Unable to determine global installation path');
+            managerValidation.issues.push(
+              'Unable to determine global installation path'
+            );
           }
-
         } catch (error) {
           managerValidation.working = false;
-          managerValidation.issues.push(`Package manager test failed: ${error.message}`);
+          managerValidation.issues.push(
+            `Package manager test failed: ${error.message}`
+          );
           validation.overall = false;
         }
       }
@@ -599,11 +642,15 @@ class InstallationService {
     }
 
     // Check if at least one package manager is working
-    const workingManagers = Object.values(validation.managers).filter(m => m.working);
+    const workingManagers = Object.values(validation.managers).filter(
+      m => m.working
+    );
     if (workingManagers.length === 0) {
       validation.overall = false;
       validation.issues.push('No working package managers found');
-      validation.recommendations.push('Install Node.js and npm from https://nodejs.org/');
+      validation.recommendations.push(
+        'Install Node.js and npm from https://nodejs.org/'
+      );
     }
 
     return validation;
@@ -622,7 +669,7 @@ class InstallationService {
         name: `${manager.toUpperCase()} Package Manager`,
         command: `${manager} install -g mdsaad`,
         available: info.available,
-        notes: null
+        notes: null,
       };
 
       switch (manager) {
@@ -659,9 +706,10 @@ class InstallationService {
     // Add manual installation method
     methods.push({
       name: 'Manual Installation',
-      command: 'git clone https://github.com/yourusername/mdsaad.git && cd mdsaad && npm install && npm link',
+      command:
+        'git clone https://github.com/yourusername/mdsaad.git && cd mdsaad && npm install && npm link',
       available: true,
-      notes: 'For development or if package managers are not available'
+      notes: 'For development or if package managers are not available',
     });
 
     return methods;
@@ -678,7 +726,7 @@ class InstallationService {
         name,
         version: info.version,
         available: info.available,
-        global: info.global
+        global: info.global,
       });
     }
 
@@ -696,34 +744,38 @@ class InstallationService {
       global: false,
       method: 'unknown',
       issues: [],
-      conflicts: []
+      conflicts: [],
     };
 
     try {
       // Try to run mdsaad version command
       const { execSync } = require('child_process');
-      const output = execSync('mdsaad --version', { 
-        encoding: 'utf8', 
+      const output = execSync('mdsaad --version', {
+        encoding: 'utf8',
         timeout: 5000,
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       verification.installed = true;
       verification.version = output.trim().replace(/^.*v?/, ''); // Extract version number
-      
+
       // Try to find installation path
       try {
-        const whichOutput = execSync(platformService.isWindows ? 'where mdsaad' : 'which mdsaad', {
-          encoding: 'utf8',
-          timeout: 3000,
-          stdio: 'pipe'
-        });
+        const whichOutput = execSync(
+          platformService.isWindows ? 'where mdsaad' : 'which mdsaad',
+          {
+            encoding: 'utf8',
+            timeout: 3000,
+            stdio: 'pipe',
+          }
+        );
         verification.path = whichOutput.trim().split('\n')[0];
-        
+
         // Determine if it's global installation
-        verification.global = verification.path.includes('global') || 
-                            !verification.path.includes('node_modules') ||
-                            verification.path.includes('bin');
+        verification.global =
+          verification.path.includes('global') ||
+          !verification.path.includes('node_modules') ||
+          verification.path.includes('bin');
       } catch (error) {
         verification.issues.push('Could not determine installation path');
       }
@@ -742,14 +794,15 @@ class InstallationService {
       // Check for conflicts (multiple installations)
       const conflicts = await this.detectMultipleInstallations();
       if (conflicts.length > 1) {
-        verification.conflicts = conflicts.map(c => 
-          `Multiple installations found: ${c.manager} at ${c.path}`
+        verification.conflicts = conflicts.map(
+          c => `Multiple installations found: ${c.manager} at ${c.path}`
         );
       }
-
     } catch (error) {
       verification.installed = false;
-      verification.issues.push(`Installation verification failed: ${error.message}`);
+      verification.issues.push(
+        `Installation verification failed: ${error.message}`
+      );
     }
 
     return verification;
@@ -763,16 +816,24 @@ class InstallationService {
 
     if (platformService.isWindows) {
       tips.push('If installation fails: Run PowerShell as Administrator');
-      tips.push('If command not found: Restart terminal or check PATH variable');
+      tips.push(
+        'If command not found: Restart terminal or check PATH variable'
+      );
       tips.push('If antivirus blocks: Add npm/node to antivirus exceptions');
     } else if (platformService.isMacOS) {
       tips.push('If permission denied: Use sudo or configure npm prefix');
-      tips.push('If command not found: Add npm global bin to PATH in shell profile');
-      tips.push('If Node.js missing: Install with Homebrew - brew install node');
+      tips.push(
+        'If command not found: Add npm global bin to PATH in shell profile'
+      );
+      tips.push(
+        'If Node.js missing: Install with Homebrew - brew install node'
+      );
     } else {
       tips.push('If permission denied: Use sudo or configure npm prefix');
       tips.push('If command not found: Add ~/.npm-global/bin to PATH');
-      tips.push('If Node.js missing: Install from package manager or nodejs.org');
+      tips.push(
+        'If Node.js missing: Install from package manager or nodejs.org'
+      );
     }
 
     // General tips

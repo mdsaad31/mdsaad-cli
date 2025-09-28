@@ -1,15 +1,15 @@
 /**
  * MDSAAD API Configuration - Proxy-First Architecture
- * 
+ *
  * 🚀 ZERO SETUP REQUIRED: This CLI uses a proxy server - no API keys needed!
- * 
+ *
  * How it works:
  * 1. CLI sends requests to proxy server (managed by MDSAAD)
  * 2. Proxy server handles all API calls with secure keys
  * 3. Users get instant access without any configuration
- * 
+ *
  * Fallback: Direct API keys only used if proxy server is unavailable
- * 
+ *
  * SECURITY: No sensitive API keys stored in this codebase
  */
 
@@ -32,15 +32,19 @@ function loadApiKeys() {
     // Proxy API Configuration (primary method)
     proxy: {
       enabled: true,
-      baseUrl: process.env.MDSAAD_PROXY_URL || config.proxyUrl || 'https://mdsaad-proxy-api.onrender.com',
+      baseUrl:
+        process.env.MDSAAD_PROXY_URL ||
+        config.proxyUrl ||
+        'https://mdsaad-proxy-api.onrender.com',
       timeout: 30000,
-      retries: 3
+      retries: 3,
     },
-    
+
     // AI Service Configuration (fallback only)
     ai: {
       openrouter: {
-        apiKey: process.env.OPENROUTER_API_KEY || config.apiKeys?.openrouter || null,
+        apiKey:
+          process.env.OPENROUTER_API_KEY || config.apiKeys?.openrouter || null,
         baseUrl: 'https://openrouter.ai/api',
         models: {
           'deepseek-chat': 'deepseek/deepseek-chat',
@@ -48,9 +52,9 @@ function loadApiKeys() {
           'llama-3.1-8b': 'meta-llama/llama-3.1-8b-instruct:free',
           'llama-3.1-70b': 'meta-llama/llama-3.1-70b-instruct:free',
           'mixtral-8x7b': 'mistralai/mixtral-8x7b-instruct:free',
-          'gemma-7b': 'google/gemma-7b-it:free'
+          'gemma-7b': 'google/gemma-7b-it:free',
         },
-        defaultModel: 'deepseek-chat'
+        defaultModel: 'deepseek-chat',
       },
       groq: {
         apiKey: process.env.GROQ_API_KEY || config.apiKeys?.groq || null,
@@ -59,62 +63,67 @@ function loadApiKeys() {
           'llama-3.1-8b': 'llama-3.1-8b-instant',
           'llama-3.1-70b': 'llama-3.1-70b-versatile',
           'mixtral-8x7b': 'mixtral-8x7b-32768',
-          'gemma-7b': 'gemma-7b-it'
+          'gemma-7b': 'gemma-7b-it',
         },
-        defaultModel: 'llama-3.1-8b'
+        defaultModel: 'llama-3.1-8b',
       },
       deepseek: {
-        apiKey: process.env.DEEPSEEK_API_KEY || config.apiKeys?.deepseek || null,
+        apiKey:
+          process.env.DEEPSEEK_API_KEY || config.apiKeys?.deepseek || null,
         baseUrl: 'https://api.deepseek.com',
         models: {
           'deepseek-chat': 'deepseek-chat',
-          'deepseek-coder': 'deepseek-coder'
+          'deepseek-coder': 'deepseek-coder',
         },
-        defaultModel: 'deepseek-chat'
+        defaultModel: 'deepseek-chat',
       },
       gemini: {
         apiKey: process.env.GEMINI_API_KEY || config.apiKeys?.gemini || null,
         baseUrl: 'https://generativelanguage.googleapis.com',
         models: {
           'gemini-pro': 'gemini-pro',
-          'gemini-1.5-flash': 'gemini-1.5-flash'
+          'gemini-1.5-flash': 'gemini-1.5-flash',
         },
-        defaultModel: 'gemini-pro'
-      }
+        defaultModel: 'gemini-pro',
+      },
     },
 
     // Provider priority order (first = highest priority)
     aiProviderPriority: ['openrouter', 'groq', 'deepseek', 'gemini'],
 
-    // Weather Service Configuration  
+    // Weather Service Configuration
     weather: {
       weatherapi: {
-        apiKey: process.env.WEATHERAPI_KEY || config.apiKeys?.weatherapi || null,
-        baseUrl: 'http://api.weatherapi.com/v1'
+        apiKey:
+          process.env.WEATHERAPI_KEY || config.apiKeys?.weatherapi || null,
+        baseUrl: 'http://api.weatherapi.com/v1',
       },
       openweathermap: {
-        apiKey: process.env.OPENWEATHERMAP_KEY || config.apiKeys?.openweathermap || null,
-        baseUrl: 'http://api.openweathermap.org/data/2.5'
-      }
+        apiKey:
+          process.env.OPENWEATHERMAP_KEY ||
+          config.apiKeys?.openweathermap ||
+          null,
+        baseUrl: 'http://api.openweathermap.org/data/2.5',
+      },
     },
 
     // Rate Limiting (optional - to prevent abuse)
     rateLimit: {
       ai: {
         requestsPerHour: 100,
-        requestsPerDay: 500
+        requestsPerDay: 500,
       },
       weather: {
         requestsPerHour: 200,
-        requestsPerDay: 1000
-      }
+        requestsPerDay: 1000,
+      },
     },
 
     // Usage Analytics (optional - to track usage)
     analytics: {
       enabled: false,
-      endpoint: 'https://api.your-domain.com/analytics'
-    }
+      endpoint: 'https://api.your-domain.com/analytics',
+    },
   };
 }
 
@@ -157,20 +166,24 @@ function saveUserConfig(config) {
  */
 function checkApiKeysConfigured() {
   const keys = loadApiKeys();
-  
+
   // With proxy, services are always available unless explicitly disabled
   const proxyEnabled = keys.proxy && keys.proxy.enabled !== false;
-  
+
   // Fallback API keys (only used if proxy fails)
-  const hasAiKey = keys.ai.openrouter.apiKey || keys.ai.groq.apiKey || 
-                   keys.ai.deepseek.apiKey || keys.ai.gemini.apiKey;
-  const hasWeatherKey = keys.weather.weatherapi.apiKey || keys.weather.openweathermap.apiKey;
-  
+  const hasAiKey =
+    keys.ai.openrouter.apiKey ||
+    keys.ai.groq.apiKey ||
+    keys.ai.deepseek.apiKey ||
+    keys.ai.gemini.apiKey;
+  const hasWeatherKey =
+    keys.weather.weatherapi.apiKey || keys.weather.openweathermap.apiKey;
+
   return {
     ai: proxyEnabled || !!hasAiKey,
     weather: proxyEnabled || !!hasWeatherKey,
     proxy: proxyEnabled,
-    hasAnyKeys: proxyEnabled || hasAiKey || hasWeatherKey
+    hasAnyKeys: proxyEnabled || hasAiKey || hasWeatherKey,
   };
 }
 
@@ -193,8 +206,8 @@ function getSetupInstructions() {
           '• All requests go through MDSAAD proxy server',
           '• No API keys or configuration needed from you',
           '• Free tier with generous usage limits',
-          '• Secure and reliable service'
-        ]
+          '• Secure and reliable service',
+        ],
       },
       {
         title: '🔧 Custom Proxy (Optional)',
@@ -204,8 +217,8 @@ function getSetupInstructions() {
           'Or in config file (~/.mdsaad/config.json):',
           '{',
           '  "proxyUrl": "your_proxy_server_url"',
-          '}'
-        ]
+          '}',
+        ],
       },
       {
         title: '🔑 Direct API Keys (Fallback)',
@@ -217,11 +230,11 @@ function getSetupInstructions() {
           '',
           'Get keys from:',
           '• OpenRouter: https://openrouter.ai/',
-          '• Groq: https://groq.com/', 
-          '• WeatherAPI: https://weatherapi.com/'
-        ]
-      }
-    ]
+          '• Groq: https://groq.com/',
+          '• WeatherAPI: https://weatherapi.com/',
+        ],
+      },
+    ],
   };
 }
 
@@ -234,5 +247,5 @@ module.exports = {
   checkApiKeysConfigured,
   getSetupInstructions,
   CONFIG_DIR,
-  CONFIG_FILE
+  CONFIG_FILE,
 };

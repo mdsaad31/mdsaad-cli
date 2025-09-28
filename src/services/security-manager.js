@@ -15,7 +15,7 @@ class SecurityManager {
     this.salt = 'mdsaad_cli_salt_2024';
     this.algorithm = 'aes-256-gcm';
     this.encryptionKey = 'mdsaad_default_key_2024';
-    
+
     // Security settings
     this.settings = {
       maxApiKeyAge: 90 * 24 * 60 * 60 * 1000, // 90 days
@@ -31,8 +31,8 @@ class SecurityManager {
         'api.groq.com',
         'generativelanguage.googleapis.com',
         'openrouter.ai',
-        'integrate.api.nvidia.com'
-      ]
+        'integrate.api.nvidia.com',
+      ],
     };
 
     this.loginAttempts = new Map();
@@ -44,7 +44,7 @@ class SecurityManager {
   async initialize() {
     try {
       await fs.ensureDir(this.configDir);
-      
+
       // Set restrictive permissions on config directory (Unix only)
       if (os.platform() !== 'win32') {
         await fs.chmod(this.configDir, 0o700);
@@ -65,13 +65,13 @@ class SecurityManager {
       const key = this.deriveKey(password);
       const iv = crypto.randomBytes(16);
       const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-      
+
       let encrypted = cipher.update(text, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       return {
         encrypted,
-        iv: iv.toString('hex')
+        iv: iv.toString('hex'),
       };
     } catch (error) {
       throw new Error('Encryption failed: ' + error.message);
@@ -86,10 +86,10 @@ class SecurityManager {
       const key = this.deriveKey(password);
       const iv = Buffer.from(encryptedData.iv, 'hex');
       const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-      
+
       let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      
+
       return decrypted;
     } catch (error) {
       throw new Error('Decryption failed: ' + error.message);
@@ -111,7 +111,8 @@ class SecurityManager {
     const hostname = os.hostname();
     const platform = os.platform();
     const arch = os.arch();
-    return crypto.createHash('sha256')
+    return crypto
+      .createHash('sha256')
       .update(`${hostname}-${platform}-${arch}`)
       .digest('hex')
       .substring(0, 32);
@@ -127,7 +128,7 @@ class SecurityManager {
         service,
         encrypted,
         createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
+        lastUsed: new Date().toISOString(),
       };
 
       let keys = [];
@@ -143,12 +144,12 @@ class SecurityManager {
 
       // Remove existing key for this service
       keys = keys.filter(k => k.service !== service);
-      
+
       // Add new key
       keys.push(keyData);
 
       await fs.writeFile(this.keyFile, JSON.stringify(keys, null, 2));
-      
+
       // Set restrictive permissions (Unix only)
       if (os.platform() !== 'win32') {
         await fs.chmod(this.keyFile, 0o600);
@@ -165,13 +166,13 @@ class SecurityManager {
    */
   async getApiKey(service) {
     try {
-      if (!await fs.pathExists(this.keyFile)) {
+      if (!(await fs.pathExists(this.keyFile))) {
         return null;
       }
 
       const content = await fs.readFile(this.keyFile, 'utf8');
       const keys = JSON.parse(content);
-      
+
       const keyData = keys.find(k => k.service === service);
       if (!keyData) {
         return null;
@@ -201,15 +202,15 @@ class SecurityManager {
    */
   async removeApiKey(service) {
     try {
-      if (!await fs.pathExists(this.keyFile)) {
+      if (!(await fs.pathExists(this.keyFile))) {
         return true;
       }
 
       const content = await fs.readFile(this.keyFile, 'utf8');
       const keys = JSON.parse(content);
-      
+
       const filteredKeys = keys.filter(k => k.service !== service);
-      
+
       await fs.writeFile(this.keyFile, JSON.stringify(filteredKeys, null, 2));
       return true;
     } catch (error) {
@@ -222,18 +223,19 @@ class SecurityManager {
    */
   async listApiKeys() {
     try {
-      if (!await fs.pathExists(this.keyFile)) {
+      if (!(await fs.pathExists(this.keyFile))) {
         return [];
       }
 
       const content = await fs.readFile(this.keyFile, 'utf8');
       const keys = JSON.parse(content);
-      
+
       return keys.map(k => ({
         service: k.service,
         createdAt: k.createdAt,
         lastUsed: k.lastUsed,
-        isExpired: (new Date() - new Date(k.createdAt)) > this.settings.maxApiKeyAge
+        isExpired:
+          new Date() - new Date(k.createdAt) > this.settings.maxApiKeyAge,
       }));
     } catch (error) {
       console.error('Failed to list API keys:', error.message);
@@ -247,7 +249,7 @@ class SecurityManager {
   validateUrl(url) {
     try {
       const parsedUrl = new URL(url);
-      
+
       // Require HTTPS in production
       if (this.settings.requireHttps && parsedUrl.protocol !== 'https:') {
         throw new Error('Only HTTPS URLs are allowed');
@@ -282,7 +284,7 @@ class SecurityManager {
       /^169\.254\./,
       /^::1$/,
       /^fc00:/,
-      /^fe80:/
+      /^fe80:/,
     ];
 
     return privateRanges.some(range => range.test(hostname));
@@ -294,7 +296,7 @@ class SecurityManager {
   checkLoginAttempts(identifier) {
     const now = Date.now();
     const attempts = this.loginAttempts.get(identifier) || [];
-    
+
     // Clean old attempts
     const recentAttempts = attempts.filter(
       time => now - time < this.settings.lockoutDuration
@@ -302,8 +304,11 @@ class SecurityManager {
 
     if (recentAttempts.length >= this.settings.maxLoginAttempts) {
       const oldestAttempt = Math.min(...recentAttempts);
-      const remainingTime = this.settings.lockoutDuration - (now - oldestAttempt);
-      throw new Error(`Too many failed attempts. Try again in ${Math.ceil(remainingTime / 60000)} minutes`);
+      const remainingTime =
+        this.settings.lockoutDuration - (now - oldestAttempt);
+      throw new Error(
+        `Too many failed attempts. Try again in ${Math.ceil(remainingTime / 60000)} minutes`
+      );
     }
 
     return true;
@@ -341,7 +346,7 @@ class SecurityManager {
     const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha256');
     return {
       hash: hash.toString('hex'),
-      salt: salt.toString('hex')
+      salt: salt.toString('hex'),
     };
   }
 
@@ -375,21 +380,21 @@ class SecurityManager {
    */
   async cleanupExpiredKeys() {
     try {
-      if (!await fs.pathExists(this.keyFile)) {
+      if (!(await fs.pathExists(this.keyFile))) {
         return 0;
       }
 
       const content = await fs.readFile(this.keyFile, 'utf8');
       const keys = JSON.parse(content);
-      
+
       const now = new Date();
       const validKeys = keys.filter(k => {
         const createdAt = new Date(k.createdAt);
-        return (now - createdAt) <= this.settings.maxApiKeyAge;
+        return now - createdAt <= this.settings.maxApiKeyAge;
       });
 
       const removedCount = keys.length - validKeys.length;
-      
+
       if (removedCount > 0) {
         await fs.writeFile(this.keyFile, JSON.stringify(validKeys, null, 2));
       }
@@ -412,7 +417,7 @@ class SecurityManager {
       settings: this.settings,
       apiKeys: await this.listApiKeys(),
       expiredKeysCount: 0,
-      securityLevel: 'HIGH'
+      securityLevel: 'HIGH',
     };
 
     // Check for expired keys
@@ -450,7 +455,7 @@ class SecurityManager {
       event,
       details,
       pid: process.pid,
-      user: os.userInfo().username
+      user: os.userInfo().username,
     };
 
     console.log(`[SECURITY] ${event}:`, JSON.stringify(details));

@@ -17,11 +17,16 @@ class UpdateManager {
     this.packageJson = require('../../package.json');
     this.currentVersion = this.packageJson.version;
     this.updateCheckUrl = 'https://registry.npmjs.org/mdsaad/latest';
-    this.changelogUrl = 'https://raw.githubusercontent.com/mdsaad/mdsaad-cli/main/CHANGELOG.md';
+    this.changelogUrl =
+      'https://raw.githubusercontent.com/mdsaad/mdsaad-cli/main/CHANGELOG.md';
     this.isInitialized = false;
     this.lastCheckTime = null;
     this.checkInterval = 24 * 60 * 60 * 1000; // 24 hours
-    this.updateInfoFile = path.join(os.homedir(), '.mdsaad', 'update-info.json');
+    this.updateInfoFile = path.join(
+      os.homedir(),
+      '.mdsaad',
+      'update-info.json'
+    );
   }
 
   /**
@@ -32,10 +37,14 @@ class UpdateManager {
       await fs.ensureDir(path.dirname(this.updateInfoFile));
       this.loadUpdateInfo();
       this.isInitialized = true;
-      debugService.debug('Update manager initialized', { currentVersion: this.currentVersion });
+      debugService.debug('Update manager initialized', {
+        currentVersion: this.currentVersion,
+      });
       return true;
     } catch (error) {
-      debugService.debug('Update manager initialization failed', { error: error.message });
+      debugService.debug('Update manager initialization failed', {
+        error: error.message,
+      });
       return false;
     }
   }
@@ -47,11 +56,15 @@ class UpdateManager {
     try {
       if (await fs.pathExists(this.updateInfoFile)) {
         const updateInfo = await fs.readJson(this.updateInfoFile);
-        this.lastCheckTime = updateInfo.lastCheck ? new Date(updateInfo.lastCheck) : null;
+        this.lastCheckTime = updateInfo.lastCheck
+          ? new Date(updateInfo.lastCheck)
+          : null;
         return updateInfo;
       }
     } catch (error) {
-      debugService.debug('Failed to load update info', { error: error.message });
+      debugService.debug('Failed to load update info', {
+        error: error.message,
+      });
     }
     return null;
   }
@@ -64,12 +77,14 @@ class UpdateManager {
       const updateInfo = {
         lastCheck: new Date().toISOString(),
         currentVersion: this.currentVersion,
-        ...info
+        ...info,
       };
       await fs.writeJson(this.updateInfoFile, updateInfo, { spaces: 2 });
       this.lastCheckTime = new Date();
     } catch (error) {
-      debugService.debug('Failed to save update info', { error: error.message });
+      debugService.debug('Failed to save update info', {
+        error: error.message,
+      });
     }
   }
 
@@ -80,7 +95,7 @@ class UpdateManager {
     if (!this.lastCheckTime) {
       return true;
     }
-    
+
     const timeSinceLastCheck = Date.now() - this.lastCheckTime.getTime();
     return timeSinceLastCheck > this.checkInterval;
   }
@@ -94,33 +109,41 @@ class UpdateManager {
         const cachedInfo = await this.loadUpdateInfo();
         if (cachedInfo && cachedInfo.latestVersion) {
           return {
-            hasUpdate: this.compareVersions(cachedInfo.latestVersion, this.currentVersion) > 0,
+            hasUpdate:
+              this.compareVersions(
+                cachedInfo.latestVersion,
+                this.currentVersion
+              ) > 0,
             currentVersion: this.currentVersion,
             latestVersion: cachedInfo.latestVersion,
-            cached: true
+            cached: true,
           };
         }
       }
 
-      debugService.debug('Checking for updates', { currentVersion: this.currentVersion });
-      
+      debugService.debug('Checking for updates', {
+        currentVersion: this.currentVersion,
+      });
+
       const updateInfo = await this.fetchLatestVersion();
-      
+
       if (updateInfo) {
         await this.saveUpdateInfo(updateInfo);
-        
-        const hasUpdate = this.compareVersions(updateInfo.latestVersion, this.currentVersion) > 0;
-        
+
+        const hasUpdate =
+          this.compareVersions(updateInfo.latestVersion, this.currentVersion) >
+          0;
+
         return {
           hasUpdate,
           currentVersion: this.currentVersion,
           latestVersion: updateInfo.latestVersion,
           releaseNotes: updateInfo.releaseNotes,
           publishedAt: updateInfo.publishedAt,
-          cached: false
+          cached: false,
         };
       }
-      
+
       return null;
     } catch (error) {
       debugService.debug('Update check failed', { error: error.message });
@@ -133,31 +156,34 @@ class UpdateManager {
    */
   async fetchLatestVersion() {
     return new Promise((resolve, reject) => {
-      const request = https.get(this.updateCheckUrl, (response) => {
+      const request = https.get(this.updateCheckUrl, response => {
         let data = '';
-        
-        response.on('data', (chunk) => {
+
+        response.on('data', chunk => {
           data += chunk;
         });
-        
+
         response.on('end', () => {
           try {
             const packageInfo = JSON.parse(data);
             resolve({
               latestVersion: packageInfo.version,
-              publishedAt: packageInfo.time ? packageInfo.time[packageInfo.version] : new Date().toISOString(),
-              releaseNotes: packageInfo.description || 'No release notes available'
+              publishedAt: packageInfo.time
+                ? packageInfo.time[packageInfo.version]
+                : new Date().toISOString(),
+              releaseNotes:
+                packageInfo.description || 'No release notes available',
             });
           } catch (error) {
             reject(error);
           }
         });
       });
-      
-      request.on('error', (error) => {
+
+      request.on('error', error => {
         reject(error);
       });
-      
+
       request.setTimeout(5000, () => {
         request.abort();
         reject(new Error('Update check timeout'));
@@ -169,19 +195,25 @@ class UpdateManager {
    * Compare two semantic versions
    */
   compareVersions(version1, version2) {
-    const v1parts = version1.replace(/[^\d.]/g, '').split('.').map(Number);
-    const v2parts = version2.replace(/[^\d.]/g, '').split('.').map(Number);
-    
+    const v1parts = version1
+      .replace(/[^\d.]/g, '')
+      .split('.')
+      .map(Number);
+    const v2parts = version2
+      .replace(/[^\d.]/g, '')
+      .split('.')
+      .map(Number);
+
     const maxLength = Math.max(v1parts.length, v2parts.length);
-    
+
     for (let i = 0; i < maxLength; i++) {
       const v1part = v1parts[i] || 0;
       const v2part = v2parts[i] || 0;
-      
+
       if (v1part > v2part) return 1;
       if (v1part < v2part) return -1;
     }
-    
+
     return 0;
   }
 
@@ -194,14 +226,18 @@ class UpdateManager {
     }
 
     console.log(outputFormatter.header('🔄 Update Available!'));
-    console.log(outputFormatter.info(`📦 Current version: ${updateInfo.currentVersion}`));
-    console.log(outputFormatter.success(`🆕 Latest version: ${updateInfo.latestVersion}`));
-    
+    console.log(
+      outputFormatter.info(`📦 Current version: ${updateInfo.currentVersion}`)
+    );
+    console.log(
+      outputFormatter.success(`🆕 Latest version: ${updateInfo.latestVersion}`)
+    );
+
     if (updateInfo.publishedAt) {
       const publishDate = new Date(updateInfo.publishedAt).toLocaleDateString();
       console.log(outputFormatter.info(`📅 Published: ${publishDate}`));
     }
-    
+
     console.log('\n' + outputFormatter.subheader('💡 How to Update'));
     console.log(outputFormatter.info('   npm update -g mdsaad'));
     console.log(outputFormatter.info('   # or'));
@@ -218,7 +254,7 @@ class UpdateManager {
       node: process.version,
       platform: os.platform(),
       arch: os.arch(),
-      packageManager: this.detectPackageManager()
+      packageManager: this.detectPackageManager(),
     };
   }
 
@@ -228,7 +264,10 @@ class UpdateManager {
   detectPackageManager() {
     try {
       // Check if installed via npm
-      const npmPath = execSync('npm list -g mdsaad --depth=0', { encoding: 'utf8', stdio: 'pipe' });
+      const npmPath = execSync('npm list -g mdsaad --depth=0', {
+        encoding: 'utf8',
+        stdio: 'pipe',
+      });
       if (npmPath.includes('mdsaad@')) {
         return 'npm';
       }
@@ -238,7 +277,10 @@ class UpdateManager {
 
     try {
       // Check if installed via yarn
-      const yarnPath = execSync('yarn global list', { encoding: 'utf8', stdio: 'pipe' });
+      const yarnPath = execSync('yarn global list', {
+        encoding: 'utf8',
+        stdio: 'pipe',
+      });
       if (yarnPath.includes('mdsaad@')) {
         return 'yarn';
       }
@@ -248,7 +290,10 @@ class UpdateManager {
 
     try {
       // Check if installed via pnpm
-      const pnpmPath = execSync('pnpm list -g mdsaad', { encoding: 'utf8', stdio: 'pipe' });
+      const pnpmPath = execSync('pnpm list -g mdsaad', {
+        encoding: 'utf8',
+        stdio: 'pipe',
+      });
       if (pnpmPath.includes('mdsaad@')) {
         return 'pnpm';
       }
@@ -264,17 +309,17 @@ class UpdateManager {
    */
   checkDeprecations() {
     const deprecations = [];
-    
+
     // Check for deprecated configuration options
     const config = configService.getAll();
-    
+
     // Example deprecation checks
     if (config.oldApiFormat) {
       deprecations.push({
         type: 'configuration',
         message: 'Old API format configuration is deprecated',
         action: 'Use the new API key format in config',
-        severity: 'warning'
+        severity: 'warning',
       });
     }
 
@@ -284,7 +329,7 @@ class UpdateManager {
         type: 'command',
         message: 'Legacy command format will be removed in v2.0',
         action: 'Update your scripts to use the new command syntax',
-        severity: 'warning'
+        severity: 'warning',
       });
     }
 
@@ -299,7 +344,7 @@ class UpdateManager {
       configFormat: true,
       cacheFormat: true,
       pluginAPI: true,
-      issues: []
+      issues: [],
     };
 
     try {
@@ -310,7 +355,7 @@ class UpdateManager {
         compatibility.issues.push({
           type: 'config',
           message: 'Configuration format needs migration',
-          action: 'Run: mdsaad maintenance --migrate-config'
+          action: 'Run: mdsaad maintenance --migrate-config',
         });
       }
 
@@ -321,15 +366,14 @@ class UpdateManager {
         compatibility.issues.push({
           type: 'cache',
           message: 'Cache format is outdated',
-          action: 'Cache will be automatically regenerated'
+          action: 'Cache will be automatically regenerated',
         });
       }
-
     } catch (error) {
       compatibility.issues.push({
         type: 'error',
         message: 'Compatibility check failed',
-        action: 'Manual inspection required'
+        action: 'Manual inspection required',
       });
     }
 
@@ -342,7 +386,7 @@ class UpdateManager {
   async fetchChangelog(fromVersion = null, toVersion = null) {
     try {
       const changelog = await this.fetchChangelogContent();
-      
+
       if (!fromVersion && !toVersion) {
         return changelog;
       }
@@ -360,22 +404,22 @@ class UpdateManager {
    */
   async fetchChangelogContent() {
     return new Promise((resolve, reject) => {
-      const request = https.get(this.changelogUrl, (response) => {
+      const request = https.get(this.changelogUrl, response => {
         let data = '';
-        
-        response.on('data', (chunk) => {
+
+        response.on('data', chunk => {
           data += chunk;
         });
-        
+
         response.on('end', () => {
           resolve(data);
         });
       });
-      
-      request.on('error', (error) => {
+
+      request.on('error', error => {
         reject(error);
       });
-      
+
       request.setTimeout(10000, () => {
         request.abort();
         reject(new Error('Changelog fetch timeout'));
@@ -395,23 +439,24 @@ class UpdateManager {
     for (const line of lines) {
       // Check if line is a version header (e.g., ## [1.2.0] - 2024-01-15)
       const versionMatch = line.match(/^##\s*\[?(\d+\.\d+\.\d+)\]?/);
-      
+
       if (versionMatch) {
         const version = versionMatch[1];
-        
+
         // Save previous section
         if (currentSection) {
           sections.push(currentSection);
         }
-        
+
         // Check if we should capture this version
-        const shouldCapture = (!fromVersion || this.compareVersions(version, fromVersion) >= 0) &&
-                             (!toVersion || this.compareVersions(version, toVersion) <= 0);
-        
+        const shouldCapture =
+          (!fromVersion || this.compareVersions(version, fromVersion) >= 0) &&
+          (!toVersion || this.compareVersions(version, toVersion) <= 0);
+
         if (shouldCapture) {
           currentSection = {
             version,
-            content: [line]
+            content: [line],
           };
           capturing = true;
         } else {
@@ -437,10 +482,14 @@ class UpdateManager {
   async setAutoUpdateCheck(enabled) {
     try {
       await configService.set('autoUpdateCheck', enabled);
-      debugService.debug(`Auto update check ${enabled ? 'enabled' : 'disabled'}`);
+      debugService.debug(
+        `Auto update check ${enabled ? 'enabled' : 'disabled'}`
+      );
       return true;
     } catch (error) {
-      debugService.debug('Failed to set auto update check', { error: error.message });
+      debugService.debug('Failed to set auto update check', {
+        error: error.message,
+      });
       return false;
     }
   }
@@ -453,7 +502,7 @@ class UpdateManager {
       autoCheck: configService.get('autoUpdateCheck', true),
       lastCheck: this.lastCheckTime,
       checkInterval: this.checkInterval,
-      currentVersion: this.currentVersion
+      currentVersion: this.currentVersion,
     };
   }
 
@@ -471,16 +520,22 @@ class UpdateManager {
       }
 
       const updateInfo = await this.checkForUpdates();
-      
+
       if (updateInfo && updateInfo.hasUpdate) {
         // Show subtle notification
-        console.log(outputFormatter.info(`💡 Update available: v${updateInfo.latestVersion} (run 'mdsaad update --check' for details)`));
+        console.log(
+          outputFormatter.info(
+            `💡 Update available: v${updateInfo.latestVersion} (run 'mdsaad update --check' for details)`
+          )
+        );
       }
 
       return updateInfo;
     } catch (error) {
       // Silent check should not throw errors
-      debugService.debug('Silent update check failed', { error: error.message });
+      debugService.debug('Silent update check failed', {
+        error: error.message,
+      });
       return null;
     }
   }

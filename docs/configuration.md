@@ -179,6 +179,7 @@ npm run config set cacheDirectory "/custom/path"
 ```
 
 The cache stores:
+
 - Weather data (30-minute TTL)
 - Exchange rates (daily updates)
 - AI response caching (configurable)
@@ -205,12 +206,14 @@ npm run config import backup-20230927.json
 ## Troubleshooting
 
 ### Configuration File Corrupted
+
 ```bash
 # Reset to defaults
 npm run config reset --yes
 ```
 
 ### Permission Issues
+
 ```bash
 # Check directory permissions
 ls -la ~/.mdsaad/
@@ -221,6 +224,7 @@ chmod 644 ~/.mdsaad/config.json
 ```
 
 ### API Key Issues
+
 ```bash
 # Verify API key configuration
 npm run config get apiKeys
@@ -230,6 +234,7 @@ mdsaad weather London --verbose
 ```
 
 ### Cache Issues
+
 ```bash
 # Check cache statistics
 npm run config stats

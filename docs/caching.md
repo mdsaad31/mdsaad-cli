@@ -21,7 +21,9 @@ Each cache entry is stored as a JSON file with the following structure:
 ```json
 {
   "key": "generated-cache-key",
-  "data": { /* Cached data */ },
+  "data": {
+    /* Cached data */
+  },
   "timestamp": 1640995200000,
   "ttl": 1800000,
   "expiresAt": 1640997000000,
@@ -33,21 +35,25 @@ Each cache entry is stored as a JSON file with the following structure:
 ## Core Features
 
 ### 1. Automatic TTL Management
+
 - Time-To-Live (TTL) support for all cache entries
 - Automatic expiration based on timestamp
 - Configurable TTL per cache operation
 
 ### 2. Namespace Organization
+
 - Organized cache storage by service type
 - Easy namespace-specific operations
 - Isolated data management
 
 ### 3. Size Management
+
 - Configurable maximum cache size (default: 100MB)
 - Automatic LRU (Least Recently Used) cleanup
 - Size monitoring and statistics
 
 ### 4. Offline Support
+
 - Graceful degradation when APIs are unavailable
 - Serve cached data with age indicators
 - Cache middleware for seamless integration
@@ -90,13 +96,10 @@ The middleware provides seamless caching for API calls:
 const weatherMiddleware = cache.middleware('weather', 30 * 60 * 1000);
 
 // Use middleware - automatically handles caching
-const weatherData = await weatherMiddleware(
-  ['london', 'current'], 
-  async () => {
-    // This function only runs on cache miss
-    return await fetchWeatherFromAPI('london');
-  }
-);
+const weatherData = await weatherMiddleware(['london', 'current'], async () => {
+  // This function only runs on cache miss
+  return await fetchWeatherFromAPI('london');
+});
 
 console.log('Data from cache or API:', weatherData);
 console.log('Was cached:', weatherData._cached);
@@ -152,14 +155,14 @@ npm run cache size 200
 
 ### Cache Manager Commands
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `stats` | Show cache statistics | `npm run cache stats --json` |
-| `list` | List cache entries by namespace | `npm run cache list weather` |
-| `clear` | Clear cache entries | `npm run cache clear currency` |
-| `cleanup` | Remove expired entries | `npm run cache cleanup` |
-| `test` | Test cache functionality | `npm run cache test` |
-| `size` | Set maximum cache size | `npm run cache size 100` |
+| Command   | Description                     | Example                        |
+| --------- | ------------------------------- | ------------------------------ |
+| `stats`   | Show cache statistics           | `npm run cache stats --json`   |
+| `list`    | List cache entries by namespace | `npm run cache list weather`   |
+| `clear`   | Clear cache entries             | `npm run cache clear currency` |
+| `cleanup` | Remove expired entries          | `npm run cache cleanup`        |
+| `test`    | Test cache functionality        | `npm run cache test`           |
+| `size`    | Set maximum cache size          | `npm run cache size 100`       |
 
 ## Integration Examples
 
@@ -172,7 +175,7 @@ class WeatherService {
   async getCurrentWeather(location) {
     const cacheKey = `${location}-current`;
     const middleware = cache.middleware('weather', 30 * 60 * 1000); // 30 min
-    
+
     return await middleware(cacheKey, async () => {
       const response = await fetch(`${API_URL}/current?q=${location}`);
       return await response.json();
@@ -188,11 +191,11 @@ class CurrencyService {
   async convertCurrency(amount, from, to) {
     const cacheKey = `${from}-${to}`;
     const middleware = cache.middleware('currency', 24 * 60 * 60 * 1000); // 24 hours
-    
+
     const rates = await middleware(cacheKey, async () => {
       return await this.fetchExchangeRates(from);
     });
-    
+
     return amount * rates.data.rates[to];
   }
 }
@@ -206,7 +209,7 @@ class AIService {
     // Cache AI responses for 1 hour
     const cacheKey = cache.generateKey('ai', model, prompt);
     const middleware = cache.middleware('ai', 60 * 60 * 1000);
-    
+
     return await middleware(cacheKey, async () => {
       return await this.callAIAPI(prompt, model);
     });
@@ -253,7 +256,11 @@ const stats = await cache.getStats();
 console.log('Cache efficiency:', {
   totalEntries: stats.totalEntries,
   expiredEntries: stats.expiredEntries,
-  hitRate: ((stats.totalEntries - stats.expiredEntries) / stats.totalEntries * 100).toFixed(2) + '%'
+  hitRate:
+    (
+      ((stats.totalEntries - stats.expiredEntries) / stats.totalEntries) *
+      100
+    ).toFixed(2) + '%',
 });
 ```
 
@@ -271,7 +278,8 @@ Recommended TTL values by service:
 ```javascript
 // Monitor cache size
 const stats = await cache.getStats();
-if (stats.totalSize > 50 * 1024 * 1024) { // 50MB
+if (stats.totalSize > 50 * 1024 * 1024) {
+  // 50MB
   console.warn('Cache size is large, consider cleanup');
   await cache.cleanup();
 }
@@ -303,19 +311,21 @@ try {
 ### Common Issues
 
 1. **Cache Directory Permissions**
+
    ```bash
    # Fix permissions (Unix/macOS)
    chmod 755 ~/.mdsaad/cache
    ```
 
 2. **Cache Size Issues**
+
    ```bash
    # Check cache size
    npm run cache stats
-   
+
    # Clean up expired entries
    npm run cache cleanup
-   
+
    # Clear all cache if necessary
    npm run cache clear --yes
    ```

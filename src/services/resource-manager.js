@@ -21,7 +21,7 @@ class ResourceManager {
       maxMemoryUsage: 200 * 1024 * 1024, // 200MB
       maxCacheEntries: 1000,
       maxConcurrentOperations: 10,
-      cacheCleanupInterval: 5 * 60 * 1000 // 5 minutes
+      cacheCleanupInterval: 5 * 60 * 1000, // 5 minutes
     };
     this.activeOperations = new Set();
     this.operationQueue = [];
@@ -36,7 +36,7 @@ class ResourceManager {
       this.setupResourcePools();
       this.setupOptimizationStrategies();
       this.startCleanupTasks();
-      
+
       this.isInitialized = true;
       debugService.debug('Resource manager initialized');
       return true;
@@ -55,7 +55,7 @@ class ResourceManager {
       maxSize: 50,
       items: new Map(),
       accessCount: new Map(),
-      lastAccessed: new Map()
+      lastAccessed: new Map(),
     });
 
     // API response pool
@@ -63,7 +63,7 @@ class ResourceManager {
       maxSize: 100,
       items: new Map(),
       accessCount: new Map(),
-      lastAccessed: new Map()
+      lastAccessed: new Map(),
     });
 
     // Calculation cache pool
@@ -71,7 +71,7 @@ class ResourceManager {
       maxSize: 200,
       items: new Map(),
       accessCount: new Map(),
-      lastAccessed: new Map()
+      lastAccessed: new Map(),
     });
 
     // Translation cache pool
@@ -79,7 +79,7 @@ class ResourceManager {
       maxSize: 1000,
       items: new Map(),
       accessCount: new Map(),
-      lastAccessed: new Map()
+      lastAccessed: new Map(),
     });
   }
 
@@ -90,17 +90,17 @@ class ResourceManager {
     // Lazy loading strategy
     this.optimizationStrategies.set('lazy-loading', {
       description: 'Load resources only when needed',
-      apply: async (resourceType) => {
+      apply: async resourceType => {
         return this.enableLazyLoading(resourceType);
-      }
+      },
     });
 
     // Memory compression strategy
     this.optimizationStrategies.set('compression', {
       description: 'Compress large data in memory',
-      apply: async (data) => {
+      apply: async data => {
         return this.compressData(data);
-      }
+      },
     });
 
     // Cache optimization strategy
@@ -108,15 +108,15 @@ class ResourceManager {
       description: 'Optimize cache size and cleanup',
       apply: async () => {
         return this.optimizeCaches();
-      }
+      },
     });
 
     // Concurrent operation limiting
     this.optimizationStrategies.set('concurrency-control', {
       description: 'Limit concurrent operations to prevent overload',
-      apply: async (operation) => {
+      apply: async operation => {
         return this.manageOperation(operation);
-      }
+      },
     });
   }
 
@@ -130,7 +130,10 @@ class ResourceManager {
     }, this.resourceLimits.cacheCleanupInterval);
 
     // Don't keep process alive
-    if (this.cleanupInterval && typeof this.cleanupInterval.unref === 'function') {
+    if (
+      this.cleanupInterval &&
+      typeof this.cleanupInterval.unref === 'function'
+    ) {
       this.cleanupInterval.unref();
     }
   }
@@ -155,7 +158,10 @@ class ResourceManager {
     pool.accessCount.set(key, 1);
     pool.lastAccessed.set(key, Date.now());
 
-    debugService.debug(`Stored item in ${poolName} pool`, { key, size: pool.items.size });
+    debugService.debug(`Stored item in ${poolName} pool`, {
+      key,
+      size: pool.items.size,
+    });
     return true;
   }
 
@@ -207,15 +213,15 @@ class ResourceManager {
         case 'ascii-art':
           // Defer loading ASCII art until actually displayed
           return this.setupLazyAsciiArt();
-        
+
         case 'translations':
           // Load translations on demand
           return this.setupLazyTranslations();
-        
+
         case 'plugins':
           // Load plugins when first used
           return this.setupLazyPlugins();
-        
+
         default:
           return { success: false, error: 'Unknown resource type' };
       }
@@ -230,15 +236,21 @@ class ResourceManager {
   setupLazyAsciiArt() {
     // Create a proxy that loads ASCII art on first access
     const artCache = new Map();
-    
+
     return {
       success: true,
       strategy: 'lazy-ascii-art',
-      getArt: (artName) => {
+      getArt: artName => {
         if (!artCache.has(artName)) {
           // Load art synchronously when needed
           try {
-            const artPath = path.join(__dirname, '..', 'assets', 'ascii-art', `${artName}.txt`);
+            const artPath = path.join(
+              __dirname,
+              '..',
+              'assets',
+              'ascii-art',
+              `${artName}.txt`
+            );
             if (fs.existsSync(artPath)) {
               const artContent = fs.readFileSync(artPath, 'utf8');
               artCache.set(artName, artContent);
@@ -247,12 +259,14 @@ class ResourceManager {
               artCache.set(artName, null);
             }
           } catch (error) {
-            debugService.debug(`Failed to load ASCII art: ${artName}`, { error: error.message });
+            debugService.debug(`Failed to load ASCII art: ${artName}`, {
+              error: error.message,
+            });
             artCache.set(artName, null);
           }
         }
         return artCache.get(artName);
-      }
+      },
     };
   }
 
@@ -261,7 +275,7 @@ class ResourceManager {
    */
   setupLazyTranslations() {
     const translationCache = new Map();
-    
+
     return {
       success: true,
       strategy: 'lazy-translations',
@@ -270,24 +284,31 @@ class ResourceManager {
         if (!translationCache.has(cacheKey)) {
           // Load translation file only when needed
           try {
-            const langPath = path.join(__dirname, '..', 'locales', `${lang}.json`);
+            const langPath = path.join(
+              __dirname,
+              '..',
+              'locales',
+              `${lang}.json`
+            );
             if (fs.existsSync(langPath)) {
               const langData = fs.readFileSync(langPath, 'utf8');
               const translations = JSON.parse(langData);
-              
+
               // Cache all translations for this language
               for (const [k, v] of Object.entries(translations)) {
                 translationCache.set(`${lang}:${k}`, v);
               }
-              
+
               debugService.debug(`Lazily loaded translations for: ${lang}`);
             }
           } catch (error) {
-            debugService.debug(`Failed to load translations: ${lang}`, { error: error.message });
+            debugService.debug(`Failed to load translations: ${lang}`, {
+              error: error.message,
+            });
           }
         }
         return translationCache.get(cacheKey);
-      }
+      },
     };
   }
 
@@ -298,11 +319,11 @@ class ResourceManager {
     return {
       success: true,
       strategy: 'lazy-plugins',
-      loadPlugin: (pluginName) => {
+      loadPlugin: pluginName => {
         debugService.debug(`Lazy loading plugin: ${pluginName}`);
         // Plugin loading would be handled by plugin manager
         return null;
-      }
+      },
     };
   }
 
@@ -319,7 +340,7 @@ class ResourceManager {
           original: data.length,
           compressed: compressed.length,
           savings: data.length - compressed.length,
-          data: compressed
+          data: compressed,
         };
       } else if (typeof data === 'object') {
         // JSON compression by removing unnecessary whitespace
@@ -330,10 +351,10 @@ class ResourceManager {
           original: jsonString.length,
           compressed: compressed.length,
           savings: 0,
-          data: JSON.parse(compressed)
+          data: JSON.parse(compressed),
         };
       }
-      
+
       return { success: false, error: 'Unsupported data type for compression' };
     } catch (error) {
       return { success: false, error: error.message };
@@ -348,23 +369,27 @@ class ResourceManager {
       poolsOptimized: 0,
       itemsEvicted: 0,
       memoryFreed: 0,
-      errors: []
+      errors: [],
     };
 
     try {
       for (const [poolName, pool] of this.resourcePools.entries()) {
         const beforeSize = pool.items.size;
-        
+
         // Remove expired or least used items
         await this.cleanupPool(pool);
-        
+
         const afterSize = pool.items.size;
         const evicted = beforeSize - afterSize;
-        
+
         results.poolsOptimized++;
         results.itemsEvicted += evicted;
-        
-        debugService.debug(`Optimized pool ${poolName}`, { before: beforeSize, after: afterSize, evicted });
+
+        debugService.debug(`Optimized pool ${poolName}`, {
+          before: beforeSize,
+          after: afterSize,
+          evicted,
+        });
       }
 
       // Estimate memory freed (rough calculation)
@@ -411,7 +436,9 @@ class ResourceManager {
    */
   async manageOperation(operationFn) {
     // Check if we're at the limit
-    if (this.activeOperations.size >= this.resourceLimits.maxConcurrentOperations) {
+    if (
+      this.activeOperations.size >= this.resourceLimits.maxConcurrentOperations
+    ) {
       // Queue the operation
       return new Promise((resolve, reject) => {
         this.operationQueue.push({ operationFn, resolve, reject });
@@ -427,9 +454,9 @@ class ResourceManager {
    */
   async executeOperation(operationFn) {
     const operationId = `op-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     this.activeOperations.add(operationId);
-    
+
     try {
       const result = await operationFn();
       return result;
@@ -437,10 +464,14 @@ class ResourceManager {
       throw error;
     } finally {
       this.activeOperations.delete(operationId);
-      
+
       // Process queue
       if (this.operationQueue.length > 0) {
-        const { operationFn: nextOp, resolve, reject } = this.operationQueue.shift();
+        const {
+          operationFn: nextOp,
+          resolve,
+          reject,
+        } = this.operationQueue.shift();
         this.executeOperation(nextOp).then(resolve).catch(reject);
       }
     }
@@ -452,24 +483,29 @@ class ResourceManager {
   async performScheduledCleanup() {
     try {
       debugService.debug('Performing scheduled resource cleanup');
-      
+
       // Optimize caches
       const cacheResults = await this.optimizeCaches();
-      
+
       // Check memory usage
       const memory = process.memoryUsage();
       if (memory.heapUsed > this.resourceLimits.maxMemoryUsage) {
-        debugService.debug('High memory usage detected, triggering aggressive cleanup');
+        debugService.debug(
+          'High memory usage detected, triggering aggressive cleanup'
+        );
         await this.aggressiveCleanup();
       }
 
       // Log results
-      performanceService.logPerformanceEvent('cleanup', 'Scheduled resource cleanup completed', {
-        cacheResults,
-        memoryUsage: memory.heapUsed,
-        activeOperations: this.activeOperations.size
-      });
-
+      performanceService.logPerformanceEvent(
+        'cleanup',
+        'Scheduled resource cleanup completed',
+        {
+          cacheResults,
+          memoryUsage: memory.heapUsed,
+          activeOperations: this.activeOperations.size,
+        }
+      );
     } catch (error) {
       debugService.debug('Scheduled cleanup failed', { error: error.message });
     }
@@ -485,7 +521,7 @@ class ResourceManager {
       // Clear all resource pools except most recently used
       for (const [poolName, pool] of this.resourcePools.entries()) {
         const beforeSize = pool.items.size;
-        
+
         // Keep only the 10 most recently accessed items
         const sortedByAccess = Array.from(pool.lastAccessed.entries())
           .sort((a, b) => b[1] - a[1])
@@ -507,9 +543,9 @@ class ResourceManager {
         const afterSize = pool.items.size;
         freedMemory += (beforeSize - afterSize) * 100; // Estimate
 
-        debugService.debug(`Aggressively cleaned pool ${poolName}`, { 
-          before: beforeSize, 
-          after: afterSize 
+        debugService.debug(`Aggressively cleaned pool ${poolName}`, {
+          before: beforeSize,
+          after: afterSize,
         });
       }
 
@@ -536,10 +572,10 @@ class ResourceManager {
       operations: {
         active: this.activeOperations.size,
         queued: this.operationQueue.length,
-        limit: this.resourceLimits.maxConcurrentOperations
+        limit: this.resourceLimits.maxConcurrentOperations,
       },
       memory: process.memoryUsage(),
-      limits: this.resourceLimits
+      limits: this.resourceLimits,
     };
 
     // Pool statistics
@@ -548,7 +584,10 @@ class ResourceManager {
         size: pool.items.size,
         maxSize: pool.maxSize,
         utilization: Math.round((pool.items.size / pool.maxSize) * 100),
-        totalAccesses: Array.from(pool.accessCount.values()).reduce((sum, count) => sum + count, 0)
+        totalAccesses: Array.from(pool.accessCount.values()).reduce(
+          (sum, count) => sum + count,
+          0
+        ),
       };
     }
 
@@ -583,20 +622,23 @@ class ResourceManager {
         const before = process.memoryUsage();
         global.gc();
         const after = process.memoryUsage();
-        
+
         const freed = before.heapUsed - after.heapUsed;
-        debugService.debug('Forced garbage collection', { 
+        debugService.debug('Forced garbage collection', {
           freedBytes: freed,
-          freedMB: Math.round(freed / 1024 / 1024 * 100) / 100
+          freedMB: Math.round((freed / 1024 / 1024) * 100) / 100,
         });
-        
+
         return { success: true, freedBytes: freed };
       } catch (error) {
         return { success: false, error: error.message };
       }
     }
-    
-    return { success: false, error: 'Garbage collection not available (run with --expose-gc)' };
+
+    return {
+      success: false,
+      error: 'Garbage collection not available (run with --expose-gc)',
+    };
   }
 }
 

@@ -25,41 +25,41 @@ class SecurityCommand {
       options: [
         {
           flags: '--audit',
-          description: 'Perform security audit'
+          description: 'Perform security audit',
         },
         {
           flags: '--report',
-          description: 'Generate security report'
+          description: 'Generate security report',
         },
         {
           flags: '--cleanup',
-          description: 'Clean up expired security data'
+          description: 'Clean up expired security data',
         },
         {
           flags: '--keys',
-          description: 'Manage API keys'
+          description: 'Manage API keys',
         },
         {
           flags: '--set-key <service>',
-          description: 'Set API key for service'
+          description: 'Set API key for service',
         },
         {
           flags: '--remove-key <service>',
-          description: 'Remove API key for service'
+          description: 'Remove API key for service',
         },
         {
           flags: '--list-keys',
-          description: 'List stored API keys'
+          description: 'List stored API keys',
         },
         {
           flags: '--validate <input>',
-          description: 'Validate input for security'
+          description: 'Validate input for security',
         },
         {
           flags: '--type <type>',
-          description: 'Input type for validation'
-        }
-      ]
+          description: 'Input type for validation',
+        },
+      ],
     };
   }
 
@@ -102,33 +102,47 @@ class SecurityCommand {
 
     // Check security manager status
     const isInitialized = await this.securityManager.initialize();
-    console.log(`Security Manager: ${isInitialized ? chalk.green('✓ Active') : chalk.red('✗ Failed')}`);
+    console.log(
+      `Security Manager: ${isInitialized ? chalk.green('✓ Active') : chalk.red('✗ Failed')}`
+    );
 
     // Check stored API keys
     const apiKeys = await this.securityManager.listApiKeys();
     console.log(`Stored API Keys: ${chalk.cyan(apiKeys.length)}`);
-    
+
     if (apiKeys.length > 0 && options.verbose) {
       console.log('\nAPI Key Details:');
       apiKeys.forEach(key => {
-        const status = key.isExpired ? chalk.red('Expired') : chalk.green('Valid');
-        console.log(`  • ${key.service}: ${status} (Last used: ${new Date(key.lastUsed).toLocaleDateString()})`);
+        const status = key.isExpired
+          ? chalk.red('Expired')
+          : chalk.green('Valid');
+        console.log(
+          `  • ${key.service}: ${status} (Last used: ${new Date(key.lastUsed).toLocaleDateString()})`
+        );
       });
     }
 
     // Check for expired keys
     const expiredKeys = apiKeys.filter(k => k.isExpired);
     if (expiredKeys.length > 0) {
-      console.log(chalk.yellow(`\n⚠️  Warning: ${expiredKeys.length} expired API keys found`));
+      console.log(
+        chalk.yellow(
+          `\n⚠️  Warning: ${expiredKeys.length} expired API keys found`
+        )
+      );
       console.log(chalk.dim('Run with --cleanup to remove expired keys'));
     }
 
     // Network security status
     const networkAudit = this.networkSecurity.audit();
     console.log(`\nNetwork Security:`);
-    console.log(`  • Allowed Protocols: ${networkAudit.allowedProtocols.join(', ')}`);
+    console.log(
+      `  • Allowed Protocols: ${networkAudit.allowedProtocols.join(', ')}`
+    );
     console.log(`  • Request Timeout: ${networkAudit.timeout}ms`);
-    console.log(`  • Active Rate Limits: ${networkAudit.rateLimits.activeEndpoints}`);
+    console.log(
+      `  • Active Rate Limits: ${networkAudit.rateLimits.activeEndpoints}`
+    );
 
     if (networkAudit.recommendations.length > 0 && options.verbose) {
       console.log(chalk.yellow('\nSecurity Recommendations:'));
@@ -151,12 +165,13 @@ class SecurityCommand {
       securityManager: null,
       networkSecurity: null,
       inputValidator: null,
-      overall: 'PASS'
+      overall: 'PASS',
     };
 
     // Security Manager audit
     try {
-      auditResults.securityManager = await this.securityManager.generateSecurityReport();
+      auditResults.securityManager =
+        await this.securityManager.generateSecurityReport();
       console.log(chalk.green('✓ Security Manager audit complete'));
     } catch (error) {
       console.log(chalk.red('✗ Security Manager audit failed:'), error.message);
@@ -183,12 +198,18 @@ class SecurityCommand {
 
     // Display results
     console.log(`\n${chalk.bold('Audit Results:')}`);
-    console.log(`Overall Status: ${auditResults.overall === 'PASS' ? chalk.green('PASS') : chalk.red('FAIL')}`);
-    
+    console.log(
+      `Overall Status: ${auditResults.overall === 'PASS' ? chalk.green('PASS') : chalk.red('FAIL')}`
+    );
+
     if (options.verbose && auditResults.securityManager) {
-      console.log(`\nSecurity Level: ${this.getSecurityLevelColor(auditResults.securityManager.securityLevel)}`);
-      console.log(`API Keys: ${auditResults.securityManager.apiKeys.length} total, ${auditResults.securityManager.expiredKeysCount} expired`);
-      
+      console.log(
+        `\nSecurity Level: ${this.getSecurityLevelColor(auditResults.securityManager.securityLevel)}`
+      );
+      console.log(
+        `API Keys: ${auditResults.securityManager.apiKeys.length} total, ${auditResults.securityManager.expiredKeysCount} expired`
+      );
+
       if (auditResults.securityManager.warnings) {
         console.log(chalk.yellow('\nWarnings:'));
         auditResults.securityManager.warnings.forEach(warning => {
@@ -213,39 +234,53 @@ class SecurityCommand {
       nodeVersion: process.version,
       security: await this.securityManager.generateSecurityReport(),
       network: this.networkSecurity.audit(),
-      validator: this.auditInputValidator()
+      validator: this.auditInputValidator(),
     };
 
     console.log(chalk.bold('🔒 mdsaad CLI Security Report'));
-    console.log(chalk.dim(`Generated: ${new Date(report.timestamp).toLocaleString()}\n`));
+    console.log(
+      chalk.dim(`Generated: ${new Date(report.timestamp).toLocaleString()}\n`)
+    );
 
     // Security summary
     console.log(chalk.bold('Security Summary:'));
-    console.log(`  Security Level: ${this.getSecurityLevelColor(report.security.securityLevel)}`);
+    console.log(
+      `  Security Level: ${this.getSecurityLevelColor(report.security.securityLevel)}`
+    );
     console.log(`  API Keys: ${report.security.apiKeys.length} stored`);
     console.log(`  Expired Keys: ${report.security.expiredKeysCount}`);
-    console.log(`  Network Protocols: ${report.network.allowedProtocols.join(', ')}`);
+    console.log(
+      `  Network Protocols: ${report.network.allowedProtocols.join(', ')}`
+    );
 
     // Detailed sections
     if (options.verbose) {
       console.log(`\n${chalk.bold('API Key Details:')}`);
       report.security.apiKeys.forEach(key => {
-        const status = key.isExpired ? chalk.red('EXPIRED') : chalk.green('VALID');
+        const status = key.isExpired
+          ? chalk.red('EXPIRED')
+          : chalk.green('VALID');
         console.log(`  • ${key.service}: ${status}`);
         console.log(`    Created: ${new Date(key.createdAt).toLocaleString()}`);
-        console.log(`    Last Used: ${new Date(key.lastUsed).toLocaleString()}`);
+        console.log(
+          `    Last Used: ${new Date(key.lastUsed).toLocaleString()}`
+        );
       });
 
       console.log(`\n${chalk.bold('Network Security:')}`);
       console.log(`  • User Agent: ${report.network.userAgent}`);
       console.log(`  • Timeout: ${report.network.timeout}ms`);
       console.log(`  • Max Redirects: ${report.network.maxRedirects}`);
-      console.log(`  • Pinned Certificates: ${report.network.pinnedCertificates.length}`);
+      console.log(
+        `  • Pinned Certificates: ${report.network.pinnedCertificates.length}`
+      );
 
       console.log(`\n${chalk.bold('Input Validation:')}`);
       console.log(`  • Validation Patterns: ${report.validator.patterns}`);
       console.log(`  • Length Limits: ${report.validator.limits}`);
-      console.log(`  • Dangerous Patterns: ${report.validator.dangerousPatterns}`);
+      console.log(
+        `  • Dangerous Patterns: ${report.validator.dangerousPatterns}`
+      );
     }
 
     // Recommendations
@@ -296,7 +331,10 @@ class SecurityCommand {
         console.log(chalk.green('✓ Cleared input validator rate limits'));
       }
     } catch (error) {
-      console.log(chalk.red('✗ Failed to clear validator rate limits:'), error.message);
+      console.log(
+        chalk.red('✗ Failed to clear validator rate limits:'),
+        error.message
+      );
     }
 
     console.log(`\n${chalk.bold('Cleanup Summary:')}`);
@@ -328,7 +366,10 @@ class SecurityCommand {
 
     // Validate service name
     try {
-      this.inputValidator.validate(service, 'alphanumeric', { minLength: 2, maxLength: 50 });
+      this.inputValidator.validate(service, 'alphanumeric', {
+        minLength: 2,
+        maxLength: 50,
+      });
     } catch (error) {
       console.log(chalk.red('✗ Invalid service name:'), error.message);
       return false;
@@ -336,14 +377,14 @@ class SecurityCommand {
 
     // Get API key from user (in a real implementation, this would be from stdin)
     const apiKey = options.key || 'demo-key-' + Date.now();
-    
+
     try {
       // Validate API key
       this.inputValidator.validate(apiKey, 'apiKey');
-      
+
       // Store securely
       await this.securityManager.storeApiKey(service, apiKey);
-      
+
       console.log(chalk.green(`✓ API key for ${service} stored securely`));
       return true;
     } catch (error) {
@@ -380,22 +421,28 @@ class SecurityCommand {
 
     try {
       const keys = await this.securityManager.listApiKeys();
-      
+
       if (keys.length === 0) {
         console.log(chalk.dim('No API keys stored'));
         return true;
       }
 
       console.log(`Found ${chalk.cyan(keys.length)} stored API keys:\n`);
-      
+
       keys.forEach(key => {
-        const status = key.isExpired ? chalk.red('EXPIRED') : chalk.green('VALID');
-        const age = Math.floor((new Date() - new Date(key.createdAt)) / (1000 * 60 * 60 * 24));
-        
+        const status = key.isExpired
+          ? chalk.red('EXPIRED')
+          : chalk.green('VALID');
+        const age = Math.floor(
+          (new Date() - new Date(key.createdAt)) / (1000 * 60 * 60 * 24)
+        );
+
         console.log(`${chalk.bold(key.service)}`);
         console.log(`  Status: ${status}`);
         console.log(`  Age: ${age} days`);
-        console.log(`  Last Used: ${new Date(key.lastUsed).toLocaleDateString()}`);
+        console.log(
+          `  Last Used: ${new Date(key.lastUsed).toLocaleDateString()}`
+        );
         console.log('');
       });
 
@@ -418,7 +465,7 @@ class SecurityCommand {
     try {
       const result = this.inputValidator.process(input, type);
       console.log(chalk.green('✓ Input validation passed'));
-      
+
       if (options.verbose) {
         console.log(`Original: ${chalk.dim(input)}`);
         console.log(`Validated: ${chalk.cyan(result)}`);
@@ -459,7 +506,7 @@ class SecurityCommand {
       patterns: Object.keys(this.inputValidator.patterns).length,
       limits: Object.keys(this.inputValidator.limits).length,
       dangerousPatterns: this.inputValidator.dangerousPatterns.length,
-      status: 'ACTIVE'
+      status: 'ACTIVE',
     };
   }
 

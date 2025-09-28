@@ -80,10 +80,22 @@ const weatherAscii = {
 
   // Wind direction arrows
   windArrows: {
-    N: '↑', NNE: '↗', NE: '↗', ENE: '↗',
-    E: '→', ESE: '↘', SE: '↘', SSE: '↘',
-    S: '↓', SSW: '↙', SW: '↙', WSW: '↙',
-    W: '←', WNW: '↖', NW: '↖', NNW: '↖'
+    N: '↑',
+    NNE: '↗',
+    NE: '↗',
+    ENE: '↗',
+    E: '→',
+    ESE: '↘',
+    SE: '↘',
+    SSE: '↘',
+    S: '↓',
+    SSW: '↙',
+    SW: '↙',
+    WSW: '↙',
+    W: '←',
+    WNW: '↖',
+    NW: '↖',
+    NNW: '↖',
   },
 
   // Air quality indicators
@@ -93,7 +105,7 @@ const weatherAscii = {
     moderate: '🟠',
     poor: '🔴',
     veryPoor: '🟣',
-    extremelyPoor: '⚫'
+    extremelyPoor: '⚫',
   },
 
   // Time of day
@@ -113,7 +125,7 @@ const weatherAscii = {
    /  |  \\   `,
 
     day: '☀️',
-    night: '🌙'
+    night: '🌙',
   },
 
   // Forecast chart components
@@ -122,8 +134,8 @@ const weatherAscii = {
     tempEmpty: '░',
     rainDrop: '💧',
     snowFlake: '❄️',
-    cloudIcon: '☁️'
-  }
+    cloudIcon: '☁️',
+  },
 };
 
 module.exports = weatherAscii;

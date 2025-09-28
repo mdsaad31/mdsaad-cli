@@ -1,11 +1,12 @@
 # 🚀 **RENDER DEPLOYMENT GUIDE**
 
 ## ✨ **Current Status**
+
 ✅ **All API Keys Removed**: No hardcoded secrets in code  
 ✅ **Proxy Architecture**: Zero-config for users  
 ✅ **Keep-Alive**: Built-in + external cron jobs  
 ✅ **Multi-URL Fallback**: Automatic failover  
-✅ **Ready for Render**: All configuration files created  
+✅ **Ready for Render**: All configuration files created
 
 ---
 
@@ -20,6 +21,7 @@ Since GitHub is blocking sensitive data in history:
 3. **Connect GitHub** or **Upload Files Manually**
 
 **Manual Upload Option:**
+
 - Download the `server/` folder
 - Compress as ZIP
 - Upload to Render
@@ -27,6 +29,7 @@ Since GitHub is blocking sensitive data in history:
 ### **Step 2: Render Configuration**
 
 **Settings:**
+
 ```
 Name: mdsaad-proxy-api
 Environment: Node
@@ -35,11 +38,12 @@ Start Command: npm start
 ```
 
 **Environment Variables:**
+
 ```
 NODE_ENV=production
 PORT=10000
 OPENROUTER_API_KEY=sk-or-v1-[YOUR_KEY]
-GROQ_API_KEY=gsk_[YOUR_KEY] 
+GROQ_API_KEY=gsk_[YOUR_KEY]
 WEATHERAPI_KEY=[YOUR_KEY]
 RENDER_EXTERNAL_URL=https://mdsaad-proxy-api.onrender.com
 ```
@@ -55,6 +59,7 @@ RENDER_EXTERNAL_URL=https://mdsaad-proxy-api.onrender.com
 ### **Step 4: Update CLI**
 
 Update the proxy URL in your CLI:
+
 ```bash
 # Set environment variable
 export MDSAAD_PROXY_API=https://your-app.onrender.com/v1
@@ -76,7 +81,7 @@ export MDSAAD_PROXY_API=https://your-app.onrender.com/v1
    - Type: HTTP(s)
    - URL: `https://your-app.onrender.com/health`
    - Interval: 5 minutes
-3. **Benefits**: 
+3. **Benefits**:
    - ✅ Free forever
    - ✅ Email alerts if down
    - ✅ Prevents cold starts
@@ -92,6 +97,7 @@ export MDSAAD_PROXY_API=https://your-app.onrender.com/v1
 ### **Option 3: GitHub Actions** (if you can push to GitHub)
 
 `.github/workflows/keepalive.yml`:
+
 ```yaml
 name: Keep API Alive
 on:
@@ -108,12 +114,12 @@ jobs:
 
 ## 📊 **Render vs Alternatives**
 
-| Platform | Free Tier | Cold Starts | Setup |
-|----------|-----------|-------------|-------|
+| Platform   | Free Tier    | Cold Starts             | Setup      |
+| ---------- | ------------ | ----------------------- | ---------- |
 | **Render** | 750hrs/month | Minimal with keep-alive | ⭐⭐⭐⭐⭐ |
-| Railway | 30 days only | Low | ⭐⭐⭐⭐ |
-| Vercel | Serverless | High | ⭐⭐⭐ |
-| Fly.io | 3 VMs | Low | ⭐⭐⭐ |
+| Railway    | 30 days only | Low                     | ⭐⭐⭐⭐   |
+| Vercel     | Serverless   | High                    | ⭐⭐⭐     |
+| Fly.io     | 3 VMs        | Low                     | ⭐⭐⭐     |
 
 **Winner: Render** - Best for CLI proxy APIs
 
@@ -122,6 +128,7 @@ jobs:
 ## 🎉 **After Deployment**
 
 Your CLI users get:
+
 - ✅ **Zero configuration** - works immediately
 - ✅ **No API keys needed** from users
 - ✅ **Fast responses** (keep-alive prevents cold starts)
@@ -130,6 +137,7 @@ Your CLI users get:
 - ✅ **Usage tracking** for analytics
 
 **Next Steps:**
+
 1. Deploy to Render
 2. Set up UptimeRobot monitoring
 3. Test CLI commands
@@ -140,6 +148,7 @@ Your CLI users get:
 ## 🔧 **Files Ready for Deployment**
 
 All these files are ready in your `server/` folder:
+
 - ✅ `package.json` - Dependencies
 - ✅ `api-server.js` - Main server with keep-alive
 - ✅ `render.yaml` - Render configuration

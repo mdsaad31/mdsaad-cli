@@ -26,7 +26,7 @@ class AICommand {
         parseResponse: this.parseOpenAIResponse.bind(this),
         supportsStreaming: true,
         isFree: true,
-        priority: 1  // Highest priority (DeepSeek through OpenRouter)
+        priority: 1, // Highest priority (DeepSeek through OpenRouter)
       },
       groq: {
         name: 'Groq (Free)',
@@ -35,7 +35,7 @@ class AICommand {
         parseResponse: this.parseOpenAIResponse.bind(this),
         supportsStreaming: true,
         isFree: true,
-        priority: 2
+        priority: 2,
       },
       deepseek: {
         name: 'DeepSeek (Free)',
@@ -44,16 +44,16 @@ class AICommand {
         parseResponse: this.parseOpenAIResponse.bind(this),
         supportsStreaming: true,
         isFree: true,
-        priority: 3
+        priority: 3,
       },
       gemini: {
-        name: 'Google Gemini (Free)', 
+        name: 'Google Gemini (Free)',
         endpoint: '/v1/models/gemini-1.5-flash:generateContent',
         formatRequest: this.formatGeminiRequest.bind(this),
         parseResponse: this.parseGeminiResponse.bind(this),
         supportsStreaming: false,
         isFree: true,
-        priority: 4  // Lowest priority
+        priority: 4, // Lowest priority
       },
       ollama: {
         name: 'Ollama (Local)',
@@ -62,8 +62,8 @@ class AICommand {
         parseResponse: this.parseOllamaResponse.bind(this),
         supportsStreaming: false,
         isFree: true,
-        priority: 4
-      }
+        priority: 4,
+      },
     };
   }
 
@@ -74,43 +74,68 @@ class AICommand {
     try {
       // Check if we should use proxy API or direct API keys
       const useProxyAPI = process.env.MDSAAD_USE_PROXY !== 'false'; // Default to proxy
-      
+
       if (useProxyAPI) {
         // Use proxy API (no API keys needed for users)
         console.log(chalk.cyan('🤖 Connecting to MDSAAD AI Service...'));
         const proxyResult = await this.handleProxyRequest(prompt, options);
         if (proxyResult) return;
-        
+
         // If proxy fails, fall back to direct API if keys available
-        console.log(chalk.yellow('⚠️ Proxy service unavailable, checking for local API keys...'));
+        console.log(
+          chalk.yellow(
+            '⚠️ Proxy service unavailable, checking for local API keys...'
+          )
+        );
       }
 
       // Check if API keys are configured for direct access
-      const { checkApiKeysConfigured, getSetupInstructions } = require('../config/mdsaad-keys');
+      const {
+        checkApiKeysConfigured,
+        getSetupInstructions,
+      } = require('../config/mdsaad-keys');
       const keyStatus = checkApiKeysConfigured();
-      
+
       if (!keyStatus.ai) {
         if (useProxyAPI) {
-          console.log(chalk.red('❌ MDSAAD AI Service is temporarily unavailable and no local API keys are configured.'));
+          console.log(
+            chalk.red(
+              '❌ MDSAAD AI Service is temporarily unavailable and no local API keys are configured.'
+            )
+          );
           console.log(chalk.yellow('\n🔄 You have two options:\n'));
-          console.log(chalk.cyan('1. Wait for the service to come back online (recommended)'));
-          console.log(chalk.cyan('2. Configure your own API keys as backup:\n'));
+          console.log(
+            chalk.cyan(
+              '1. Wait for the service to come back online (recommended)'
+            )
+          );
+          console.log(
+            chalk.cyan('2. Configure your own API keys as backup:\n')
+          );
         } else {
           console.log(chalk.red('❌ No AI API keys configured!'));
-          console.log(chalk.yellow('\n🔑 To use AI features, you need to configure API keys:\n'));
+          console.log(
+            chalk.yellow(
+              '\n🔑 To use AI features, you need to configure API keys:\n'
+            )
+          );
         }
-        
+
         const instructions = getSetupInstructions();
         console.log(chalk.cyan(instructions.message));
-        
+
         instructions.methods.forEach(method => {
           console.log(chalk.yellow(`\n${method.title}:`));
           method.instructions.forEach(inst => {
             console.log(`   ${inst}`);
           });
         });
-        
-        console.log(chalk.green('\n💡 Quick start: Run "mdsaad config setup" for interactive configuration'));
+
+        console.log(
+          chalk.green(
+            '\n💡 Quick start: Run "mdsaad config setup" for interactive configuration'
+          )
+        );
         return;
       }
 
@@ -121,7 +146,7 @@ class AICommand {
       if (!ollamaService.initialized) {
         await ollamaService.initialize();
       }
-      
+
       // Handle special commands
       if (await this.handleSpecialCommands(prompt, options)) {
         return;
@@ -138,7 +163,6 @@ class AICommand {
 
       // Execute AI request
       await this.executeAIRequest(preparedRequest);
-
     } catch (error) {
       this.handleError(error);
     }
@@ -191,7 +215,9 @@ class AICommand {
         if (options.model) {
           await this.pullOllamaModel(options.model);
         } else {
-          console.log(chalk.red('❌ Please specify a model to pull: --model <model-name>'));
+          console.log(
+            chalk.red('❌ Please specify a model to pull: --model <model-name>')
+          );
         }
         return true;
 
@@ -232,8 +258,8 @@ class AICommand {
         maxTokens: parseInt(options.maxTokens) || 1000,
         stream: options.stream || false,
         context: context,
-        systemPrompt: options.system || null
-      }
+        systemPrompt: options.system || null,
+      },
     };
   }
 
@@ -248,7 +274,10 @@ class AICommand {
       throw new Error(`Unsupported provider: ${provider}`);
     }
 
-    console.log(chalk.cyan(`🤖 ${providerConfig.name}`) + chalk.gray(` (${options.model})`));
+    console.log(
+      chalk.cyan(`🤖 ${providerConfig.name}`) +
+        chalk.gray(` (${options.model})`)
+    );
     console.log();
 
     try {
@@ -261,12 +290,17 @@ class AICommand {
         aiResponse = providerConfig.parseResponse({ data: ollamaResponse });
       } else {
         // Handle all API providers directly with your API keys
-        response = await this.makeDirectApiRequest(provider, prompt, options, providerConfig);
+        response = await this.makeDirectApiRequest(
+          provider,
+          prompt,
+          options,
+          providerConfig
+        );
         aiResponse = providerConfig.parseResponse(response);
       }
 
       responseTime = Date.now() - startTime;
-      
+
       if (options.stream && providerConfig.supportsStreaming) {
         await this.displayStreamingResponse(aiResponse, responseTime);
       } else {
@@ -280,7 +314,6 @@ class AICommand {
       if (provider !== 'ollama') {
         this.recordRequest(provider, true);
       }
-
     } catch (error) {
       if (provider !== 'ollama') {
         this.recordRequest(provider, false);
@@ -299,7 +332,7 @@ class AICommand {
     if (options.systemPrompt) {
       contents.push({
         role: 'user',
-        parts: [{ text: options.systemPrompt }]
+        parts: [{ text: options.systemPrompt }],
       });
     }
 
@@ -308,11 +341,11 @@ class AICommand {
       options.context.forEach(item => {
         contents.push({
           role: 'user',
-          parts: [{ text: item.prompt }]
+          parts: [{ text: item.prompt }],
         });
         contents.push({
           role: 'model',
-          parts: [{ text: item.response }]
+          parts: [{ text: item.response }],
         });
       });
     }
@@ -320,7 +353,7 @@ class AICommand {
     // Add current prompt
     contents.push({
       role: 'user',
-      parts: [{ text: prompt }]
+      parts: [{ text: prompt }],
     });
 
     return {
@@ -329,8 +362,8 @@ class AICommand {
         temperature: options.temperature,
         maxOutputTokens: options.maxTokens,
         topP: 0.8,
-        topK: 10
-      }
+        topK: 10,
+      },
     };
   }
 
@@ -344,7 +377,7 @@ class AICommand {
     if (options.systemPrompt) {
       messages.push({
         role: 'system',
-        content: options.systemPrompt
+        content: options.systemPrompt,
       });
     }
 
@@ -359,11 +392,14 @@ class AICommand {
     // Add current prompt
     messages.push({
       role: 'user',
-      content: prompt
+      content: prompt,
     });
 
     // Convert model name to actual API value
-    const actualModel = this.getActualModelName(options.model, options.provider);
+    const actualModel = this.getActualModelName(
+      options.model,
+      options.provider
+    );
 
     return {
       model: actualModel,
@@ -371,7 +407,7 @@ class AICommand {
       temperature: options.temperature,
       max_tokens: options.maxTokens,
       stream: options.stream,
-      top_p: 0.9
+      top_p: 0.9,
     };
   }
 
@@ -380,14 +416,22 @@ class AICommand {
    */
   getActualModelName(modelName, provider) {
     const aiConfig = mdsaadKeys.ai;
-    
-    if (aiConfig[provider] && aiConfig[provider].models && aiConfig[provider].models[modelName]) {
+
+    if (
+      aiConfig[provider] &&
+      aiConfig[provider].models &&
+      aiConfig[provider].models[modelName]
+    ) {
       const actualModel = aiConfig[provider].models[modelName];
-      loggerService.verbose(`Model mapping: ${modelName} -> ${actualModel} (provider: ${provider})`);
+      loggerService.verbose(
+        `Model mapping: ${modelName} -> ${actualModel} (provider: ${provider})`
+      );
       return actualModel;
     }
-    
-    loggerService.verbose(`No model mapping found for ${modelName} on ${provider}, using as-is`);
+
+    loggerService.verbose(
+      `No model mapping found for ${modelName} on ${provider}, using as-is`
+    );
     // Return as-is if not found in config
     return modelName;
   }
@@ -396,12 +440,20 @@ class AICommand {
    * Parse Gemini API response
    */
   parseGeminiResponse(response) {
-    if (!response.data || !response.data.candidates || response.data.candidates.length === 0) {
+    if (
+      !response.data ||
+      !response.data.candidates ||
+      response.data.candidates.length === 0
+    ) {
       throw new Error('Invalid response from Gemini API');
     }
 
     const candidate = response.data.candidates[0];
-    if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+    if (
+      !candidate.content ||
+      !candidate.content.parts ||
+      candidate.content.parts.length === 0
+    ) {
       throw new Error('No content in Gemini response');
     }
 
@@ -409,7 +461,7 @@ class AICommand {
       content: candidate.content.parts[0].text,
       model: 'gemini-pro',
       usage: response.data.usageMetadata || {},
-      finishReason: candidate.finishReason || 'stop'
+      finishReason: candidate.finishReason || 'stop',
     };
   }
 
@@ -417,7 +469,11 @@ class AICommand {
    * Parse OpenAI-compatible API response
    */
   parseOpenAIResponse(response) {
-    if (!response.data || !response.data.choices || response.data.choices.length === 0) {
+    if (
+      !response.data ||
+      !response.data.choices ||
+      response.data.choices.length === 0
+    ) {
       throw new Error('Invalid response from OpenAI-compatible API');
     }
 
@@ -428,7 +484,7 @@ class AICommand {
       content: content.trim(),
       model: response.data.model || 'unknown',
       usage: response.data.usage || {},
-      finishReason: choice.finish_reason || 'stop'
+      finishReason: choice.finish_reason || 'stop',
     };
   }
 
@@ -437,78 +493,88 @@ class AICommand {
    */
   async makeDirectApiRequest(provider, prompt, options, providerConfig) {
     const requestData = providerConfig.formatRequest(prompt, options);
-    
+
     // Get API configuration for each provider
     let apiKey, baseUrl, url, headers;
-    
+
     switch (provider) {
       case 'gemini':
         apiKey = mdsaadKeys.ai.gemini.apiKey;
         baseUrl = mdsaadKeys.ai.gemini.baseUrl;
         url = `${baseUrl}${providerConfig.endpoint}?key=${apiKey}`;
         headers = {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         };
         break;
-        
+
       case 'deepseek':
         apiKey = mdsaadKeys.ai.deepseek.apiKey;
         baseUrl = mdsaadKeys.ai.deepseek.baseUrl;
         url = `${baseUrl}${providerConfig.endpoint}`;
         headers = {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
         };
         break;
-        
+
       case 'groq':
         apiKey = mdsaadKeys.ai.groq.apiKey;
         baseUrl = mdsaadKeys.ai.groq.baseUrl;
         url = `${baseUrl}${providerConfig.endpoint}`;
         headers = {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
         };
         break;
-        
+
       case 'openrouter':
         apiKey = mdsaadKeys.ai.openrouter.apiKey;
         baseUrl = mdsaadKeys.ai.openrouter.baseUrl;
         url = `${baseUrl}${providerConfig.endpoint}`;
         headers = {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://github.com/mdsaad/cli', // Required for OpenRouter
-          'X-Title': 'MDSAAD CLI'
+          'X-Title': 'MDSAAD CLI',
         };
         break;
-        
+
       default:
         throw new Error(`Unsupported provider: ${provider}`);
     }
-    
+
     try {
       const response = await axios.post(url, requestData, {
         headers: {
           ...headers,
-          'User-Agent': 'MDSAAD CLI v1.0.0'
+          'User-Agent': 'MDSAAD CLI v1.0.0',
         },
-        timeout: 60000
+        timeout: 60000,
       });
 
       return response;
     } catch (error) {
       // Handle API-specific errors
       if (error.response?.status === 401) {
-        throw new Error(`${provider} API authentication failed - check your API key in mdsaad-keys.js`);
+        throw new Error(
+          `${provider} API authentication failed - check your API key in mdsaad-keys.js`
+        );
       } else if (error.response?.status === 429) {
-        throw new Error(`${provider} API rate limit exceeded - trying next provider`);
+        throw new Error(
+          `${provider} API rate limit exceeded - trying next provider`
+        );
       } else if (error.response?.status === 402) {
-        throw new Error(`${provider} API requires payment - trying next provider`);
+        throw new Error(
+          `${provider} API requires payment - trying next provider`
+        );
       } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-        throw new Error(`${provider} API temporarily unavailable - trying next provider`);
+        throw new Error(
+          `${provider} API temporarily unavailable - trying next provider`
+        );
       } else {
-        throw new Error(`${provider} API error: ${error.response?.data?.error?.message || error.message}`);
+        throw new Error(
+          `${provider} API error: ${error.response?.data?.error?.message || error.message}`
+        );
       }
     }
   }
@@ -522,7 +588,7 @@ class AICommand {
       prompt: prompt,
       temperature: options.temperature,
       maxTokens: options.maxTokens,
-      system: options.systemPrompt
+      system: options.systemPrompt,
     };
   }
 
@@ -531,20 +597,20 @@ class AICommand {
    */
   parseOllamaResponse(response) {
     const data = response.data;
-    
+
     return {
       content: data.content || data.response || '',
       model: data.model || 'ollama',
       usage: {
         promptTokens: data.promptEvalCount || 0,
         completionTokens: data.evalCount || 0,
-        totalTokens: (data.promptEvalCount || 0) + (data.evalCount || 0)
+        totalTokens: (data.promptEvalCount || 0) + (data.evalCount || 0),
       },
       finishReason: data.done ? 'stop' : 'length',
       timing: {
         totalDuration: data.totalDuration,
-        loadDuration: data.loadDuration
-      }
+        loadDuration: data.loadDuration,
+      },
     };
   }
 
@@ -554,7 +620,7 @@ class AICommand {
   displayResponse(aiResponse, responseTime) {
     console.log(chalk.white('💬 Response:'));
     console.log();
-    
+
     // Format and display the response content
     const formattedContent = this.formatResponseContent(aiResponse.content);
     console.log(formattedContent);
@@ -578,11 +644,11 @@ class AICommand {
     for (let i = 0; i < words.length; i++) {
       const word = words[i] + (i < words.length - 1 ? ' ' : '');
       displayedContent += word;
-      
+
       // Clear and redraw
       process.stdout.write('\r' + ' '.repeat(80) + '\r');
       process.stdout.write(this.formatResponseContent(displayedContent));
-      
+
       // Add slight delay for streaming effect
       await new Promise(resolve => setTimeout(resolve, 50));
     }
@@ -597,17 +663,19 @@ class AICommand {
    * Format response content with basic markdown-like formatting
    */
   formatResponseContent(content) {
-    return content
-      // Bold text
-      .replace(/\*\*(.*?)\*\*/g, chalk.bold('$1'))
-      // Italic text
-      .replace(/\*(.*?)\*/g, chalk.italic('$1'))
-      // Code blocks
-      .replace(/`(.*?)`/g, chalk.bgGray.white(' $1 '))
-      // Headers
-      .replace(/^### (.*$)/gm, chalk.yellow.bold('### $1'))
-      .replace(/^## (.*$)/gm, chalk.cyan.bold('## $1'))
-      .replace(/^# (.*$)/gm, chalk.magenta.bold('# $1'));
+    return (
+      content
+        // Bold text
+        .replace(/\*\*(.*?)\*\*/g, chalk.bold('$1'))
+        // Italic text
+        .replace(/\*(.*?)\*/g, chalk.italic('$1'))
+        // Code blocks
+        .replace(/`(.*?)`/g, chalk.bgGray.white(' $1 '))
+        // Headers
+        .replace(/^### (.*$)/gm, chalk.yellow.bold('### $1'))
+        .replace(/^## (.*$)/gm, chalk.cyan.bold('## $1'))
+        .replace(/^# (.*$)/gm, chalk.magenta.bold('# $1'))
+    );
   }
 
   /**
@@ -617,17 +685,25 @@ class AICommand {
     console.log(chalk.gray('─'.repeat(60)));
     console.log(chalk.gray(`Model: ${aiResponse.model || 'unknown'}`));
     console.log(chalk.gray(`Response Time: ${responseTime}ms`));
-    
+
     if (aiResponse.usage) {
       if (aiResponse.usage.promptTokens || aiResponse.usage.prompt_tokens) {
-        const promptTokens = aiResponse.usage.promptTokens || aiResponse.usage.prompt_tokens;
-        const completionTokens = aiResponse.usage.completionTokens || aiResponse.usage.completion_tokens;
-        const totalTokens = aiResponse.usage.totalTokens || aiResponse.usage.total_tokens;
-        
-        console.log(chalk.gray(`Tokens: ${promptTokens} prompt + ${completionTokens} completion = ${totalTokens} total`));
+        const promptTokens =
+          aiResponse.usage.promptTokens || aiResponse.usage.prompt_tokens;
+        const completionTokens =
+          aiResponse.usage.completionTokens ||
+          aiResponse.usage.completion_tokens;
+        const totalTokens =
+          aiResponse.usage.totalTokens || aiResponse.usage.total_tokens;
+
+        console.log(
+          chalk.gray(
+            `Tokens: ${promptTokens} prompt + ${completionTokens} completion = ${totalTokens} total`
+          )
+        );
       }
     }
-    
+
     console.log(chalk.gray(`Finish Reason: ${aiResponse.finishReason}`));
     console.log();
   }
@@ -649,7 +725,7 @@ class AICommand {
       if (preferredProvider === 'ollama') {
         return ollamaService.isAvailable() ? 'ollama' : null;
       }
-      
+
       // Check if API key is configured for this provider
       if (this.checkProviderApiKey(preferredProvider)) {
         return preferredProvider;
@@ -657,25 +733,36 @@ class AICommand {
     }
 
     // Auto-select best available provider using priority order from config
-    const priorityOrder = mdsaadKeys.aiProviderPriority || ['openrouter', 'groq', 'deepseek', 'gemini'];
-    
+    const priorityOrder = mdsaadKeys.aiProviderPriority || [
+      'openrouter',
+      'groq',
+      'deepseek',
+      'gemini',
+    ];
+
     // Find first available provider from priority list
     for (const providerName of priorityOrder) {
       const hasApiKey = this.checkProviderApiKey(providerName);
       if (hasApiKey) {
-        loggerService.verbose(`Selected provider: ${providerName} (priority: ${priorityOrder.indexOf(providerName) + 1})`);
+        loggerService.verbose(
+          `Selected provider: ${providerName} (priority: ${priorityOrder.indexOf(providerName) + 1})`
+        );
         return providerName;
       }
     }
-    
+
     // Fallback to Ollama if no API providers available
     if (ollamaService.isAvailable()) {
       loggerService.verbose('Selected provider: ollama (fallback)');
       return 'ollama';
     }
-    
+
     // No providers available
-    console.log(chalk.yellow('💡 All AI providers are unavailable. Check API keys in mdsaad-keys.js'));
+    console.log(
+      chalk.yellow(
+        '💡 All AI providers are unavailable. Check API keys in mdsaad-keys.js'
+      )
+    );
     return null;
   }
 
@@ -686,13 +773,25 @@ class AICommand {
     try {
       switch (provider) {
         case 'gemini':
-          return mdsaadKeys.ai.gemini.apiKey && !mdsaadKeys.ai.gemini.apiKey.includes('YOUR_');
+          return (
+            mdsaadKeys.ai.gemini.apiKey &&
+            !mdsaadKeys.ai.gemini.apiKey.includes('YOUR_')
+          );
         case 'deepseek':
-          return mdsaadKeys.ai.deepseek.apiKey && !mdsaadKeys.ai.deepseek.apiKey.includes('YOUR_');
+          return (
+            mdsaadKeys.ai.deepseek.apiKey &&
+            !mdsaadKeys.ai.deepseek.apiKey.includes('YOUR_')
+          );
         case 'groq':
-          return mdsaadKeys.ai.groq.apiKey && !mdsaadKeys.ai.groq.apiKey.includes('YOUR_');
+          return (
+            mdsaadKeys.ai.groq.apiKey &&
+            !mdsaadKeys.ai.groq.apiKey.includes('YOUR_')
+          );
         case 'openrouter':
-          return mdsaadKeys.ai.openrouter.apiKey && !mdsaadKeys.ai.openrouter.apiKey.includes('YOUR_');
+          return (
+            mdsaadKeys.ai.openrouter.apiKey &&
+            !mdsaadKeys.ai.openrouter.apiKey.includes('YOUR_')
+          );
         default:
           return false;
       }
@@ -706,21 +805,21 @@ class AICommand {
    */
   getDefaultModel(provider) {
     const aiConfig = mdsaadKeys.ai;
-    
+
     if (provider === 'ollama') {
       return ollamaService.getDefaultModel() || 'llama3.2';
     }
-    
+
     if (aiConfig[provider] && aiConfig[provider].defaultModel) {
       return aiConfig[provider].defaultModel;
     }
-    
+
     // Fallback to first model if no default specified
     if (aiConfig[provider] && aiConfig[provider].models) {
       const firstModel = Object.keys(aiConfig[provider].models)[0];
       return firstModel || 'default';
     }
-    
+
     return 'default';
   }
 
@@ -730,14 +829,14 @@ class AICommand {
   getProviderForModel(modelName) {
     // Build model-to-provider mapping from configuration
     const aiConfig = mdsaadKeys.ai;
-    
+
     for (const [providerName, config] of Object.entries(aiConfig)) {
       if (config.models) {
         // Check if model exists in this provider
         if (config.models[modelName]) {
           return providerName;
         }
-        
+
         // Also check by the actual model value (e.g., 'deepseek/deepseek-chat')
         for (const [modelKey, modelValue] of Object.entries(config.models)) {
           if (modelValue === modelName) {
@@ -746,7 +845,7 @@ class AICommand {
         }
       }
     }
-    
+
     // Legacy model mapping for backward compatibility
     const legacyMapping = {
       // Common model name patterns
@@ -757,9 +856,9 @@ class AICommand {
       'deepseek-chat': 'openrouter', // Default to OpenRouter for DeepSeek
       'deepseek-coder': 'openrouter',
       'gemini-pro': 'gemini',
-      'gemini-1.5-flash': 'gemini'
+      'gemini-1.5-flash': 'gemini',
     };
-    
+
     return legacyMapping[modelName] || null;
   }
 
@@ -769,28 +868,30 @@ class AICommand {
   checkRateLimit(provider) {
     const now = Date.now();
     const hourAgo = now - 3600000; // 1 hour in ms
-    
+
     if (!this.rateLimitTracker.has(provider)) {
       this.rateLimitTracker.set(provider, []);
     }
-    
+
     const requests = this.rateLimitTracker.get(provider);
-    
+
     // Clean old requests
     const recentRequests = requests.filter(time => time > hourAgo);
     this.rateLimitTracker.set(provider, recentRequests);
-    
+
     // Check limit (10 requests per hour)
     if (recentRequests.length >= 10) {
       const oldestRequest = Math.min(...recentRequests);
       const resetTime = new Date(oldestRequest + 3600000);
-      
+
       console.log(chalk.red('❌ Rate limit exceeded (10 requests/hour)'));
-      console.log(chalk.yellow(`⏰ Limit resets at: ${resetTime.toLocaleTimeString()}`));
+      console.log(
+        chalk.yellow(`⏰ Limit resets at: ${resetTime.toLocaleTimeString()}`)
+      );
       console.log(chalk.gray('Use "mdsaad ai quota" to check current usage'));
       return false;
     }
-    
+
     return true;
   }
 
@@ -799,11 +900,11 @@ class AICommand {
    */
   recordRequest(provider, success) {
     const now = Date.now();
-    
+
     if (!this.rateLimitTracker.has(provider)) {
       this.rateLimitTracker.set(provider, []);
     }
-    
+
     const requests = this.rateLimitTracker.get(provider);
     requests.push(now);
   }
@@ -815,11 +916,12 @@ class AICommand {
     const entry = {
       timestamp: new Date().toISOString(),
       prompt: prompt.substring(0, 100) + (prompt.length > 100 ? '...' : ''),
-      response: response.substring(0, 200) + (response.length > 200 ? '...' : ''),
+      response:
+        response.substring(0, 200) + (response.length > 200 ? '...' : ''),
       provider,
       model,
       fullPrompt: prompt,
-      fullResponse: response
+      fullResponse: response,
     };
 
     this.conversationHistory.push(entry);
@@ -830,7 +932,12 @@ class AICommand {
     }
 
     // Cache history for persistence
-    cacheService.set('ai_conversation_history', this.conversationHistory, 'ai', 86400000);
+    cacheService.set(
+      'ai_conversation_history',
+      this.conversationHistory,
+      'ai',
+      86400000
+    );
   }
 
   /**
@@ -841,17 +948,17 @@ class AICommand {
       if (contextType === 'recent') {
         return this.conversationHistory.slice(-5).map(entry => ({
           prompt: entry.fullPrompt,
-          response: entry.fullResponse
+          response: entry.fullResponse,
         }));
       }
-      
+
       if (contextType === 'all') {
         return this.conversationHistory.map(entry => ({
           prompt: entry.fullPrompt,
-          response: entry.fullResponse
+          response: entry.fullResponse,
         }));
       }
-      
+
       return [];
     } catch (error) {
       loggerService.warn('Failed to load conversation context:', error.message);
@@ -865,23 +972,31 @@ class AICommand {
   showHelp() {
     console.log(chalk.yellow('🤖 AI Assistant Help'));
     console.log();
-    
+
     console.log(chalk.cyan('Basic Usage:'));
-    console.log('  mdsaad ai "your question here"           →  Ask AI a question');
-    console.log('  mdsaad ai "explain quantum computing"    →  Get explanations');
-    console.log('  mdsaad ai "write a python function"      →  Code assistance');
+    console.log(
+      '  mdsaad ai "your question here"           →  Ask AI a question'
+    );
+    console.log(
+      '  mdsaad ai "explain quantum computing"    →  Get explanations'
+    );
+    console.log(
+      '  mdsaad ai "write a python function"      →  Code assistance'
+    );
     console.log();
-    
+
     console.log(chalk.cyan('Options:'));
     console.log('  -m, --model <model>        →  Specify AI model to use');
     console.log('  -p, --provider <name>      →  Prefer specific provider');
-    console.log('  -t, --temperature <0-1>    →  Control creativity (0=focused, 1=creative)');
+    console.log(
+      '  -t, --temperature <0-1>    →  Control creativity (0=focused, 1=creative)'
+    );
     console.log('  --max-tokens <number>      →  Maximum response length');
     console.log('  -c, --context <type>       →  Include conversation context');
     console.log('  -s, --stream              →  Stream response in real-time');
     console.log('  --system <prompt>         →  Set system prompt');
     console.log();
-    
+
     console.log(chalk.cyan('Special Commands:'));
     console.log('  mdsaad ai providers       →  Show available AI providers');
     console.log('  mdsaad ai models          →  Show available models');
@@ -892,7 +1007,7 @@ class AICommand {
     console.log('  mdsaad ai ollama          →  Show Ollama status and models');
     console.log('  mdsaad ai pull --model <name>  →  Install Ollama model');
     console.log();
-    
+
     console.log(chalk.cyan('Examples:'));
     console.log('  mdsaad ai "What is machine learning?" --provider gemini');
     console.log('  mdsaad ai "Write a poem" --temperature 0.9 --stream');
@@ -909,29 +1024,38 @@ class AICommand {
 
     for (const [key, config] of Object.entries(this.providers)) {
       let isHealthy;
-      
+
       if (key === 'ollama') {
         isHealthy = ollamaService.isAvailable();
       } else {
         const provider = apiManager.getProvider(key);
-        isHealthy = provider && provider.enabled && apiManager.isProviderHealthy(key);
+        isHealthy =
+          provider && provider.enabled && apiManager.isProviderHealthy(key);
       }
-      
+
       console.log(chalk.white(`${config.name} (${key}):`));
-      console.log(`  Status: ${isHealthy ? chalk.green('✅ Available') : chalk.red('❌ Unavailable')}`);
+      console.log(
+        `  Status: ${isHealthy ? chalk.green('✅ Available') : chalk.red('❌ Unavailable')}`
+      );
       console.log(`  Default Model: ${chalk.cyan(this.getDefaultModel(key))}`);
-      console.log(`  Streaming: ${config.supportsStreaming ? chalk.green('Yes') : chalk.yellow('No')}`);
-      
+      console.log(
+        `  Streaming: ${config.supportsStreaming ? chalk.green('Yes') : chalk.yellow('No')}`
+      );
+
       if (key === 'ollama') {
         console.log(`  Type: ${chalk.white('Local/Offline')}`);
         if (isHealthy) {
-          console.log(`  Models: ${chalk.white(ollamaService.getModels().length)} installed`);
+          console.log(
+            `  Models: ${chalk.white(ollamaService.getModels().length)} installed`
+          );
         }
       } else {
         const provider = apiManager.getProvider(key);
         if (provider) {
           console.log(`  Priority: ${chalk.white(provider.priority)}`);
-          console.log(`  Rate Limit: ${chalk.white(provider.rateLimit.requests)} req/${this.formatWindow(provider.rateLimit.window)}`);
+          console.log(
+            `  Rate Limit: ${chalk.white(provider.rateLimit.requests)} req/${this.formatWindow(provider.rateLimit.window)}`
+          );
         }
       }
       console.log();
@@ -953,15 +1077,23 @@ class AICommand {
     this.conversationHistory.slice(-10).forEach((entry, index) => {
       const number = this.conversationHistory.length - 9 + index;
       const time = new Date(entry.timestamp).toLocaleTimeString();
-      
-      console.log(chalk.gray(`${number}. `) + chalk.cyan(`[${time}]`) + chalk.white(` ${entry.provider}`));
+
+      console.log(
+        chalk.gray(`${number}. `) +
+          chalk.cyan(`[${time}]`) +
+          chalk.white(` ${entry.provider}`)
+      );
       console.log(chalk.gray('   Q: ') + entry.prompt);
       console.log(chalk.gray('   A: ') + entry.response);
       console.log();
     });
 
     if (this.conversationHistory.length > 10) {
-      console.log(chalk.gray(`... and ${this.conversationHistory.length - 10} more conversations`));
+      console.log(
+        chalk.gray(
+          `... and ${this.conversationHistory.length - 10} more conversations`
+        )
+      );
     }
   }
 
@@ -996,12 +1128,18 @@ class AICommand {
       const remaining = Math.max(0, 10 - recentRequests.length);
 
       console.log(chalk.white(`${provider}:`));
-      console.log(`  Requests this hour: ${recentRequests.length >= 8 ? chalk.yellow(`${recentRequests.length}/10`) : chalk.green(`${recentRequests.length}/10`)}`);
-      console.log(`  Remaining: ${remaining === 0 ? chalk.red(remaining) : chalk.green(remaining)}`);
-      
+      console.log(
+        `  Requests this hour: ${recentRequests.length >= 8 ? chalk.yellow(`${recentRequests.length}/10`) : chalk.green(`${recentRequests.length}/10`)}`
+      );
+      console.log(
+        `  Remaining: ${remaining === 0 ? chalk.red(remaining) : chalk.green(remaining)}`
+      );
+
       if (recentRequests.length > 0) {
         const nextReset = new Date(Math.min(...recentRequests) + 3600000);
-        console.log(`  Next reset: ${chalk.gray(nextReset.toLocaleTimeString())}`);
+        console.log(
+          `  Next reset: ${chalk.gray(nextReset.toLocaleTimeString())}`
+        );
       }
       console.log();
     }
@@ -1011,13 +1149,18 @@ class AICommand {
    * Show available models for provider
    */
   async showAvailableModels(provider) {
-    console.log(chalk.yellow(`🎯 Available AI Models${provider ? ` for ${provider}` : ''}`));
+    console.log(
+      chalk.yellow(
+        `🎯 Available AI Models${provider ? ` for ${provider}` : ''}`
+      )
+    );
     console.log();
 
     // Get provider configuration from mdsaad-keys.js
     const aiConfig = mdsaadKeys.ai;
-    const priorityOrder = mdsaadKeys.aiProviderPriority || Object.keys(aiConfig);
-    
+    const priorityOrder =
+      mdsaadKeys.aiProviderPriority || Object.keys(aiConfig);
+
     const providersToShow = provider ? [provider] : priorityOrder;
 
     let totalModels = 0;
@@ -1026,20 +1169,27 @@ class AICommand {
       if (aiConfig[p] && aiConfig[p].models) {
         const providerInfo = this.providers[p] || { name: p };
         const isTopPriority = priorityOrder[0] === p;
-        
-        console.log(chalk.white(`${providerInfo.name || p}:`) + 
-          (isTopPriority ? chalk.green(' (Primary)') : '') +
-          (aiConfig[p].apiKey ? chalk.gray(' [Configured]') : chalk.red(' [No API Key]')));
-        
+
+        console.log(
+          chalk.white(`${providerInfo.name || p}:`) +
+            (isTopPriority ? chalk.green(' (Primary)') : '') +
+            (aiConfig[p].apiKey
+              ? chalk.gray(' [Configured]')
+              : chalk.red(' [No API Key]'))
+        );
+
         const models = aiConfig[p].models;
         const defaultModel = aiConfig[p].defaultModel;
-        
+
         Object.keys(models).forEach(modelKey => {
           const modelValue = models[modelKey];
           const isDefault = modelKey === defaultModel;
-          const isFree = modelValue.includes(':free') || p === 'groq' || p === 'deepseek';
-          
-          console.log(`  ${chalk.cyan(modelKey)}${isDefault ? chalk.green(' (default)') : ''}${isFree ? chalk.yellow(' [FREE]') : ''}`);
+          const isFree =
+            modelValue.includes(':free') || p === 'groq' || p === 'deepseek';
+
+          console.log(
+            `  ${chalk.cyan(modelKey)}${isDefault ? chalk.green(' (default)') : ''}${isFree ? chalk.yellow(' [FREE]') : ''}`
+          );
           console.log(`    ${chalk.gray('→')} ${modelValue}`);
           totalModels++;
         });
@@ -1051,10 +1201,16 @@ class AICommand {
     try {
       const ollamaStatus = await ollamaService.getStatus();
       if (ollamaStatus.available && ollamaStatus.models > 0) {
-        console.log(chalk.white(`Ollama (Local):`) + chalk.yellow(' [FREE]') + chalk.gray(' [Local]'));
+        console.log(
+          chalk.white(`Ollama (Local):`) +
+            chalk.yellow(' [FREE]') +
+            chalk.gray(' [Local]')
+        );
         const models = await ollamaService.listModels();
         models.forEach(model => {
-          console.log(`  ${chalk.cyan(model.name)} ${chalk.gray(`(${model.size})`)}`);
+          console.log(
+            `  ${chalk.cyan(model.name)} ${chalk.gray(`(${model.size})`)}`
+          );
           totalModels++;
         });
         console.log();
@@ -1063,10 +1219,18 @@ class AICommand {
       // Ollama not available, skip silently
     }
 
-    console.log(chalk.gray(`Total: ${totalModels} models across ${providersToShow.length} providers`));
+    console.log(
+      chalk.gray(
+        `Total: ${totalModels} models across ${providersToShow.length} providers`
+      )
+    );
     console.log();
-    console.log(chalk.gray('Usage: mdsaad ai "your prompt" --model <model-name>'));
-    console.log(chalk.gray('   or: mdsaad ai "your prompt" --provider <provider-name>'));
+    console.log(
+      chalk.gray('Usage: mdsaad ai "your prompt" --model <model-name>')
+    );
+    console.log(
+      chalk.gray('   or: mdsaad ai "your prompt" --provider <provider-name>')
+    );
   }
 
   /**
@@ -1080,14 +1244,14 @@ class AICommand {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      prompt: chalk.cyan('You: ')
+      prompt: chalk.cyan('You: '),
     });
 
     rl.prompt();
 
-    rl.on('line', async (input) => {
+    rl.on('line', async input => {
       const trimmed = input.trim();
-      
+
       if (trimmed === 'exit' || trimmed === 'quit') {
         rl.close();
         return;
@@ -1120,15 +1284,27 @@ class AICommand {
    */
   handleError(error) {
     console.log(chalk.red('❌ AI request failed:'), error.message);
-    
+
     if (error.message.includes('rate limit')) {
-      console.log(chalk.yellow('💡 Try again in a few minutes or use a different provider'));
+      console.log(
+        chalk.yellow(
+          '💡 Try again in a few minutes or use a different provider'
+        )
+      );
     } else if (error.message.includes('API key')) {
-      console.log(chalk.yellow('💡 Configure your API key: mdsaad config set apiProviders.<provider>.apiKey "your-key"'));
+      console.log(
+        chalk.yellow(
+          '💡 Configure your API key: mdsaad config set apiProviders.<provider>.apiKey "your-key"'
+        )
+      );
     } else if (error.message.includes('No available')) {
-      console.log(chalk.yellow('💡 Configure at least one AI provider: mdsaad api providers'));
+      console.log(
+        chalk.yellow(
+          '💡 Configure at least one AI provider: mdsaad api providers'
+        )
+      );
     }
-    
+
     console.log(chalk.gray('Use "mdsaad ai help" for usage information'));
   }
 
@@ -1140,8 +1316,10 @@ class AICommand {
     console.log();
 
     const status = await ollamaService.getStatus();
-    
-    console.log(`Status: ${status.available ? chalk.green('✅ Available') : chalk.red('❌ Unavailable')}`);
+
+    console.log(
+      `Status: ${status.available ? chalk.green('✅ Available') : chalk.red('❌ Unavailable')}`
+    );
     console.log(`URL: ${chalk.cyan(status.url)}`);
     console.log(`Models: ${chalk.white(status.models)}`);
     console.log();
@@ -1151,25 +1329,32 @@ class AICommand {
       if (models.length > 0) {
         console.log(chalk.cyan('Installed Models:'));
         models.forEach(model => {
-          console.log(`  ${chalk.white(model.name)} - ${chalk.gray(model.size)} (${model.modified})`);
+          console.log(
+            `  ${chalk.white(model.name)} - ${chalk.gray(model.size)} (${model.modified})`
+          );
         });
       } else {
         console.log(chalk.yellow('No models installed'));
       }
       console.log();
-      
+
       console.log(chalk.cyan('Popular Models to Install:'));
       ollamaService.getPopularModels().forEach(model => {
         console.log(`  ${chalk.white(model.name)} - ${chalk.gray(model.size)}`);
         console.log(`    ${chalk.gray(model.description)}`);
       });
       console.log();
-      console.log(chalk.gray('Use "mdsaad ai pull --model <model-name>" to install a model'));
-      
+      console.log(
+        chalk.gray(
+          'Use "mdsaad ai pull --model <model-name>" to install a model'
+        )
+      );
     } else if (status.error) {
       console.log(chalk.red('Error:'), status.error);
       console.log();
-      console.log(chalk.yellow('💡 Make sure Ollama is installed and running:'));
+      console.log(
+        chalk.yellow('💡 Make sure Ollama is installed and running:')
+      );
       console.log('   1. Install Ollama from https://ollama.ai');
       console.log('   2. Start Ollama with "ollama serve"');
       console.log('   3. Pull a model with "ollama pull llama3.2"');
@@ -1187,7 +1372,6 @@ class AICommand {
       }
 
       await ollamaService.pullModel(modelName);
-      
     } catch (error) {
       console.log(chalk.red('❌ Failed to pull model:'), error.message);
     }
@@ -1206,16 +1390,20 @@ class AICommand {
 
       // Make request through proxy
       const result = await this.proxyAPI.aiRequest(prompt, options);
-      
+
       if (result.success) {
         // Display the AI response
         console.log(chalk.green('\n🤖 AI Response:'));
         console.log(chalk.white(result.data));
-        
+
         if (options.verbose || options.debug) {
           console.log(chalk.gray(`\n📊 Model: ${result.model}`));
           if (result.usage) {
-            console.log(chalk.gray(`💰 Tokens used: ${result.usage.total_tokens || 'N/A'}`));
+            console.log(
+              chalk.gray(
+                `💰 Tokens used: ${result.usage.total_tokens || 'N/A'}`
+              )
+            );
           }
         }
 
@@ -1223,14 +1411,14 @@ class AICommand {
         this.conversationHistory.push({
           role: 'user',
           content: prompt,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-        
+
         this.conversationHistory.push({
-          role: 'assistant', 
+          role: 'assistant',
           content: result.data,
           model: result.model,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         return true; // Success
@@ -1238,13 +1426,21 @@ class AICommand {
         // Handle proxy API errors
         if (result.code === 'RATE_LIMIT_EXCEEDED') {
           console.log(chalk.red('❌ ' + result.error));
-          console.log(chalk.yellow('💡 Tip: Rate limits reset every hour. You can also configure your own API keys as backup.'));
+          console.log(
+            chalk.yellow(
+              '💡 Tip: Rate limits reset every hour. You can also configure your own API keys as backup.'
+            )
+          );
         } else if (result.code === 'CONNECTION_ERROR' && result.fallback) {
           console.log(chalk.yellow('⚠️ ' + result.error));
           console.log(chalk.cyan('🔄 Falling back to direct API access...'));
           return false; // Allow fallback to direct API
         } else if (result.error && result.error.includes('401')) {
-          console.log(chalk.yellow('⚠️ MDSAAD AI Service is temporarily under maintenance.'));
+          console.log(
+            chalk.yellow(
+              '⚠️ MDSAAD AI Service is temporarily under maintenance.'
+            )
+          );
           console.log(chalk.cyan('🔄 Falling back to direct API access...'));
           return false; // Allow fallback for authentication issues
         } else {
@@ -1253,7 +1449,11 @@ class AICommand {
         return true; // Don't fallback for other errors
       }
     } catch (error) {
-      console.log(chalk.yellow('⚠️ Proxy service connection failed, trying direct API access...'));
+      console.log(
+        chalk.yellow(
+          '⚠️ Proxy service connection failed, trying direct API access...'
+        )
+      );
       loggerService.debug('Proxy API error:', error);
       return false; // Allow fallback
     }

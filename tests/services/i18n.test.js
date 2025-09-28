@@ -12,29 +12,39 @@ describe('I18N Service', () => {
   beforeAll(async () => {
     // Setup mock translations directory
     await fs.ensureDir(mockTranslationsDir);
-    
+
     // Create test translation files
     const testTranslations = {
       en: {
         meta: { language: 'English', locale: 'en', direction: 'ltr' },
         global: { appName: 'Test App', success: 'Success' },
-        test: { message: 'Hello {{name}}', items: { one: '{{count}} item', other: '{{count}} items' } }
+        test: {
+          message: 'Hello {{name}}',
+          items: { one: '{{count}} item', other: '{{count}} items' },
+        },
       },
       es: {
         meta: { language: 'Español', locale: 'es', direction: 'ltr' },
         global: { appName: 'Aplicación de Prueba', success: 'Éxito' },
-        test: { message: 'Hola {{name}}', items: { one: '{{count}} artículo', other: '{{count}} artículos' } }
+        test: {
+          message: 'Hola {{name}}',
+          items: { one: '{{count}} artículo', other: '{{count}} artículos' },
+        },
       },
       ar: {
         meta: { language: 'العربية', locale: 'ar', direction: 'rtl' },
         global: { appName: 'تطبيق تجريبي', success: 'نجح' },
-        test: { message: 'مرحبا {{name}}' }
-      }
+        test: { message: 'مرحبا {{name}}' },
+      },
     };
 
     // Write test translation files
     for (const [lang, translations] of Object.entries(testTranslations)) {
-      await fs.writeJson(path.join(mockTranslationsDir, `${lang}.json`), translations, { spaces: 2 });
+      await fs.writeJson(
+        path.join(mockTranslationsDir, `${lang}.json`),
+        translations,
+        { spaces: 2 }
+      );
     }
 
     // Mock the translations directory
@@ -66,12 +76,12 @@ describe('I18N Service', () => {
       expect(languages.find(l => l.code === 'en')).toEqual({
         code: 'en',
         name: 'English',
-        direction: 'ltr'
+        direction: 'ltr',
       });
       expect(languages.find(l => l.code === 'ar')).toEqual({
         code: 'ar',
         name: 'العربية',
-        direction: 'rtl'
+        direction: 'rtl',
       });
     });
   });
@@ -84,11 +94,15 @@ describe('I18N Service', () => {
     });
 
     test('should throw error for unsupported language', async () => {
-      await expect(i18n.loadLanguage('xyz')).rejects.toThrow('Language "xyz" is not supported');
+      await expect(i18n.loadLanguage('xyz')).rejects.toThrow(
+        'Language "xyz" is not supported'
+      );
     });
 
     test('should throw error for missing translation file', async () => {
-      await expect(i18n.loadLanguage('hi')).rejects.toThrow('Translation file not found for language: hi');
+      await expect(i18n.loadLanguage('hi')).rejects.toThrow(
+        'Translation file not found for language: hi'
+      );
     });
   });
 
@@ -100,7 +114,9 @@ describe('I18N Service', () => {
     });
 
     test('should throw error when setting unsupported language', async () => {
-      await expect(i18n.setLanguage('xyz')).rejects.toThrow('Language "xyz" is not supported');
+      await expect(i18n.setLanguage('xyz')).rejects.toThrow(
+        'Language "xyz" is not supported'
+      );
     });
 
     test('should auto-load language when setting', async () => {
@@ -122,7 +138,9 @@ describe('I18N Service', () => {
     });
 
     test('should translate with parameters', () => {
-      expect(i18n.translate('test.message', { name: 'John' })).toBe('Hello John');
+      expect(i18n.translate('test.message', { name: 'John' })).toBe(
+        'Hello John'
+      );
     });
 
     test('should fallback to English for missing translation', async () => {
@@ -160,7 +178,9 @@ describe('I18N Service', () => {
     });
 
     test('should include count in parameters', () => {
-      expect(i18n.translatePlural('test.items', 3, { extra: 'data' })).toBe('3 items');
+      expect(i18n.translatePlural('test.items', 3, { extra: 'data' })).toBe(
+        '3 items'
+      );
     });
   });
 
@@ -187,7 +207,7 @@ describe('I18N Service', () => {
       delete process.env.LC_ALL;
       delete process.env.LC_MESSAGES;
       delete process.env.LC_CTYPE;
-      
+
       process.env.LANGUAGE = 'es_ES';
       // Verify Spanish is supported and detectLocale returns it
       expect(i18n.isLanguageSupported('es')).toBe(true);
@@ -224,12 +244,12 @@ describe('I18N Service', () => {
     test('should get current language info', async () => {
       await i18n.initialize();
       await i18n.setLanguage('ar');
-      
+
       const current = i18n.getCurrentLanguage();
       expect(current).toEqual({
         code: 'ar',
         name: 'العربية',
-        direction: 'rtl'
+        direction: 'rtl',
       });
     });
   });
@@ -247,7 +267,11 @@ describe('I18N Service', () => {
 
     test('should format dates according to locale', () => {
       const date = new Date('2023-12-25');
-      const result = i18n.formatDate(date, { year: 'numeric', month: 'long', day: 'numeric' });
+      const result = i18n.formatDate(date, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
     });
@@ -262,9 +286,9 @@ describe('I18N Service', () => {
     test('should handle initialization errors gracefully', async () => {
       // Point to non-existent directory
       i18n.translationsDir = '/nonexistent/path';
-      
+
       await i18n.initialize();
-      
+
       expect(console.error).toHaveBeenCalled();
       expect(i18n.translations[i18n.fallbackLanguage]).toBeDefined();
     });
@@ -272,9 +296,9 @@ describe('I18N Service', () => {
     test('should handle malformed JSON files', async () => {
       const badFile = path.join(mockTranslationsDir, 'bad.json');
       await fs.writeFile(badFile, '{ invalid json }');
-      
+
       await expect(i18n.loadLanguage('bad')).rejects.toThrow();
-      
+
       await fs.remove(badFile);
     });
   });

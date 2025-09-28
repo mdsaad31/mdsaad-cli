@@ -18,7 +18,7 @@ class InputValidator {
       apiKey: /^[a-zA-Z0-9_-]+$/,
       languageCode: /^[a-z]{2}(-[A-Z]{2})?$/,
       currencyCode: /^[A-Z]{3}$/,
-      coordinates: /^-?\d{1,3}\.\d{1,10},-?\d{1,3}\.\d{1,10}$/
+      coordinates: /^-?\d{1,3}\.\d{1,10},-?\d{1,3}\.\d{1,10}$/,
     };
 
     // Maximum length limits
@@ -29,24 +29,24 @@ class InputValidator {
       filename: 255,
       prompt: 10000,
       command: 50,
-      argument: 500
+      argument: 500,
     };
 
     // Dangerous patterns to block
     this.dangerousPatterns = [
-      /\.\./g,  // Path traversal
-      /<script/gi,  // XSS
-      /javascript:/gi,  // XSS
-      /on\w+\s*=/gi,  // Event handlers
-      /eval\s*\(/gi,  // Code execution
-      /function\s*\(/gi,  // Function definitions
-      /\$\{.*\}/g,  // Template literals
-      /`.*`/g,  // Backticks
-      /rm\s+-rf/gi,  // Dangerous commands
-      /del\s+\/[sqf]/gi,  // Windows delete commands
-      /shutdown/gi,  // System commands
-      /reboot/gi,  // System commands
-      /format\s+[c-z]:/gi,  // Format commands
+      /\.\./g, // Path traversal
+      /<script/gi, // XSS
+      /javascript:/gi, // XSS
+      /on\w+\s*=/gi, // Event handlers
+      /eval\s*\(/gi, // Code execution
+      /function\s*\(/gi, // Function definitions
+      /\$\{.*\}/g, // Template literals
+      /`.*`/g, // Backticks
+      /rm\s+-rf/gi, // Dangerous commands
+      /del\s+\/[sqf]/gi, // Windows delete commands
+      /shutdown/gi, // System commands
+      /reboot/gi, // System commands
+      /format\s+[c-z]:/gi, // Format commands
     ];
   }
 
@@ -72,7 +72,9 @@ class InputValidator {
 
     // Check minimum length
     if (options.minLength && str.length < options.minLength) {
-      throw new Error(`${type} must be at least ${options.minLength} characters`);
+      throw new Error(
+        `${type} must be at least ${options.minLength} characters`
+      );
     }
 
     // Pattern validation
@@ -103,7 +105,9 @@ class InputValidator {
 
       case 'currencyCode':
         if (!this.patterns.currencyCode.test(str)) {
-          throw new Error('Invalid currency code format (expected: USD, EUR, etc.)');
+          throw new Error(
+            'Invalid currency code format (expected: USD, EUR, etc.)'
+          );
         }
         break;
 
@@ -252,9 +256,21 @@ class InputValidator {
    */
   validateCommand(command) {
     const validCommands = [
-      'calculate', 'weather', 'convert', 'show', 'ai', 'language',
-      'enhanced', 'debug', 'maintenance', 'performance', 'platform',
-      'plugin', 'update', 'help', 'version'
+      'calculate',
+      'weather',
+      'convert',
+      'show',
+      'ai',
+      'language',
+      'enhanced',
+      'debug',
+      'maintenance',
+      'performance',
+      'platform',
+      'plugin',
+      'update',
+      'help',
+      'version',
     ];
 
     if (!validCommands.includes(command)) {
@@ -273,7 +289,7 @@ class InputValidator {
       /you\s+are\s+now/gi,
       /pretend\s+to\s+be/gi,
       /act\s+as/gi,
-      /roleplay/gi
+      /roleplay/gi,
     ];
 
     for (const pattern of jailbreakPatterns) {
@@ -289,7 +305,7 @@ class InputValidator {
       /social\s+security/gi,
       /ssn/gi,
       /bank\s+account/gi,
-      /api\s+key/gi
+      /api\s+key/gi,
     ];
 
     for (const pattern of piiPatterns) {
@@ -347,13 +363,13 @@ class InputValidator {
   sanitizePath(filePath) {
     // Remove path traversal attempts
     let sanitized = filePath.replace(/\.\./g, '');
-    
+
     // Normalize path separators
     sanitized = path.normalize(sanitized);
-    
+
     // Remove leading path separators
     sanitized = sanitized.replace(/^[\/\\]+/, '');
-    
+
     return sanitized;
   }
 
@@ -364,8 +380,8 @@ class InputValidator {
     // Replace invalid filename characters
     return filename
       .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
-      .replace(/^\.+/, '')  // Remove leading dots
-      .substring(0, 255);   // Limit length
+      .replace(/^\.+/, '') // Remove leading dots
+      .substring(0, 255); // Limit length
   }
 
   /**
@@ -399,8 +415,8 @@ class InputValidator {
    */
   sanitizeGeneric(input) {
     return input
-      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')  // Remove control chars
-      .replace(/\0/g, '');  // Remove null bytes
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control chars
+      .replace(/\0/g, ''); // Remove null bytes
   }
 
   /**
@@ -409,10 +425,10 @@ class InputValidator {
   process(input, type, options = {}) {
     // First sanitize
     const sanitized = this.sanitize(input, type);
-    
+
     // Then validate
     const validated = this.validate(sanitized, type, options);
-    
+
     return validated;
   }
 
@@ -429,27 +445,32 @@ class InputValidator {
   checkRateLimit(identifier, maxRequests = 10, windowMs = 60000) {
     const now = Date.now();
     const windowStart = now - windowMs;
-    
+
     if (!this.rateLimitStore) {
       this.rateLimitStore = new Map();
     }
-    
+
     // Clean up old entries
     for (const [key, requests] of this.rateLimitStore) {
-      this.rateLimitStore.set(key, requests.filter(time => time > windowStart));
+      this.rateLimitStore.set(
+        key,
+        requests.filter(time => time > windowStart)
+      );
     }
-    
+
     // Get current requests for identifier
     const requests = this.rateLimitStore.get(identifier) || [];
-    
+
     if (requests.length >= maxRequests) {
-      throw new Error(`Rate limit exceeded. Maximum ${maxRequests} requests per ${windowMs}ms`);
+      throw new Error(
+        `Rate limit exceeded. Maximum ${maxRequests} requests per ${windowMs}ms`
+      );
     }
-    
+
     // Add current request
     requests.push(now);
     this.rateLimitStore.set(identifier, requests);
-    
+
     return true;
   }
 }

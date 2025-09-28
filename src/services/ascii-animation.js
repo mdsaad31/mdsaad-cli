@@ -22,12 +22,12 @@ class AsciiAnimationService {
     // Check environment variables and terminal capabilities
     const term = process.env.TERM || '';
     const colorTerm = process.env.COLORTERM || '';
-    
+
     if (process.platform === 'win32' && !process.env.WT_SESSION) {
       // Old Windows Command Prompt has limited support
       return false;
     }
-    
+
     return (
       term.includes('color') ||
       term.includes('ansi') ||
@@ -85,7 +85,7 @@ class AsciiAnimationService {
       speed = 50,
       color = 'white',
       startDelay = 0,
-      lineDelay = 100
+      lineDelay = 100,
     } = options;
 
     if (startDelay > 0) {
@@ -99,23 +99,23 @@ class AsciiAnimationService {
     try {
       for (let i = 0; i < lines.length && this.isAnimating; i++) {
         const line = lines[i];
-        
+
         for (let j = 0; j < line.length && this.isAnimating; j++) {
           const char = line[j];
           const colorFunc = this.getSafeColor(color);
-        process.stdout.write(colorFunc(char));
-          
+          process.stdout.write(colorFunc(char));
+
           if (char !== ' ') {
             await this.sleep(speed);
           }
         }
-        
+
         if (i < lines.length - 1) {
           process.stdout.write('\n');
           await this.sleep(lineDelay);
         }
       }
-      
+
       process.stdout.write('\n');
     } finally {
       this.showCursor();
@@ -127,15 +127,11 @@ class AsciiAnimationService {
    * Animate ASCII art with fade-in effect
    */
   async animateFadeIn(content, options = {}) {
-    const {
-      steps = 10,
-      speed = 200,
-      color = 'white'
-    } = options;
+    const { steps = 10, speed = 200, color = 'white' } = options;
 
     const lines = content.split('\n');
     const maxWidth = Math.max(...lines.map(line => line.length));
-    
+
     this.isAnimating = true;
     this.hideCursor();
 
@@ -143,22 +139,25 @@ class AsciiAnimationService {
       for (let step = 0; step < steps && this.isAnimating; step++) {
         this.clearScreen();
         this.moveCursor(1, 1);
-        
+
         const opacity = (step + 1) / steps;
         const visibleChars = Math.floor(maxWidth * opacity);
-        
+
         for (const line of lines) {
           const visibleLine = line.substring(0, visibleChars);
           const grayLevel = Math.floor(255 * opacity);
           const grayColor = `rgb(${grayLevel},${grayLevel},${grayLevel})`;
-          
+
           if (chalk.supportsColor.has256) {
-            process.stdout.write(chalk.hex(`#${grayLevel.toString(16).repeat(3)}`)(visibleLine) + '\n');
+            process.stdout.write(
+              chalk.hex(`#${grayLevel.toString(16).repeat(3)}`)(visibleLine) +
+                '\n'
+            );
           } else {
             process.stdout.write(chalk[color](visibleLine) + '\n');
           }
         }
-        
+
         await this.sleep(speed);
       }
     } finally {
@@ -174,19 +173,19 @@ class AsciiAnimationService {
     const {
       direction = 'right', // 'left', 'right', 'top', 'bottom'
       speed = 100,
-      color = 'white'
+      color = 'white',
     } = options;
 
     const lines = content.split('\n');
     const maxWidth = Math.max(...lines.map(line => line.length));
     const height = lines.length;
-    
+
     this.isAnimating = true;
     this.hideCursor();
 
     try {
       let steps;
-      
+
       switch (direction) {
         case 'right':
           steps = maxWidth;
@@ -205,34 +204,37 @@ class AsciiAnimationService {
       for (let step = 0; step < steps && this.isAnimating; step++) {
         this.clearScreen();
         this.moveCursor(1, 1);
-        
+
         let displayLines = [];
-        
+
         switch (direction) {
           case 'right':
             displayLines = lines.map(line => line.substring(0, step + 1));
             break;
-            
+
           case 'left':
             displayLines = lines.map(line => {
               const startIndex = Math.max(0, line.length - step - 1);
-              return ' '.repeat(Math.max(0, maxWidth - step - 1)) + line.substring(startIndex);
+              return (
+                ' '.repeat(Math.max(0, maxWidth - step - 1)) +
+                line.substring(startIndex)
+              );
             });
             break;
-            
+
           case 'top':
             displayLines = lines.slice(0, step + 1);
             break;
-            
+
           case 'bottom':
             displayLines = lines.slice(Math.max(0, lines.length - step - 1));
             break;
         }
-        
+
         for (const line of displayLines) {
           process.stdout.write(chalk[color](line) + '\n');
         }
-        
+
         await this.sleep(speed);
       }
     } finally {
@@ -245,26 +247,22 @@ class AsciiAnimationService {
    * Animate ASCII art with matrix rain effect
    */
   async animateMatrixRain(content, options = {}) {
-    const {
-      duration = 5000,
-      speed = 100,
-      color = 'green'
-    } = options;
+    const { duration = 5000, speed = 100, color = 'green' } = options;
 
     const lines = content.split('\n');
     const maxWidth = Math.max(...lines.map(line => line.length));
     const chars = '01';
-    
+
     this.isAnimating = true;
     this.hideCursor();
 
     const startTime = Date.now();
 
     try {
-      while (this.isAnimating && (Date.now() - startTime) < duration) {
+      while (this.isAnimating && Date.now() - startTime < duration) {
         this.clearScreen();
         this.moveCursor(1, 1);
-        
+
         // Generate random matrix characters
         for (let row = 0; row < lines.length; row++) {
           let line = '';
@@ -277,15 +275,14 @@ class AsciiAnimationService {
           }
           process.stdout.write(chalk[color](line) + '\n');
         }
-        
+
         await this.sleep(speed);
       }
-      
+
       // Show the actual content after matrix effect
       this.clearScreen();
       this.moveCursor(1, 1);
       process.stdout.write(chalk[color](content) + '\n');
-      
     } finally {
       this.showCursor();
       this.isAnimating = false;
@@ -299,7 +296,7 @@ class AsciiAnimationService {
     const {
       cycles = 3,
       speed = 300,
-      colors = ['white', 'yellow', 'cyan', 'magenta']
+      colors = ['white', 'yellow', 'cyan', 'magenta'],
     } = options;
 
     this.isAnimating = true;
@@ -307,14 +304,18 @@ class AsciiAnimationService {
 
     try {
       for (let cycle = 0; cycle < cycles && this.isAnimating; cycle++) {
-        for (let colorIndex = 0; colorIndex < colors.length && this.isAnimating; colorIndex++) {
+        for (
+          let colorIndex = 0;
+          colorIndex < colors.length && this.isAnimating;
+          colorIndex++
+        ) {
           this.clearScreen();
           this.moveCursor(1, 1);
-          
+
           const currentColor = colors[colorIndex];
           const colorFunc = this.getSafeColor(currentColor);
           process.stdout.write(colorFunc(content) + '\n');
-          
+
           await this.sleep(speed);
         }
       }
@@ -328,15 +329,11 @@ class AsciiAnimationService {
    * Animate ASCII art with wave effect
    */
   async animateWave(content, options = {}) {
-    const {
-      cycles = 2,
-      speed = 150,
-      color = 'cyan'
-    } = options;
+    const { cycles = 2, speed = 150, color = 'cyan' } = options;
 
     const lines = content.split('\n');
     const frames = 20;
-    
+
     this.isAnimating = true;
     this.hideCursor();
 
@@ -345,15 +342,15 @@ class AsciiAnimationService {
         for (let frame = 0; frame < frames && this.isAnimating; frame++) {
           this.clearScreen();
           this.moveCursor(1, 1);
-          
+
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const offset = Math.floor(Math.sin((frame + i) * 0.3) * 3);
             const spacedLine = ' '.repeat(Math.max(0, offset)) + line;
-            
+
             process.stdout.write(chalk[color](spacedLine) + '\n');
           }
-          
+
           await this.sleep(speed);
         }
       }
@@ -380,26 +377,29 @@ class AsciiAnimationService {
       background = null,
       bold = false,
       dim = false,
-      inverse = false
+      inverse = false,
     } = options;
 
     let styledContent = content;
-    
+
     // Apply color
     if (color) {
       styledContent = chalk[color](styledContent);
     }
-    
+
     // Apply background
     if (background) {
-      styledContent = chalk[`bg${background.charAt(0).toUpperCase() + background.slice(1)}`](styledContent);
+      styledContent =
+        chalk[`bg${background.charAt(0).toUpperCase() + background.slice(1)}`](
+          styledContent
+        );
     }
-    
+
     // Apply text effects
     if (bold) styledContent = chalk.bold(styledContent);
     if (dim) styledContent = chalk.dim(styledContent);
     if (inverse) styledContent = chalk.inverse(styledContent);
-    
+
     process.stdout.write(styledContent + '\n');
   }
 
@@ -407,14 +407,7 @@ class AsciiAnimationService {
    * Get available animation types
    */
   getAnimationTypes() {
-    return [
-      'typewriter',
-      'fadein',
-      'slidein',
-      'matrix',
-      'pulse',
-      'wave'
-    ];
+    return ['typewriter', 'fadein', 'slidein', 'matrix', 'pulse', 'wave'];
   }
 
   /**
@@ -422,11 +415,23 @@ class AsciiAnimationService {
    */
   getAvailableColors() {
     return [
-      'black', 'red', 'green', 'yellow',
-      'blue', 'magenta', 'cyan', 'white',
-      'gray', 'grey', 'brightRed', 'brightGreen',
-      'brightYellow', 'brightBlue', 'brightMagenta',
-      'brightCyan', 'brightWhite'
+      'black',
+      'red',
+      'green',
+      'yellow',
+      'blue',
+      'magenta',
+      'cyan',
+      'white',
+      'gray',
+      'grey',
+      'brightRed',
+      'brightGreen',
+      'brightYellow',
+      'brightBlue',
+      'brightMagenta',
+      'brightCyan',
+      'brightWhite',
     ];
   }
 
@@ -437,7 +442,7 @@ class AsciiAnimationService {
     if (typeof chalk[colorName] === 'function') {
       return chalk[colorName];
     }
-    
+
     // Fallback to white if color doesn't exist
     loggerService.warn(`Invalid color '${colorName}', using white`);
     return chalk.white;
@@ -456,7 +461,7 @@ class AsciiAnimationService {
   getTerminalSize() {
     return {
       width: process.stdout.columns || 80,
-      height: process.stdout.rows || 24
+      height: process.stdout.rows || 24,
     };
   }
 

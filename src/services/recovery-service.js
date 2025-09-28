@@ -16,7 +16,7 @@ class RecoveryService {
     this.degradationLevel = 0; // 0 = full, 1 = limited, 2 = basic, 3 = minimal
     this.fallbackStrategies = new Map();
     this.recoveryAttempts = new Map();
-    
+
     this.initializeFallbackStrategies();
   }
 
@@ -31,36 +31,37 @@ class RecoveryService {
         temperature: 'N/A',
         condition: 'Weather data unavailable',
         humidity: 'N/A',
-        pressure: 'N/A'
+        pressure: 'N/A',
       },
       cacheKey: 'weather_last_known',
-      gracefulMessage: '🔌 Using offline weather data'
+      gracefulMessage: '🔌 Using offline weather data',
     });
 
     // AI service fallback
     this.fallbackStrategies.set('ai', {
       priority: ['openai', 'google', 'anthropic', 'cached', 'offline'],
       fallbackData: {
-        response: 'AI services are currently unavailable. Please try again later or check your internet connection.',
-        model: 'offline-mode'
+        response:
+          'AI services are currently unavailable. Please try again later or check your internet connection.',
+        model: 'offline-mode',
       },
       cacheKey: 'ai_last_responses',
-      gracefulMessage: '🔌 AI services unavailable - using offline mode'
+      gracefulMessage: '🔌 AI services unavailable - using offline mode',
     });
 
     // Currency conversion fallback
     this.fallbackStrategies.set('currency', {
       priority: ['exchangerate-api', 'fixer', 'cached', 'static'],
       fallbackData: {
-        'USD_EUR': 0.85,
-        'USD_GBP': 0.76,
-        'USD_JPY': 149.8,
-        'EUR_GBP': 0.89,
-        'EUR_JPY': 176.2,
-        'GBP_JPY': 196.8
+        USD_EUR: 0.85,
+        USD_GBP: 0.76,
+        USD_JPY: 149.8,
+        EUR_GBP: 0.89,
+        EUR_JPY: 176.2,
+        GBP_JPY: 196.8,
       },
       cacheKey: 'currency_rates',
-      gracefulMessage: '🔌 Using cached exchange rates'
+      gracefulMessage: '🔌 Using cached exchange rates',
     });
 
     // Configuration fallback
@@ -69,9 +70,9 @@ class RecoveryService {
       fallbackData: {
         language: 'en',
         theme: 'default',
-        units: 'metric'
+        units: 'metric',
       },
-      gracefulMessage: '⚙️ Using default configuration'
+      gracefulMessage: '⚙️ Using default configuration',
     });
   }
 
@@ -86,24 +87,33 @@ class RecoveryService {
 
     const attemptKey = `${serviceName}_${operation}`;
     let attempts = this.recoveryAttempts.get(attemptKey) || 0;
-    
+
     for (const provider of strategy.priority) {
       try {
         attempts++;
         this.recoveryAttempts.set(attemptKey, attempts);
 
-        console.log(outputFormatter.loading(`Trying ${provider} for ${serviceName}...`));
-        
-        const result = await this.tryProvider(serviceName, provider, operation, ...args);
-        
+        console.log(
+          outputFormatter.loading(`Trying ${provider} for ${serviceName}...`)
+        );
+
+        const result = await this.tryProvider(
+          serviceName,
+          provider,
+          operation,
+          ...args
+        );
+
         if (result) {
           // Reset attempt counter on success
           this.recoveryAttempts.delete(attemptKey);
           return result;
         }
       } catch (error) {
-        console.log(outputFormatter.warning(`${provider} failed: ${error.message}`));
-        
+        console.log(
+          outputFormatter.warning(`${provider} failed: ${error.message}`)
+        );
+
         // Continue to next provider
         continue;
       }
@@ -120,15 +130,20 @@ class RecoveryService {
     switch (provider) {
       case 'cached':
         return await this.tryCache(serviceName, operation, ...args);
-      
+
       case 'default':
       case 'static':
       case 'offline':
         return await this.tryStaticFallback(serviceName, operation, ...args);
-      
+
       default:
         // Try the actual service provider
-        return await this.tryServiceProvider(serviceName, provider, operation, ...args);
+        return await this.tryServiceProvider(
+          serviceName,
+          provider,
+          operation,
+          ...args
+        );
     }
   }
 
@@ -139,13 +154,13 @@ class RecoveryService {
     try {
       const cacheService = require('./cache');
       const cacheKey = `${serviceName}_${operation}_${JSON.stringify(args)}`;
-      
+
       const cachedResult = await cacheService.get(cacheKey);
       if (cachedResult) {
         console.log(outputFormatter.info('📦 Using cached data'));
         return cachedResult;
       }
-      
+
       return null;
     } catch (error) {
       return null;
@@ -162,7 +177,7 @@ class RecoveryService {
     }
 
     console.log(outputFormatter.warning(strategy.gracefulMessage));
-    
+
     // For currency conversions, calculate from static rates
     if (serviceName === 'currency' && args.length >= 2) {
       const [from, to] = args;
@@ -205,13 +220,13 @@ class RecoveryService {
    */
   async tryWeatherProvider(provider, operation, location) {
     const weatherService = require('./weather');
-    
+
     // This would integrate with the actual weather service
     // For now, simulate the call
     if (provider === 'weatherapi' || provider === 'openweather') {
       return await weatherService.getCurrentWeather(location);
     }
-    
+
     throw new Error(`Weather provider ${provider} not available`);
   }
 
@@ -221,12 +236,12 @@ class RecoveryService {
   async tryAIProvider(provider, operation, prompt, options = {}) {
     // This would integrate with AI services
     // For now, simulate different providers
-    
+
     if (provider === 'openai' && process.env.OPENAI_API_KEY) {
       // Would make actual OpenAI call
       throw new Error('OpenAI API key not configured');
     }
-    
+
     if (provider === 'google' && process.env.GOOGLE_API_KEY) {
       // Would make actual Google AI call
       throw new Error('Google AI not configured');
@@ -241,12 +256,12 @@ class RecoveryService {
   async tryCurrencyProvider(provider, operation, from, to, amount = 1) {
     // This would integrate with currency services
     // For now, simulate the behavior
-    
+
     if (provider === 'exchangerate-api') {
       // Would make actual API call
       throw new Error('ExchangeRate API not available');
     }
-    
+
     throw new Error(`Currency provider ${provider} not available`);
   }
 
@@ -256,23 +271,23 @@ class RecoveryService {
   getStaticExchangeRate(from, to, staticRates) {
     const key1 = `${from}_${to}`;
     const key2 = `${to}_${from}`;
-    
+
     if (staticRates[key1]) {
       return staticRates[key1];
     }
-    
+
     if (staticRates[key2]) {
       return 1 / staticRates[key2];
     }
-    
+
     // Try via USD conversion
     const fromUSD = staticRates[`USD_${from}`];
     const toUSD = staticRates[`USD_${to}`];
-    
+
     if (fromUSD && toUSD) {
       return toUSD / fromUSD;
     }
-    
+
     return null;
   }
 
@@ -280,17 +295,21 @@ class RecoveryService {
    * Use fallback data when all providers fail
    */
   useFallbackData(serviceName, strategy) {
-    console.log(outputFormatter.warning('⚠️ All providers failed - using fallback data'));
-    console.log(outputFormatter.info(strategy.gracefulMessage || 'Using offline mode'));
-    
+    console.log(
+      outputFormatter.warning('⚠️ All providers failed - using fallback data')
+    );
+    console.log(
+      outputFormatter.info(strategy.gracefulMessage || 'Using offline mode')
+    );
+
     this.offlineMode = true;
     this.degradationLevel = Math.max(this.degradationLevel, 2);
-    
+
     return {
       ...strategy.fallbackData,
       _source: 'fallback',
       _degraded: true,
-      _timestamp: new Date().toISOString()
+      _timestamp: new Date().toISOString(),
     };
   }
 
@@ -300,7 +319,7 @@ class RecoveryService {
   enableOfflineMode() {
     this.offlineMode = true;
     this.degradationLevel = 3;
-    
+
     console.log(outputFormatter.info('🔌 Offline mode enabled'));
     console.log('   • Limited functionality available');
     console.log('   • Using cached and static data');
@@ -317,13 +336,13 @@ class RecoveryService {
       return {
         available: !result._degraded,
         degraded: result._degraded || false,
-        source: result._source || 'unknown'
+        source: result._source || 'unknown',
       };
     } catch (error) {
       return {
         available: false,
         degraded: true,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -335,9 +354,12 @@ class RecoveryService {
     const stats = {
       offlineMode: this.offlineMode,
       degradationLevel: this.degradationLevel,
-      totalAttempts: Array.from(this.recoveryAttempts.values()).reduce((sum, count) => sum + count, 0),
+      totalAttempts: Array.from(this.recoveryAttempts.values()).reduce(
+        (sum, count) => sum + count,
+        0
+      ),
       serviceAttempts: Object.fromEntries(this.recoveryAttempts),
-      fallbacksActive: this.fallbackData.size
+      fallbacksActive: this.fallbackData.size,
     };
 
     return stats;
@@ -351,7 +373,7 @@ class RecoveryService {
     this.degradationLevel = 0;
     this.recoveryAttempts.clear();
     this.fallbackData.clear();
-    
+
     console.log(outputFormatter.success('🔄 Recovery state reset'));
   }
 
@@ -362,14 +384,14 @@ class RecoveryService {
     const {
       failureThreshold = 5,
       resetTimeout = 60000,
-      monitoringPeriod = 300000
+      monitoringPeriod = 300000,
     } = options;
 
     return {
       failures: 0,
       lastFailure: null,
       state: 'closed', // closed, open, half-open
-      
+
       async call(operation) {
         if (this.state === 'open') {
           const timeSinceLastFailure = Date.now() - this.lastFailure;
@@ -382,25 +404,29 @@ class RecoveryService {
 
         try {
           const result = await operation();
-          
+
           if (this.state === 'half-open') {
             this.state = 'closed';
             this.failures = 0;
           }
-          
+
           return result;
         } catch (error) {
           this.failures++;
           this.lastFailure = Date.now();
-          
+
           if (this.failures >= failureThreshold) {
             this.state = 'open';
-            console.log(outputFormatter.warning(`🔴 Circuit breaker opened for ${serviceName}`));
+            console.log(
+              outputFormatter.warning(
+                `🔴 Circuit breaker opened for ${serviceName}`
+              )
+            );
           }
-          
+
           throw error;
         }
-      }
+      },
     };
   }
 }

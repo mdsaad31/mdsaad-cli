@@ -9,11 +9,13 @@ const fs = require('fs-extra');
 jest.mock('../../src/services/cache-service', () => {
   const mockPath = require('path');
   const originalModule = jest.requireActual('../../src/services/cache-service');
-  
+
   // Override cache directory for testing
   const mockCacheService = {
     ...originalModule,
-    cacheDir: global.testUtils?.TEST_CACHE_DIR || mockPath.join(__dirname, '../../test-cache')
+    cacheDir:
+      global.testUtils?.TEST_CACHE_DIR ||
+      mockPath.join(__dirname, '../../test-cache'),
   };
 
   return mockCacheService;
@@ -54,9 +56,9 @@ describe('Cache Service', () => {
         array: [1, 2, 3],
         nested: {
           deep: {
-            value: 'nested-data'
-          }
-        }
+            value: 'nested-data',
+          },
+        },
       };
 
       await cacheService.set(key, value);
@@ -72,7 +74,10 @@ describe('Cache Service', () => {
 
     test('should return default value for non-existent keys', async () => {
       const defaultValue = 'default';
-      const retrieved = await cacheService.get('non-existent-key', defaultValue);
+      const retrieved = await cacheService.get(
+        'non-existent-key',
+        defaultValue
+      );
       expect(retrieved).toBe(defaultValue);
     });
 
@@ -185,7 +190,7 @@ describe('Cache Service', () => {
       const entries = {
         'clear-test-1': 'value1',
         'clear-test-2': 'value2',
-        'clear-test-3': { data: 'object' }
+        'clear-test-3': { data: 'object' },
       };
 
       for (const [key, value] of Object.entries(entries)) {
@@ -214,7 +219,7 @@ describe('Cache Service', () => {
       const metadata = {
         source: 'test',
         version: '1.0',
-        tags: ['test', 'metadata']
+        tags: ['test', 'metadata'],
       };
 
       await cacheService.set(key, value, null, null, metadata);
@@ -234,7 +239,7 @@ describe('Cache Service', () => {
       }
 
       const allKeys = await cacheService.keys();
-      
+
       for (const key of testKeys) {
         expect(allKeys).toContain(key);
       }
@@ -277,7 +282,7 @@ describe('Cache Service', () => {
 
     test('should handle serialization errors', async () => {
       const key = 'serialization-test';
-      
+
       // Create circular reference
       const circular = { a: 1 };
       circular.self = circular;
@@ -288,13 +293,13 @@ describe('Cache Service', () => {
     test('should handle file system errors gracefully', async () => {
       // Try to use invalid cache directory
       const originalCacheDir = cacheService.cacheDir;
-      
+
       if (process.platform !== 'win32') {
         // On Unix systems, try to use a path that can't be created
         cacheService.cacheDir = '/root/invalid/path';
-        
+
         await expect(cacheService.set('test', 'value')).rejects.toThrow();
-        
+
         // Restore original cache directory
         cacheService.cacheDir = originalCacheDir;
       }
@@ -349,15 +354,17 @@ describe('Cache Service', () => {
     test('should handle large cache entries efficiently', async () => {
       const key = 'large-entry';
       const largeData = {
-        array: new Array(10000).fill(0).map((_, i) => ({ id: i, value: Math.random() })),
-        text: 'x'.repeat(100000) // 100KB string
+        array: new Array(10000)
+          .fill(0)
+          .map((_, i) => ({ id: i, value: Math.random() })),
+        text: 'x'.repeat(100000), // 100KB string
       };
 
       const startTime = Date.now();
-      
+
       await cacheService.set(key, largeData);
       const retrieved = await cacheService.get(key);
-      
+
       const endTime = Date.now();
 
       expect(retrieved.array).toHaveLength(10000);
@@ -374,7 +381,9 @@ describe('Cache Service', () => {
       // Create many entries
       const promises = [];
       for (let i = 0; i < entryCount; i++) {
-        promises.push(cacheService.set(`perf-test-${i}`, { index: i, data: `value-${i}` }));
+        promises.push(
+          cacheService.set(`perf-test-${i}`, { index: i, data: `value-${i}` })
+        );
       }
 
       await Promise.all(promises);

@@ -20,7 +20,7 @@ class PerformanceService {
       memoryCritical: 500 * 1024 * 1024, // 500MB
       cpuWarning: 80, // 80% CPU usage
       startupWarning: 1000, // 1 second startup
-      commandWarning: 5000 // 5 seconds per command
+      commandWarning: 5000, // 5 seconds per command
     };
     this.monitoringInterval = null;
     this.performanceLog = [];
@@ -36,11 +36,14 @@ class PerformanceService {
       this.captureInitialSnapshot();
       this.startMemoryMonitoring();
       this.isInitialized = true;
-      
+
       debugService.debug('Performance monitoring initialized');
       return true;
     } catch (error) {
-      console.warn('Performance monitoring initialization failed:', error.message);
+      console.warn(
+        'Performance monitoring initialization failed:',
+        error.message
+      );
       return false;
     }
   }
@@ -56,7 +59,7 @@ class PerformanceService {
       uptime: os.uptime(),
       platform: os.platform(),
       nodeVersion: process.version,
-      pid: process.pid
+      pid: process.pid,
     };
 
     this.memorySnapshots.push(snapshot);
@@ -78,7 +81,10 @@ class PerformanceService {
     }, 30000);
 
     // Don't keep the process alive just for monitoring
-    if (this.monitoringInterval && typeof this.monitoringInterval.unref === 'function') {
+    if (
+      this.monitoringInterval &&
+      typeof this.monitoringInterval.unref === 'function'
+    ) {
       this.monitoringInterval.unref();
     }
   }
@@ -91,11 +97,11 @@ class PerformanceService {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
-    
+
     this.logPerformanceEvent('shutdown', 'Performance monitoring stopped', {
       totalRuntime: Date.now() - this.startupTime,
       totalCommands: this.commandTimes.size,
-      peakMemory: this.getPeakMemoryUsage()
+      peakMemory: this.getPeakMemoryUsage(),
     });
   }
 
@@ -104,7 +110,10 @@ class PerformanceService {
    */
   markStart(label) {
     const startTime = process.hrtime.bigint();
-    this.metrics.set(label, { start: startTime, memory: process.memoryUsage() });
+    this.metrics.set(label, {
+      start: startTime,
+      memory: process.memoryUsage(),
+    });
     debugService.debug(`Performance mark start: ${label}`);
   }
 
@@ -127,7 +136,7 @@ class PerformanceService {
       duration,
       memoryUsed: endMemory.heapUsed - metric.memory.heapUsed,
       startMemory: metric.memory,
-      endMemory
+      endMemory,
     };
 
     this.metrics.delete(label);
@@ -135,7 +144,9 @@ class PerformanceService {
 
     // Check for performance warnings
     if (duration > this.resourceThresholds.commandWarning) {
-      this.logPerformanceEvent('warning', `Slow operation: ${label}`, { duration });
+      this.logPerformanceEvent('warning', `Slow operation: ${label}`, {
+        duration,
+      });
     }
 
     return result;
@@ -180,7 +191,7 @@ class PerformanceService {
       timestamp: Date.now(),
       memory,
       cpu: os.loadavg(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
 
     this.memorySnapshots.push(snapshot);
@@ -189,12 +200,12 @@ class PerformanceService {
     if (memory.heapUsed > this.resourceThresholds.memoryCritical) {
       this.logPerformanceEvent('critical', 'High memory usage detected', {
         heapUsed: memory.heapUsed,
-        threshold: this.resourceThresholds.memoryCritical
+        threshold: this.resourceThresholds.memoryCritical,
       });
     } else if (memory.heapUsed > this.resourceThresholds.memoryWarning) {
       this.logPerformanceEvent('warning', 'Elevated memory usage', {
         heapUsed: memory.heapUsed,
-        threshold: this.resourceThresholds.memoryWarning
+        threshold: this.resourceThresholds.memoryWarning,
       });
     }
 
@@ -202,9 +213,14 @@ class PerformanceService {
     if (this.memorySnapshots.length >= 5) {
       const recentSnapshots = this.memorySnapshots.slice(-5);
       const memoryTrend = this.analyzeMemoryTrend(recentSnapshots);
-      
-      if (memoryTrend.isIncreasing && memoryTrend.rate > 10 * 1024 * 1024) { // 10MB increase
-        this.logPerformanceEvent('warning', 'Potential memory leak detected', memoryTrend);
+
+      if (memoryTrend.isIncreasing && memoryTrend.rate > 10 * 1024 * 1024) {
+        // 10MB increase
+        this.logPerformanceEvent(
+          'warning',
+          'Potential memory leak detected',
+          memoryTrend
+        );
       }
     }
   }
@@ -224,7 +240,7 @@ class PerformanceService {
       isIncreasing: memoryDiff > 0,
       rate: memoryDiff / (timeDiff / 1000), // Bytes per second
       totalIncrease: memoryDiff,
-      duration: timeDiff
+      duration: timeDiff,
     };
   }
 
@@ -235,29 +251,31 @@ class PerformanceService {
     const memory = process.memoryUsage();
     const totalSystem = os.totalmem();
     const freeSystem = os.freemem();
-    
+
     return {
       process: {
         heap: {
           used: memory.heapUsed,
           total: memory.heapTotal,
-          usedMB: Math.round(memory.heapUsed / 1024 / 1024 * 100) / 100,
-          totalMB: Math.round(memory.heapTotal / 1024 / 1024 * 100) / 100
+          usedMB: Math.round((memory.heapUsed / 1024 / 1024) * 100) / 100,
+          totalMB: Math.round((memory.heapTotal / 1024 / 1024) * 100) / 100,
         },
         rss: {
           used: memory.rss,
-          usedMB: Math.round(memory.rss / 1024 / 1024 * 100) / 100
+          usedMB: Math.round((memory.rss / 1024 / 1024) * 100) / 100,
         },
-        external: memory.external
+        external: memory.external,
       },
       system: {
         total: totalSystem,
         free: freeSystem,
         used: totalSystem - freeSystem,
-        usedPercent: Math.round((totalSystem - freeSystem) / totalSystem * 100),
-        totalGB: Math.round(totalSystem / 1024 / 1024 / 1024 * 100) / 100,
-        freeGB: Math.round(freeSystem / 1024 / 1024 / 1024 * 100) / 100
-      }
+        usedPercent: Math.round(
+          ((totalSystem - freeSystem) / totalSystem) * 100
+        ),
+        totalGB: Math.round((totalSystem / 1024 / 1024 / 1024) * 100) / 100,
+        freeGB: Math.round((freeSystem / 1024 / 1024 / 1024) * 100) / 100,
+      },
     };
   }
 
@@ -275,9 +293,9 @@ class PerformanceService {
       loadAverage: {
         '1min': Math.round(loadAvg[0] * 100) / 100,
         '5min': Math.round(loadAvg[1] * 100) / 100,
-        '15min': Math.round(loadAvg[2] * 100) / 100
+        '15min': Math.round(loadAvg[2] * 100) / 100,
       },
-      usage: this.calculateCPUUsage(cpus)
+      usage: this.calculateCPUUsage(cpus),
     };
   }
 
@@ -297,7 +315,7 @@ class PerformanceService {
 
     const idle = totalIdle / cpus.length;
     const total = totalTick / cpus.length;
-    const usage = 100 - ~~(100 * idle / total);
+    const usage = 100 - ~~((100 * idle) / total);
 
     return Math.max(0, Math.min(100, usage));
   }
@@ -316,7 +334,7 @@ class PerformanceService {
       isOptimal,
       threshold: this.resourceThresholds.startupWarning,
       nodeStartup: process.uptime() * 1000,
-      status: isOptimal ? 'optimal' : 'slow'
+      status: isOptimal ? 'optimal' : 'slow',
     };
   }
 
@@ -333,8 +351,8 @@ class PerformanceService {
     return {
       timestamp: peak.timestamp,
       heapUsed: peak.memory.heapUsed,
-      heapUsedMB: Math.round(peak.memory.heapUsed / 1024 / 1024 * 100) / 100,
-      rss: peak.memory.rss
+      heapUsedMB: Math.round((peak.memory.heapUsed / 1024 / 1024) * 100) / 100,
+      rss: peak.memory.rss,
     };
   }
 
@@ -357,10 +375,10 @@ class PerformanceService {
       commands: {
         total: this.commandTimes.size,
         average: this.getAverageCommandTime(),
-        slowest: this.getSlowestCommand()
+        slowest: this.getSlowestCommand(),
       },
       recommendations: this.generateRecommendations(memory, cpu, startup),
-      log: this.performanceLog.slice(-10) // Last 10 entries
+      log: this.performanceLog.slice(-10), // Last 10 entries
     };
 
     return report;
@@ -377,7 +395,7 @@ class PerformanceService {
       recommendations.push({
         type: 'memory',
         severity: 'warning',
-        message: `High memory usage (${memory.process.heap.usedMB}MB). Consider clearing caches or restarting.`
+        message: `High memory usage (${memory.process.heap.usedMB}MB). Consider clearing caches or restarting.`,
       });
     }
 
@@ -386,7 +404,7 @@ class PerformanceService {
       recommendations.push({
         type: 'cpu',
         severity: 'warning',
-        message: `High CPU usage (${cpu.usage}%). System may be under load.`
+        message: `High CPU usage (${cpu.usage}%). System may be under load.`,
       });
     }
 
@@ -395,7 +413,7 @@ class PerformanceService {
       recommendations.push({
         type: 'startup',
         severity: 'info',
-        message: `Slow startup (${startup.duration}ms). Consider reducing plugins or clearing caches.`
+        message: `Slow startup (${startup.duration}ms). Consider reducing plugins or clearing caches.`,
       });
     }
 
@@ -404,7 +422,8 @@ class PerformanceService {
       recommendations.push({
         type: 'monitoring',
         severity: 'info',
-        message: 'Long-running session detected. Performance data is being collected for optimization.'
+        message:
+          'Long-running session detected. Performance data is being collected for optimization.',
       });
     }
 
@@ -416,7 +435,7 @@ class PerformanceService {
    */
   getAverageCommandTime() {
     if (this.commandTimes.size === 0) return 0;
-    
+
     const times = Array.from(this.commandTimes.values());
     const total = times.reduce((sum, time) => sum + time, 0);
     return Math.round(total / times.length);
@@ -449,7 +468,7 @@ class PerformanceService {
       timestamp: Date.now(),
       type,
       message,
-      data
+      data,
     };
 
     this.performanceLog.push(entry);
@@ -467,9 +486,13 @@ class PerformanceService {
    */
   recordCommandTime(command, duration) {
     this.commandTimes.set(command, duration);
-    
+
     if (duration > this.resourceThresholds.commandWarning) {
-      this.logPerformanceEvent('warning', `Slow command execution: ${command}`, { duration });
+      this.logPerformanceEvent(
+        'warning',
+        `Slow command execution: ${command}`,
+        { duration }
+      );
     }
   }
 
@@ -493,19 +516,21 @@ class PerformanceService {
         global.gc();
         const afterMemory = process.memoryUsage().heapUsed;
         const freed = beforeMemory - afterMemory;
-        
+
         this.logPerformanceEvent('gc', 'Manual garbage collection performed', {
           freedBytes: freed,
-          freedMB: Math.round(freed / 1024 / 1024 * 100) / 100
+          freedMB: Math.round((freed / 1024 / 1024) * 100) / 100,
         });
-        
+
         return { success: true, freedBytes: freed };
       } catch (error) {
-        debugService.debug('Garbage collection failed', { error: error.message });
+        debugService.debug('Garbage collection failed', {
+          error: error.message,
+        });
         return { success: false, error: error.message };
       }
     }
-    
+
     return { success: false, error: 'Garbage collection not available' };
   }
 
@@ -523,7 +548,7 @@ class PerformanceService {
         category: 'memory',
         priority: 'high',
         suggestion: 'Clear caches and restart CLI for optimal performance',
-        command: 'mdsaad maintenance --clean-cache'
+        command: 'mdsaad maintenance --clean-cache',
       });
     }
 
@@ -532,7 +557,7 @@ class PerformanceService {
         category: 'memory',
         priority: 'medium',
         suggestion: 'Consider running garbage collection',
-        command: 'Run with --expose-gc flag and trigger GC'
+        command: 'Run with --expose-gc flag and trigger GC',
       });
     }
 
@@ -542,7 +567,7 @@ class PerformanceService {
         category: 'cpu',
         priority: 'high',
         suggestion: 'System is under high load. Close unnecessary applications',
-        command: null
+        command: null,
       });
     }
 
@@ -553,7 +578,7 @@ class PerformanceService {
         category: 'commands',
         priority: 'medium',
         suggestion: `Optimize ${slowest.command} command usage or use cached results`,
-        command: `mdsaad ${slowest.command} --help`
+        command: `mdsaad ${slowest.command} --help`,
       });
     }
 

@@ -33,8 +33,8 @@ describe('Currency Conversion Integration', () => {
           EUR: 0.85,
           GBP: 0.73,
           JPY: 110.0,
-          CAD: 1.25
-        }
+          CAD: 1.25,
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -57,7 +57,7 @@ describe('Currency Conversion Integration', () => {
         result: 'success',
         base_code: 'GBP',
         target_code: 'USD',
-        conversion_rate: 1.37
+        conversion_rate: 1.37,
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -73,7 +73,7 @@ describe('Currency Conversion Integration', () => {
       const mockData = {
         result: 'success',
         base_code: 'USD',
-        conversion_rates: { EUR: 0.85 }
+        conversion_rates: { EUR: 0.85 },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -98,17 +98,21 @@ describe('Currency Conversion Integration', () => {
           GBP: 0.73,
           JPY: 110.0,
           CAD: 1.25,
-          AUD: 1.35
-        }
+          AUD: 1.35,
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
         global.testUtils.mockApiResponse(mockRatesData)
       );
 
-      await convertCommand.execute(undefined, undefined, undefined, { rates: true });
+      await convertCommand.execute(undefined, undefined, undefined, {
+        rates: true,
+      });
 
-      expect(consoleMock.logs.some(log => log.includes('Exchange Rates'))).toBe(true);
+      expect(consoleMock.logs.some(log => log.includes('Exchange Rates'))).toBe(
+        true
+      );
       expect(consoleMock.logs.some(log => log.includes('EUR'))).toBe(true);
       expect(consoleMock.logs.some(log => log.includes('0.85'))).toBe(true);
     });
@@ -120,14 +124,16 @@ describe('Currency Conversion Integration', () => {
         result: 'success',
         base_code: 'USD',
         target_code: 'EUR',
-        conversion_rate: 0.82
+        conversion_rate: 0.82,
       };
 
       mockedAxios.get.mockResolvedValueOnce(
         global.testUtils.mockApiResponse(mockHistoricalData)
       );
 
-      await convertCommand.execute('100', 'USD', 'EUR', { historical: '2023-01-01' });
+      await convertCommand.execute('100', 'USD', 'EUR', {
+        historical: '2023-01-01',
+      });
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         expect.stringContaining('2023/01/01'),
@@ -138,11 +144,15 @@ describe('Currency Conversion Integration', () => {
     });
 
     test('should validate historical date format', async () => {
-      await convertCommand.execute('100', 'USD', 'EUR', { historical: 'invalid-date' });
+      await convertCommand.execute('100', 'USD', 'EUR', {
+        historical: 'invalid-date',
+      });
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('Invalid date') || error.includes('format')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('Invalid date') || error.includes('format')
+        )
+      ).toBe(true);
     });
   });
 
@@ -180,7 +190,7 @@ describe('Currency Conversion Integration', () => {
     test('should process batch file conversions', async () => {
       const fs = require('fs-extra');
       const batchFilePath = `${global.testUtils.TEST_DIR}/batch_conversions.txt`;
-      
+
       const batchContent = `100 USD EUR
 50 meters feet
 20 celsius fahrenheit`;
@@ -190,14 +200,16 @@ describe('Currency Conversion Integration', () => {
       const mockCurrencyData = {
         result: 'success',
         base_code: 'USD',
-        conversion_rates: { EUR: 0.85 }
+        conversion_rates: { EUR: 0.85 },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
         global.testUtils.mockApiResponse(mockCurrencyData)
       );
 
-      await convertCommand.execute(undefined, undefined, undefined, { batch: batchFilePath });
+      await convertCommand.execute(undefined, undefined, undefined, {
+        batch: batchFilePath,
+      });
 
       expect(consoleMock.logs.some(log => log.includes('85'))).toBe(true); // USD to EUR
       expect(consoleMock.logs.some(log => log.includes('164.04'))).toBe(true); // meters to feet
@@ -205,13 +217,15 @@ describe('Currency Conversion Integration', () => {
     });
 
     test('should handle batch file errors', async () => {
-      await convertCommand.execute(undefined, undefined, undefined, { 
-        batch: 'nonexistent_file.txt' 
+      await convertCommand.execute(undefined, undefined, undefined, {
+        batch: 'nonexistent_file.txt',
       });
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('not found') || error.includes('Error')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('not found') || error.includes('Error')
+        )
+      ).toBe(true);
     });
   });
 
@@ -220,7 +234,7 @@ describe('Currency Conversion Integration', () => {
       const mockData = {
         result: 'success',
         base_code: 'USD',
-        conversion_rates: { EUR: 0.85 }
+        conversion_rates: { EUR: 0.85 },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -229,17 +243,23 @@ describe('Currency Conversion Integration', () => {
 
       await convertCommand.execute('100', 'USD', 'EUR', { addFavorite: true });
 
-      expect(consoleMock.logs.some(log => 
-        log.includes('favorite') || log.includes('saved')
-      )).toBe(true);
+      expect(
+        consoleMock.logs.some(
+          log => log.includes('favorite') || log.includes('saved')
+        )
+      ).toBe(true);
     });
 
     test('should show favorites list', async () => {
-      await convertCommand.execute(undefined, undefined, undefined, { favorites: true });
+      await convertCommand.execute(undefined, undefined, undefined, {
+        favorites: true,
+      });
 
-      expect(consoleMock.logs.some(log => 
-        log.includes('Favorite') || log.includes('No favorites')
-      )).toBe(true);
+      expect(
+        consoleMock.logs.some(
+          log => log.includes('Favorite') || log.includes('No favorites')
+        )
+      ).toBe(true);
     });
   });
 
@@ -249,15 +269,17 @@ describe('Currency Conversion Integration', () => {
 
       await convertCommand.execute('100', 'USD', 'EUR', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('Error') || error.includes('failed')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('Error') || error.includes('failed')
+        )
+      ).toBe(true);
     });
 
     test('should handle invalid currency codes', async () => {
       const invalidCurrencyData = {
         result: 'error',
-        'error-type': 'unsupported-code'
+        'error-type': 'unsupported-code',
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -266,15 +288,17 @@ describe('Currency Conversion Integration', () => {
 
       await convertCommand.execute('100', 'INVALID', 'USD', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('Invalid') || error.includes('currency')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('Invalid') || error.includes('currency')
+        )
+      ).toBe(true);
     });
 
     test('should handle API quota exceeded', async () => {
       const quotaError = {
         result: 'error',
-        'error-type': 'quota-reached'
+        'error-type': 'quota-reached',
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -283,9 +307,11 @@ describe('Currency Conversion Integration', () => {
 
       await convertCommand.execute('100', 'USD', 'EUR', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('quota') || error.includes('limit')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('quota') || error.includes('limit')
+        )
+      ).toBe(true);
     });
 
     test('should handle malformed API responses', async () => {
@@ -295,9 +321,11 @@ describe('Currency Conversion Integration', () => {
 
       await convertCommand.execute('100', 'USD', 'EUR', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('Error') || error.includes('failed')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('Error') || error.includes('failed')
+        )
+      ).toBe(true);
     });
   });
 
@@ -306,7 +334,7 @@ describe('Currency Conversion Integration', () => {
       const mockData = {
         result: 'success',
         base_code: 'USD',
-        conversion_rates: { EUR: 0.85 }
+        conversion_rates: { EUR: 0.85 },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -315,7 +343,9 @@ describe('Currency Conversion Integration', () => {
 
       await convertCommand.execute('100', 'USD', 'EUR', { verbose: true });
 
-      expect(consoleMock.logs.some(log => log.includes('Exchange Rate'))).toBe(true);
+      expect(consoleMock.logs.some(log => log.includes('Exchange Rate'))).toBe(
+        true
+      );
       expect(consoleMock.logs.some(log => log.includes('Formula'))).toBe(true);
     });
 
@@ -331,17 +361,21 @@ describe('Currency Conversion Integration', () => {
     test('should validate numeric amounts', async () => {
       await convertCommand.execute('invalid', 'USD', 'EUR', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('Invalid') || error.includes('number')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('Invalid') || error.includes('number')
+        )
+      ).toBe(true);
     });
 
     test('should handle negative amounts', async () => {
       await convertCommand.execute('-100', 'USD', 'EUR', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('negative') || error.includes('positive')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('negative') || error.includes('positive')
+        )
+      ).toBe(true);
     });
 
     test('should handle zero amounts', async () => {
@@ -354,7 +388,7 @@ describe('Currency Conversion Integration', () => {
       const mockData = {
         result: 'success',
         base_code: 'USD',
-        conversion_rates: { EUR: 0.85 }
+        conversion_rates: { EUR: 0.85 },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -363,7 +397,9 @@ describe('Currency Conversion Integration', () => {
 
       await convertCommand.execute('1000000000', 'USD', 'EUR', {});
 
-      expect(consoleMock.logs.some(log => log.includes('850000000'))).toBe(true);
+      expect(consoleMock.logs.some(log => log.includes('850000000'))).toBe(
+        true
+      );
     });
   });
 
@@ -372,11 +408,11 @@ describe('Currency Conversion Integration', () => {
       const mockData = {
         result: 'success',
         base_code: 'USD',
-        conversion_rates: { 
+        conversion_rates: {
           EUR: 0.85,
           GBP: 0.73,
-          JPY: 110.0
-        }
+          JPY: 110.0,
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(

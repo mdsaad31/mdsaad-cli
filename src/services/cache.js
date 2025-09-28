@@ -24,19 +24,18 @@ class CacheService {
         await config.initialize();
       }
       this.cacheDir = config.getCacheDir();
-      
+
       // Ensure cache directory exists
       await fs.ensureDir(this.cacheDir);
-      
+
       // Create subdirectories for different cache types
       await this.ensureCacheDirectories();
-      
+
       // Start periodic cleanup
       this.startCleanupTimer();
-      
+
       this.isInitialized = true;
       logger.verbose('Cache service initialized successfully');
-      
     } catch (error) {
       logger.error('Failed to initialize cache service:', error.message);
       throw error;
@@ -45,7 +44,7 @@ class CacheService {
 
   async ensureCacheDirectories() {
     const subdirs = ['weather', 'currency', 'ai', 'general', 'test'];
-    
+
     for (const subdir of subdirs) {
       await fs.ensureDir(path.join(this.cacheDir, subdir));
     }
@@ -56,7 +55,11 @@ class CacheService {
    */
   generateKey(namespace, ...params) {
     const input = [namespace, ...params].join(':');
-    return crypto.createHash('sha256').update(input).digest('hex').substring(0, 16);
+    return crypto
+      .createHash('sha256')
+      .update(input)
+      .digest('hex')
+      .substring(0, 16);
   }
 
   /**
@@ -65,10 +68,10 @@ class CacheService {
   sanitizeKey(key) {
     // Replace invalid file system characters with safe alternatives
     return key
-      .replace(/[<>:"|\?*]/g, '_')  // Replace invalid chars with underscore
-      .replace(/\s+/g, '_')         // Replace spaces with underscore
-      .replace(/\.+$/g, '')         // Remove trailing dots
-      .substring(0, 200);           // Limit length
+      .replace(/[<>:"|\?*]/g, '_') // Replace invalid chars with underscore
+      .replace(/\s+/g, '_') // Replace spaces with underscore
+      .replace(/\.+$/g, '') // Remove trailing dots
+      .substring(0, 200); // Limit length
   }
 
   /**
@@ -82,7 +85,8 @@ class CacheService {
   /**
    * Store data in cache with TTL
    */
-  async set(namespace, key, data, ttl = 3600000) { // Default 1 hour TTL
+  async set(namespace, key, data, ttl = 3600000) {
+    // Default 1 hour TTL
     try {
       if (!this.isInitialized) {
         await this.initialize();
@@ -91,10 +95,11 @@ class CacheService {
       // Ensure the namespace directory exists
       await fs.ensureDir(path.join(this.cacheDir, namespace));
 
-      const originalKey = typeof key === 'string' ? key : this.generateKey(namespace, ...key);
+      const originalKey =
+        typeof key === 'string' ? key : this.generateKey(namespace, ...key);
       const cacheKey = this.sanitizeKey(originalKey);
       const filePath = this.getCacheFilePath(namespace, cacheKey);
-      
+
       const cacheEntry = {
         key: originalKey,
         data: data,
@@ -102,18 +107,19 @@ class CacheService {
         ttl: ttl,
         expiresAt: Date.now() + ttl,
         namespace: namespace,
-        size: JSON.stringify(data).length
+        size: JSON.stringify(data).length,
       };
-      
+
       await fs.writeJson(filePath, cacheEntry, { spaces: 2 });
-      
-      logger.verbose(`Cache entry stored: ${namespace}:${cacheKey} (TTL: ${ttl}ms)`);
-      
+
+      logger.verbose(
+        `Cache entry stored: ${namespace}:${cacheKey} (TTL: ${ttl}ms)`
+      );
+
       // Check cache size after write
       await this.checkCacheSize();
-      
+
       return true;
-      
     } catch (error) {
       logger.error('Failed to store cache entry:', error.message);
       return false;
@@ -129,33 +135,35 @@ class CacheService {
         await this.initialize();
       }
 
-      const originalKey = typeof key === 'string' ? key : this.generateKey(namespace, ...key);
+      const originalKey =
+        typeof key === 'string' ? key : this.generateKey(namespace, ...key);
       const cacheKey = this.sanitizeKey(originalKey);
       const filePath = this.getCacheFilePath(namespace, cacheKey);
-      
-      if (!await fs.pathExists(filePath)) {
+
+      if (!(await fs.pathExists(filePath))) {
         logger.verbose(`Cache miss: ${namespace}:${originalKey}`);
         return null;
       }
-      
+
       const cacheEntry = await fs.readJson(filePath);
-      
+
       // Check if entry has expired
       if (Date.now() > cacheEntry.expiresAt) {
         logger.verbose(`Cache expired: ${namespace}:${originalKey}`);
         await this.invalidate(namespace, key);
         return null;
       }
-      
-      logger.verbose(`Cache hit: ${namespace}:${originalKey} (age: ${Date.now() - cacheEntry.timestamp}ms)`);
-      
+
+      logger.verbose(
+        `Cache hit: ${namespace}:${originalKey} (age: ${Date.now() - cacheEntry.timestamp}ms)`
+      );
+
       return {
         data: cacheEntry.data,
         timestamp: cacheEntry.timestamp,
         age: Date.now() - cacheEntry.timestamp,
-        ttl: cacheEntry.ttl
+        ttl: cacheEntry.ttl,
       };
-      
     } catch (error) {
       logger.error('Failed to retrieve cache entry:', error.message);
       return null;
@@ -175,18 +183,18 @@ class CacheService {
    */
   async invalidate(namespace, key) {
     try {
-      const originalKey = typeof key === 'string' ? key : this.generateKey(namespace, ...key);
+      const originalKey =
+        typeof key === 'string' ? key : this.generateKey(namespace, ...key);
       const cacheKey = this.sanitizeKey(originalKey);
       const filePath = this.getCacheFilePath(namespace, cacheKey);
-      
+
       if (await fs.pathExists(filePath)) {
         await fs.remove(filePath);
         logger.verbose(`Cache entry invalidated: ${namespace}:${originalKey}`);
         return true;
       }
-      
+
       return false;
-      
     } catch (error) {
       logger.error('Failed to invalidate cache entry:', error.message);
       return false;
@@ -199,17 +207,19 @@ class CacheService {
   async clearNamespace(namespace) {
     try {
       const namespacePath = path.join(this.cacheDir, namespace);
-      
+
       if (await fs.pathExists(namespacePath)) {
         await fs.emptyDir(namespacePath);
         logger.info(`Cache namespace cleared: ${namespace}`);
         return true;
       }
-      
+
       return false;
-      
     } catch (error) {
-      logger.error(`Failed to clear cache namespace ${namespace}:`, error.message);
+      logger.error(
+        `Failed to clear cache namespace ${namespace}:`,
+        error.message
+      );
       return false;
     }
   }
@@ -223,7 +233,6 @@ class CacheService {
       await this.ensureCacheDirectories();
       logger.info('All cache entries cleared');
       return true;
-      
     } catch (error) {
       logger.error('Failed to clear all cache:', error.message);
       return false;
@@ -244,29 +253,30 @@ class CacheService {
     try {
       let cleanedCount = 0;
       const namespaces = await fs.readdir(this.cacheDir);
-      
+
       for (const namespace of namespaces) {
         const namespacePath = path.join(this.cacheDir, namespace);
         const stats = await fs.stat(namespacePath);
-        
+
         if (!stats.isDirectory()) continue;
-        
+
         const files = await fs.readdir(namespacePath);
-        
+
         for (const file of files) {
           if (!file.endsWith('.json')) continue;
-          
+
           const filePath = path.join(namespacePath, file);
-          
+
           try {
             const cacheEntry = await fs.readJson(filePath);
-            
+
             if (Date.now() > cacheEntry.expiresAt) {
               await fs.remove(filePath);
               cleanedCount++;
-              logger.verbose(`Cleaned expired cache entry: ${namespace}:${cacheEntry.key}`);
+              logger.verbose(
+                `Cleaned expired cache entry: ${namespace}:${cacheEntry.key}`
+              );
             }
-            
           } catch (error) {
             // Remove corrupted cache files
             await fs.remove(filePath);
@@ -275,13 +285,12 @@ class CacheService {
           }
         }
       }
-      
+
       if (cleanedCount > 0) {
         logger.info(`Cache cleanup completed: ${cleanedCount} entries removed`);
       }
-      
+
       return cleanedCount;
-      
     } catch (error) {
       logger.error('Cache cleanup failed:', error.message);
       return 0;
@@ -294,14 +303,15 @@ class CacheService {
   async checkCacheSize() {
     try {
       const stats = await this.getStats();
-      
+
       if (stats.totalSize > this.maxCacheSize) {
-        logger.warn(`Cache size exceeded limit (${stats.totalSize} > ${this.maxCacheSize})`);
-        
+        logger.warn(
+          `Cache size exceeded limit (${stats.totalSize} > ${this.maxCacheSize})`
+        );
+
         // Remove oldest entries first
         await this.cleanupBySize();
       }
-      
     } catch (error) {
       logger.error('Cache size check failed:', error.message);
     }
@@ -314,22 +324,22 @@ class CacheService {
     try {
       const allEntries = [];
       const namespaces = await fs.readdir(this.cacheDir);
-      
+
       // Collect all cache entries with their file info
       for (const namespace of namespaces) {
         const namespacePath = path.join(this.cacheDir, namespace);
         const stats = await fs.stat(namespacePath);
-        
+
         if (!stats.isDirectory()) continue;
-        
+
         const files = await fs.readdir(namespacePath);
-        
+
         for (const file of files) {
           if (!file.endsWith('.json')) continue;
-          
+
           const filePath = path.join(namespacePath, file);
           const fileStats = await fs.stat(filePath);
-          
+
           try {
             const cacheEntry = await fs.readJson(filePath);
             allEntries.push({
@@ -337,7 +347,7 @@ class CacheService {
               timestamp: cacheEntry.timestamp,
               size: fileStats.size,
               namespace: cacheEntry.namespace,
-              key: cacheEntry.key
+              key: cacheEntry.key,
             });
           } catch (error) {
             // Remove corrupted files
@@ -345,27 +355,28 @@ class CacheService {
           }
         }
       }
-      
+
       // Sort by timestamp (oldest first)
       allEntries.sort((a, b) => a.timestamp - b.timestamp);
-      
+
       let removedSize = 0;
       let removedCount = 0;
       const targetSize = this.maxCacheSize * 0.8; // Clean to 80% of max size
-      
+
       for (const entry of allEntries) {
         await fs.remove(entry.filePath);
         removedSize += entry.size;
         removedCount++;
-        
+
         const currentStats = await this.getStats();
         if (currentStats.totalSize <= targetSize) {
           break;
         }
       }
-      
-      logger.info(`Cache size cleanup: removed ${removedCount} entries (${removedSize} bytes)`);
-      
+
+      logger.info(
+        `Cache size cleanup: removed ${removedCount} entries (${removedSize} bytes)`
+      );
     } catch (error) {
       logger.error('Cache size cleanup failed:', error.message);
     }
@@ -382,63 +393,67 @@ class CacheService {
         namespaces: {},
         oldestEntry: null,
         newestEntry: null,
-        expiredEntries: 0
+        expiredEntries: 0,
       };
-      
+
       const namespaces = await fs.readdir(this.cacheDir);
-      
+
       for (const namespace of namespaces) {
         const namespacePath = path.join(this.cacheDir, namespace);
         const dirStats = await fs.stat(namespacePath);
-        
+
         if (!dirStats.isDirectory()) continue;
-        
+
         stats.namespaces[namespace] = {
           entries: 0,
           size: 0,
-          expired: 0
+          expired: 0,
         };
-        
+
         const files = await fs.readdir(namespacePath);
-        
+
         for (const file of files) {
           if (!file.endsWith('.json')) continue;
-          
+
           const filePath = path.join(namespacePath, file);
           const fileStats = await fs.stat(filePath);
-          
+
           try {
             const cacheEntry = await fs.readJson(filePath);
-            
+
             stats.totalEntries++;
             stats.totalSize += fileStats.size;
             stats.namespaces[namespace].entries++;
             stats.namespaces[namespace].size += fileStats.size;
-            
+
             // Check if expired
             const isExpired = Date.now() > cacheEntry.expiresAt;
             if (isExpired) {
               stats.expiredEntries++;
               stats.namespaces[namespace].expired++;
             }
-            
+
             // Track oldest/newest
-            if (!stats.oldestEntry || cacheEntry.timestamp < stats.oldestEntry) {
+            if (
+              !stats.oldestEntry ||
+              cacheEntry.timestamp < stats.oldestEntry
+            ) {
               stats.oldestEntry = cacheEntry.timestamp;
             }
-            if (!stats.newestEntry || cacheEntry.timestamp > stats.newestEntry) {
+            if (
+              !stats.newestEntry ||
+              cacheEntry.timestamp > stats.newestEntry
+            ) {
               stats.newestEntry = cacheEntry.timestamp;
             }
-            
           } catch (error) {
             // Count corrupted files
             stats.totalSize += fileStats.size;
           }
         }
       }
-      
+
       return stats;
-      
     } catch (error) {
       logger.error('Failed to get cache statistics:', error.message);
       return {
@@ -448,7 +463,7 @@ class CacheService {
         oldestEntry: null,
         newestEntry: null,
         expiredEntries: 0,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -469,7 +484,7 @@ class CacheService {
     this.cleanupInterval = setInterval(async () => {
       await this.cleanup();
     }, 3600000);
-    
+
     logger.verbose('Cache cleanup timer started (1 hour interval)');
   }
 
@@ -491,32 +506,34 @@ class CacheService {
     return async (key, fetchFunction) => {
       // Try to get from cache first
       const cached = await this.get(namespace, key);
-      
+
       if (cached) {
         logger.verbose(`Serving from cache: ${namespace}:${key}`);
         return {
           ...cached.data,
           _cached: true,
           _cacheAge: cached.age,
-          _cacheTimestamp: cached.timestamp
+          _cacheTimestamp: cached.timestamp,
         };
       }
-      
+
       // Not in cache, fetch fresh data
       try {
         const freshData = await fetchFunction();
-        
+
         // Store in cache for future use
         await this.set(namespace, key, freshData, ttl);
-        
+
         return {
           ...freshData,
           _cached: false,
-          _cacheTimestamp: Date.now()
+          _cacheTimestamp: Date.now(),
         };
-        
       } catch (error) {
-        logger.error(`Failed to fetch fresh data for ${namespace}:${key}:`, error.message);
+        logger.error(
+          `Failed to fetch fresh data for ${namespace}:${key}:`,
+          error.message
+        );
         throw error;
       }
     };
@@ -548,12 +565,11 @@ class CacheService {
   async shutdown() {
     try {
       this.stopCleanupTimer();
-      
+
       // Final cleanup
       await this.cleanup();
-      
+
       logger.info('Cache service shutdown completed');
-      
     } catch (error) {
       logger.error('Cache service shutdown error:', error.message);
     }

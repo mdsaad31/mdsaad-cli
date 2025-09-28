@@ -25,12 +25,14 @@ class TabCompletionService {
     try {
       await platformService.initialize();
       await this.generateCompletionScripts();
-      
+
       this.isInitialized = true;
       debugService.debug('Tab completion service initialized');
       return true;
     } catch (error) {
-      debugService.debug('Tab completion service initialization failed', { error: error.message });
+      debugService.debug('Tab completion service initialization failed', {
+        error: error.message,
+      });
       return false;
     }
   }
@@ -43,7 +45,7 @@ class TabCompletionService {
       bash: this.generateBashCompletion(),
       zsh: this.generateZshCompletion(),
       fish: this.generateFishCompletion(),
-      powershell: this.generatePowerShellCompletion()
+      powershell: this.generatePowerShellCompletion(),
     };
   }
 
@@ -510,7 +512,7 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
    */
   async installTabCompletion(shell = null, options = {}) {
     const { force = false, global = true } = options;
-    
+
     if (!shell) {
       shell = platformService.detectShell();
     }
@@ -525,7 +527,7 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
       installed: false,
       configFile: null,
       backupCreated: false,
-      instructions: []
+      instructions: [],
     };
 
     try {
@@ -543,26 +545,44 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
       // Install based on shell type
       switch (shell) {
         case 'bash':
-          result.configFile = await this.installBashCompletion(scriptPath, global, force);
+          result.configFile = await this.installBashCompletion(
+            scriptPath,
+            global,
+            force
+          );
           break;
         case 'zsh':
-          result.configFile = await this.installZshCompletion(scriptPath, global, force);
+          result.configFile = await this.installZshCompletion(
+            scriptPath,
+            global,
+            force
+          );
           break;
         case 'fish':
-          result.configFile = await this.installFishCompletion(scriptPath, global, force);
+          result.configFile = await this.installFishCompletion(
+            scriptPath,
+            global,
+            force
+          );
           break;
         case 'powershell':
-          result.configFile = await this.installPowerShellCompletion(scriptPath, global, force);
+          result.configFile = await this.installPowerShellCompletion(
+            scriptPath,
+            global,
+            force
+          );
           break;
       }
 
       result.success = true;
       result.installed = true;
       result.instructions = this.getPostInstallInstructions(shell);
-
     } catch (error) {
       result.error = error.message;
-      debugService.debug('Tab completion installation failed', { shell, error: error.message });
+      debugService.debug('Tab completion installation failed', {
+        shell,
+        error: error.message,
+      });
     }
 
     return result;
@@ -575,26 +595,30 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
     const homeDir = os.homedir();
     const bashrcPath = path.join(homeDir, '.bashrc');
     const bashProfilePath = path.join(homeDir, '.bash_profile');
-    
+
     // Choose config file (prefer .bashrc)
-    const configFile = await fs.pathExists(bashrcPath) ? bashrcPath : bashProfilePath;
-    
+    const configFile = (await fs.pathExists(bashrcPath))
+      ? bashrcPath
+      : bashProfilePath;
+
     const sourceLine = `# mdsaad tab completion\nsource "${scriptPath}"`;
-    
+
     if (await fs.pathExists(configFile)) {
       const content = await fs.readFile(configFile, 'utf8');
-      
+
       if (content.includes('mdsaad tab completion') && !force) {
-        throw new Error('Tab completion already installed. Use --force to reinstall.');
+        throw new Error(
+          'Tab completion already installed. Use --force to reinstall.'
+        );
       }
-      
+
       if (!content.includes(sourceLine)) {
         await fs.appendFile(configFile, `\n${sourceLine}\n`);
       }
     } else {
       await fs.writeFile(configFile, `${sourceLine}\n`);
     }
-    
+
     return configFile;
   }
 
@@ -604,23 +628,25 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
   async installZshCompletion(scriptPath, global, force) {
     const homeDir = os.homedir();
     const zshrcPath = path.join(homeDir, '.zshrc');
-    
+
     const sourceLine = `# mdsaad tab completion\nsource "${scriptPath}"`;
-    
+
     if (await fs.pathExists(zshrcPath)) {
       const content = await fs.readFile(zshrcPath, 'utf8');
-      
+
       if (content.includes('mdsaad tab completion') && !force) {
-        throw new Error('Tab completion already installed. Use --force to reinstall.');
+        throw new Error(
+          'Tab completion already installed. Use --force to reinstall.'
+        );
       }
-      
+
       if (!content.includes(sourceLine)) {
         await fs.appendFile(zshrcPath, `\n${sourceLine}\n`);
       }
     } else {
       await fs.writeFile(zshrcPath, `${sourceLine}\n`);
     }
-    
+
     return zshrcPath;
   }
 
@@ -631,17 +657,19 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
     const homeDir = os.homedir();
     const fishConfigDir = path.join(homeDir, '.config', 'fish', 'completions');
     await fs.ensureDir(fishConfigDir);
-    
+
     const fishCompletionPath = path.join(fishConfigDir, 'mdsaad.fish');
     const completion = this.completionScripts.fish;
-    
-    if (await fs.pathExists(fishCompletionPath) && !force) {
-      throw new Error('Tab completion already installed. Use --force to reinstall.');
+
+    if ((await fs.pathExists(fishCompletionPath)) && !force) {
+      throw new Error(
+        'Tab completion already installed. Use --force to reinstall.'
+      );
     }
-    
+
     await fs.writeFile(fishCompletionPath, completion);
     await platformService.setFilePermissions(fishCompletionPath, '644');
-    
+
     return fishCompletionPath;
   }
 
@@ -651,39 +679,45 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
   async installPowerShellCompletion(scriptPath, global, force) {
     // Get PowerShell profile path
     let profilePath;
-    
+
     try {
-      const profileOutput = execSync('powershell -Command "$PROFILE"', { 
-        encoding: 'utf8', 
+      const profileOutput = execSync('powershell -Command "$PROFILE"', {
+        encoding: 'utf8',
         timeout: 5000,
-        stdio: 'pipe'
+        stdio: 'pipe',
       }).trim();
       profilePath = profileOutput;
     } catch (error) {
       // Fallback to default profile path
       const documentsPath = path.join(os.homedir(), 'Documents');
-      profilePath = path.join(documentsPath, 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1');
+      profilePath = path.join(
+        documentsPath,
+        'WindowsPowerShell',
+        'Microsoft.PowerShell_profile.ps1'
+      );
     }
-    
+
     const sourceLine = `# mdsaad tab completion\n. "${scriptPath}"`;
-    
+
     // Ensure profile directory exists
     await fs.ensureDir(path.dirname(profilePath));
-    
+
     if (await fs.pathExists(profilePath)) {
       const content = await fs.readFile(profilePath, 'utf8');
-      
+
       if (content.includes('mdsaad tab completion') && !force) {
-        throw new Error('Tab completion already installed. Use --force to reinstall.');
+        throw new Error(
+          'Tab completion already installed. Use --force to reinstall.'
+        );
       }
-      
+
       if (!content.includes(sourceLine)) {
         await fs.appendFile(profilePath, `\n${sourceLine}\n`);
       }
     } else {
       await fs.writeFile(profilePath, `${sourceLine}\n`);
     }
-    
+
     return profilePath;
   }
 
@@ -699,13 +733,13 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
       shell,
       success: false,
       removed: false,
-      configFile: null
+      configFile: null,
     };
 
     try {
       const completionDir = platformService.getCompletionDirectory();
       const scriptPath = path.join(completionDir, `mdsaad-completion.${shell}`);
-      
+
       // Remove completion script
       if (await fs.pathExists(scriptPath)) {
         await fs.remove(scriptPath);
@@ -729,10 +763,12 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
 
       result.success = true;
       result.removed = true;
-
     } catch (error) {
       result.error = error.message;
-      debugService.debug('Tab completion uninstallation failed', { shell, error: error.message });
+      debugService.debug('Tab completion uninstallation failed', {
+        shell,
+        error: error.message,
+      });
     }
 
     return result;
@@ -745,23 +781,24 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
     const homeDir = os.homedir();
     const bashrcPath = path.join(homeDir, '.bashrc');
     const bashProfilePath = path.join(homeDir, '.bash_profile');
-    
+
     for (const configFile of [bashrcPath, bashProfilePath]) {
       if (await fs.pathExists(configFile)) {
         const content = await fs.readFile(configFile, 'utf8');
         const lines = content.split('\n');
-        const filteredLines = lines.filter(line => 
-          !line.includes('mdsaad tab completion') && 
-          !line.includes('mdsaad-completion.bash')
+        const filteredLines = lines.filter(
+          line =>
+            !line.includes('mdsaad tab completion') &&
+            !line.includes('mdsaad-completion.bash')
         );
-        
+
         if (filteredLines.length !== lines.length) {
           await fs.writeFile(configFile, filteredLines.join('\n'));
           return configFile;
         }
       }
     }
-    
+
     return null;
   }
 
@@ -771,21 +808,22 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
   async removeFromZshConfig() {
     const homeDir = os.homedir();
     const zshrcPath = path.join(homeDir, '.zshrc');
-    
+
     if (await fs.pathExists(zshrcPath)) {
       const content = await fs.readFile(zshrcPath, 'utf8');
       const lines = content.split('\n');
-      const filteredLines = lines.filter(line => 
-        !line.includes('mdsaad tab completion') && 
-        !line.includes('mdsaad-completion.zsh')
+      const filteredLines = lines.filter(
+        line =>
+          !line.includes('mdsaad tab completion') &&
+          !line.includes('mdsaad-completion.zsh')
       );
-      
+
       if (filteredLines.length !== lines.length) {
         await fs.writeFile(zshrcPath, filteredLines.join('\n'));
         return zshrcPath;
       }
     }
-    
+
     return null;
   }
 
@@ -794,13 +832,19 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
    */
   async removeFromFishConfig() {
     const homeDir = os.homedir();
-    const fishCompletionPath = path.join(homeDir, '.config', 'fish', 'completions', 'mdsaad.fish');
-    
+    const fishCompletionPath = path.join(
+      homeDir,
+      '.config',
+      'fish',
+      'completions',
+      'mdsaad.fish'
+    );
+
     if (await fs.pathExists(fishCompletionPath)) {
       await fs.remove(fishCompletionPath);
       return fishCompletionPath;
     }
-    
+
     return null;
   }
 
@@ -809,33 +853,38 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
    */
   async removeFromPowerShellConfig() {
     let profilePath;
-    
+
     try {
-      const profileOutput = execSync('powershell -Command "$PROFILE"', { 
-        encoding: 'utf8', 
+      const profileOutput = execSync('powershell -Command "$PROFILE"', {
+        encoding: 'utf8',
         timeout: 5000,
-        stdio: 'pipe'
+        stdio: 'pipe',
       }).trim();
       profilePath = profileOutput;
     } catch (error) {
       const documentsPath = path.join(os.homedir(), 'Documents');
-      profilePath = path.join(documentsPath, 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1');
+      profilePath = path.join(
+        documentsPath,
+        'WindowsPowerShell',
+        'Microsoft.PowerShell_profile.ps1'
+      );
     }
-    
+
     if (await fs.pathExists(profilePath)) {
       const content = await fs.readFile(profilePath, 'utf8');
       const lines = content.split('\n');
-      const filteredLines = lines.filter(line => 
-        !line.includes('mdsaad tab completion') && 
-        !line.includes('mdsaad-completion.powershell')
+      const filteredLines = lines.filter(
+        line =>
+          !line.includes('mdsaad tab completion') &&
+          !line.includes('mdsaad-completion.powershell')
       );
-      
+
       if (filteredLines.length !== lines.length) {
         await fs.writeFile(profilePath, filteredLines.join('\n'));
         return profilePath;
       }
     }
-    
+
     return null;
   }
 
@@ -852,18 +901,18 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
       installed: false,
       configFile: null,
       scriptPath: null,
-      working: false
+      working: false,
     };
 
     try {
       const completionDir = platformService.getCompletionDirectory();
       const scriptPath = path.join(completionDir, `mdsaad-completion.${shell}`);
-      
+
       status.scriptPath = scriptPath;
-      
+
       if (await fs.pathExists(scriptPath)) {
         status.installed = true;
-        
+
         // Check if it's loaded in shell config
         switch (shell) {
           case 'bash':
@@ -879,12 +928,14 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
             status.configFile = await this.checkPowerShellConfig(scriptPath);
             break;
         }
-        
+
         status.working = Boolean(status.configFile);
       }
-
     } catch (error) {
-      debugService.debug('Tab completion check failed', { shell, error: error.message });
+      debugService.debug('Tab completion check failed', {
+        shell,
+        error: error.message,
+      });
     }
 
     return status;
@@ -897,18 +948,21 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
     const homeDir = os.homedir();
     const configFiles = [
       path.join(homeDir, '.bashrc'),
-      path.join(homeDir, '.bash_profile')
+      path.join(homeDir, '.bash_profile'),
     ];
-    
+
     for (const configFile of configFiles) {
       if (await fs.pathExists(configFile)) {
         const content = await fs.readFile(configFile, 'utf8');
-        if (content.includes(scriptPath) || content.includes('mdsaad tab completion')) {
+        if (
+          content.includes(scriptPath) ||
+          content.includes('mdsaad tab completion')
+        ) {
           return configFile;
         }
       }
     }
-    
+
     return null;
   }
 
@@ -918,14 +972,17 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
   async checkZshConfig(scriptPath) {
     const homeDir = os.homedir();
     const zshrcPath = path.join(homeDir, '.zshrc');
-    
+
     if (await fs.pathExists(zshrcPath)) {
       const content = await fs.readFile(zshrcPath, 'utf8');
-      if (content.includes(scriptPath) || content.includes('mdsaad tab completion')) {
+      if (
+        content.includes(scriptPath) ||
+        content.includes('mdsaad tab completion')
+      ) {
         return zshrcPath;
       }
     }
-    
+
     return null;
   }
 
@@ -934,12 +991,18 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
    */
   async checkFishConfig() {
     const homeDir = os.homedir();
-    const fishCompletionPath = path.join(homeDir, '.config', 'fish', 'completions', 'mdsaad.fish');
-    
+    const fishCompletionPath = path.join(
+      homeDir,
+      '.config',
+      'fish',
+      'completions',
+      'mdsaad.fish'
+    );
+
     if (await fs.pathExists(fishCompletionPath)) {
       return fishCompletionPath;
     }
-    
+
     return null;
   }
 
@@ -948,25 +1011,28 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
    */
   async checkPowerShellConfig(scriptPath) {
     let profilePath;
-    
+
     try {
-      const profileOutput = execSync('powershell -Command "$PROFILE"', { 
-        encoding: 'utf8', 
+      const profileOutput = execSync('powershell -Command "$PROFILE"', {
+        encoding: 'utf8',
         timeout: 5000,
-        stdio: 'pipe'
+        stdio: 'pipe',
       }).trim();
       profilePath = profileOutput;
     } catch (error) {
       return null;
     }
-    
+
     if (await fs.pathExists(profilePath)) {
       const content = await fs.readFile(profilePath, 'utf8');
-      if (content.includes(scriptPath) || content.includes('mdsaad tab completion')) {
+      if (
+        content.includes(scriptPath) ||
+        content.includes('mdsaad tab completion')
+      ) {
         return profilePath;
       }
     }
-    
+
     return null;
   }
 
@@ -975,7 +1041,7 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
    */
   getPostInstallInstructions(shell) {
     const instructions = [];
-    
+
     switch (shell) {
       case 'bash':
         instructions.push('Restart your terminal or run: source ~/.bashrc');
@@ -994,9 +1060,9 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
         instructions.push('Tab completion should now work for mdsaad commands');
         break;
     }
-    
+
     instructions.push('Try typing "mdsaad " and press Tab to test completion');
-    
+
     return instructions;
   }
 
@@ -1005,7 +1071,7 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
    */
   getSetupCommand() {
     const shell = platformService.detectShell();
-    
+
     if (this.supportedShells.includes(shell)) {
       return `mdsaad enhanced setup --completion ${shell}`;
     } else {

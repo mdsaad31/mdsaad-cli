@@ -12,32 +12,32 @@ const PlatformUtils = {
   isWindows: () => os.platform() === 'win32',
   isMacOS: () => os.platform() === 'darwin',
   isLinux: () => os.platform() === 'linux',
-  
+
   getShell: () => {
     if (PlatformUtils.isWindows()) {
       return process.env.SHELL || 'cmd.exe';
     }
     return process.env.SHELL || '/bin/bash';
   },
-  
+
   getPathSeparator: () => path.sep,
-  
+
   getHomeDir: () => os.homedir(),
-  
+
   getTempDir: () => os.tmpdir(),
-  
+
   getNodeExecutable: () => {
     return PlatformUtils.isWindows() ? 'node.exe' : 'node';
   },
-  
+
   getNpmExecutable: () => {
     return PlatformUtils.isWindows() ? 'npm.cmd' : 'npm';
-  }
+  },
 };
 
 describe('Cross-Platform Compatibility Tests', () => {
   const CLI_PATH = path.join(__dirname, '../../src/cli.js');
-  
+
   beforeEach(async () => {
     await global.testUtils.setupTestDirs();
   });
@@ -54,12 +54,33 @@ describe('Cross-Platform Compatibility Tests', () => {
         release: os.release(),
         version: os.version ? os.version() : 'N/A',
         homedir: os.homedir(),
-        tmpdir: os.tmpdir()
+        tmpdir: os.tmpdir(),
       };
 
       // Basic platform checks
-      expect(['win32', 'darwin', 'linux', 'freebsd', 'openbsd', 'sunos', 'aix']).toContain(platformInfo.platform);
-      expect(['arm', 'arm64', 'ia32', 'loong64', 'mips', 'mipsel', 'ppc', 'ppc64', 'riscv64', 's390', 's390x', 'x64']).toContain(platformInfo.arch);
+      expect([
+        'win32',
+        'darwin',
+        'linux',
+        'freebsd',
+        'openbsd',
+        'sunos',
+        'aix',
+      ]).toContain(platformInfo.platform);
+      expect([
+        'arm',
+        'arm64',
+        'ia32',
+        'loong64',
+        'mips',
+        'mipsel',
+        'ppc',
+        'ppc64',
+        'riscv64',
+        's390',
+        's390x',
+        'x64',
+      ]).toContain(platformInfo.arch);
       expect(platformInfo.homedir).toBeTruthy();
       expect(platformInfo.tmpdir).toBeTruthy();
 
@@ -68,7 +89,7 @@ describe('Cross-Platform Compatibility Tests', () => {
 
     test('should handle platform-specific paths correctly', () => {
       const testPath = path.join('home', 'user', 'documents', 'file.txt');
-      
+
       if (PlatformUtils.isWindows()) {
         expect(testPath).toContain('\\');
       } else {
@@ -76,7 +97,9 @@ describe('Cross-Platform Compatibility Tests', () => {
       }
 
       // Path operations should work consistently
-      expect(path.dirname(testPath)).toBe(path.join('home', 'user', 'documents'));
+      expect(path.dirname(testPath)).toBe(
+        path.join('home', 'user', 'documents')
+      );
       expect(path.basename(testPath)).toBe('file.txt');
       expect(path.extname(testPath)).toBe('.txt');
     });
@@ -100,9 +123,12 @@ describe('Cross-Platform Compatibility Tests', () => {
 
   describe('file system operations', () => {
     test('should handle file operations across platforms', async () => {
-      const testDir = path.join(global.testUtils.TEST_CONFIG_DIR, 'cross-platform-test');
+      const testDir = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'cross-platform-test'
+      );
       const testFile = path.join(testDir, 'test-file.json');
-      
+
       // Create directory
       await fs.ensureDir(testDir);
       expect(await fs.pathExists(testDir)).toBe(true);
@@ -112,7 +138,7 @@ describe('Cross-Platform Compatibility Tests', () => {
         platform: os.platform(),
         separator: path.sep,
         timestamp: new Date().toISOString(),
-        path: testFile
+        path: testFile,
       };
 
       await fs.writeJSON(testFile, testData);
@@ -134,25 +160,30 @@ describe('Cross-Platform Compatibility Tests', () => {
         'home\\user\\documents',
         './relative/path',
         '../parent/path',
-        '/absolute/path'
+        '/absolute/path',
       ];
 
       testPaths.forEach(testPath => {
         const normalized = path.normalize(testPath);
         expect(normalized).toBeTruthy();
-        
+
         // Should use platform-appropriate separators
         if (PlatformUtils.isWindows()) {
-          expect(normalized.includes('/') && normalized.includes('\\')).toBeFalsy();
+          expect(
+            normalized.includes('/') && normalized.includes('\\')
+          ).toBeFalsy();
         }
       });
     });
 
     test('should handle permissions appropriately', async () => {
-      const testFile = path.join(global.testUtils.TEST_CONFIG_DIR, 'permission-test.txt');
-      
+      const testFile = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'permission-test.txt'
+      );
+
       await fs.writeFile(testFile, 'test content');
-      
+
       // Get file stats
       const stats = await fs.stat(testFile);
       expect(stats.isFile()).toBe(true);
@@ -161,7 +192,7 @@ describe('Cross-Platform Compatibility Tests', () => {
       if (!PlatformUtils.isWindows()) {
         const mode = stats.mode;
         expect(mode).toBeTruthy();
-        
+
         // File should be readable by owner
         expect((mode & parseInt('400', 8)) !== 0).toBe(true);
       }
@@ -178,28 +209,28 @@ describe('Cross-Platform Compatibility Tests', () => {
           env: {
             ...process.env,
             NODE_ENV: 'test',
-            MDSAAD_CONFIG_DIR: global.testUtils.TEST_CONFIG_DIR
+            MDSAAD_CONFIG_DIR: global.testUtils.TEST_CONFIG_DIR,
           },
           shell: PlatformUtils.isWindows(),
-          ...options
+          ...options,
         });
 
         let stdout = '';
         let stderr = '';
 
-        child.stdout.on('data', (data) => {
+        child.stdout.on('data', data => {
           stdout += data.toString();
         });
 
-        child.stderr.on('data', (data) => {
+        child.stderr.on('data', data => {
           stderr += data.toString();
         });
 
-        child.on('close', (code) => {
+        child.on('close', code => {
           resolve({ code, stdout: stdout.trim(), stderr: stderr.trim() });
         });
 
-        child.on('error', (error) => {
+        child.on('error', error => {
           reject(error);
         });
 
@@ -212,15 +243,20 @@ describe('Cross-Platform Compatibility Tests', () => {
     };
 
     test('should execute node commands correctly', async () => {
-      const result = await executeCommand(PlatformUtils.getNodeExecutable(), ['--version']);
-      
+      const result = await executeCommand(PlatformUtils.getNodeExecutable(), [
+        '--version',
+      ]);
+
       expect(result.code).toBe(0);
       expect(result.stdout).toMatch(/^v\d+\.\d+\.\d+/);
     });
 
     test('should handle CLI execution across platforms', async () => {
-      const result = await executeCommand(PlatformUtils.getNodeExecutable(), [CLI_PATH, '--version']);
-      
+      const result = await executeCommand(PlatformUtils.getNodeExecutable(), [
+        CLI_PATH,
+        '--version',
+      ]);
+
       expect(result.code).toBe(0);
       expect(result.stdout).toMatch(/\d+\.\d+\.\d+/);
     });
@@ -231,7 +267,7 @@ describe('Cross-Platform Compatibility Tests', () => {
 
       // Test shell-specific command
       let command, args;
-      
+
       if (PlatformUtils.isWindows()) {
         command = 'cmd';
         args = ['/c', 'echo', 'test'];
@@ -267,7 +303,7 @@ describe('Cross-Platform Compatibility Tests', () => {
 
       const pathSeparator = PlatformUtils.isWindows() ? ';' : ':';
       const paths = pathVar.split(pathSeparator);
-      
+
       expect(paths.length).toBeGreaterThan(0);
       paths.forEach(p => expect(p).toBeTruthy());
     });
@@ -282,11 +318,14 @@ describe('Cross-Platform Compatibility Tests', () => {
         japanese: 'こんにちは世界',
         arabic: 'مرحبا بالعالم',
         emoji: '🌍🚀✨',
-        special: '©®™€£¥'
+        special: '©®™€£¥',
       };
 
-      const testFile = path.join(global.testUtils.TEST_CONFIG_DIR, 'unicode-test.json');
-      
+      const testFile = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'unicode-test.json'
+      );
+
       await fs.writeJSON(testFile, unicodeContent, { encoding: 'utf8' });
       const readContent = await fs.readJSON(testFile);
 
@@ -299,7 +338,10 @@ describe('Cross-Platform Compatibility Tests', () => {
 
     test('should handle different line endings', async () => {
       const testContent = 'Line 1\nLine 2\nLine 3';
-      const testFile = path.join(global.testUtils.TEST_CONFIG_DIR, 'line-endings.txt');
+      const testFile = path.join(
+        global.testUtils.TEST_CONFIG_DIR,
+        'line-endings.txt'
+      );
 
       await fs.writeFile(testFile, testContent);
       const readContent = await fs.readFile(testFile, 'utf8');
@@ -322,17 +364,20 @@ describe('Cross-Platform Compatibility Tests', () => {
 
       // Perform platform-agnostic operations
       for (let i = 0; i < iterations; i++) {
-        const tempFile = path.join(global.testUtils.TEST_CONFIG_DIR, `perf-test-${i}.json`);
-        
-        await fs.writeJSON(tempFile, { 
-          iteration: i, 
+        const tempFile = path.join(
+          global.testUtils.TEST_CONFIG_DIR,
+          `perf-test-${i}.json`
+        );
+
+        await fs.writeJSON(tempFile, {
+          iteration: i,
           platform: os.platform(),
-          timestamp: Date.now() 
+          timestamp: Date.now(),
         });
-        
+
         const data = await fs.readJSON(tempFile);
         expect(data.iteration).toBe(i);
-        
+
         await fs.remove(tempFile);
       }
 
@@ -343,36 +388,42 @@ describe('Cross-Platform Compatibility Tests', () => {
       expect(totalTime).toBeLessThan(5000); // Total under 5 seconds
       expect(avgTime).toBeLessThan(50); // Average under 50ms per operation
 
-      console.log(`Platform performance: ${iterations} file ops in ${totalTime}ms (avg: ${avgTime.toFixed(2)}ms) on ${os.platform()}`);
+      console.log(
+        `Platform performance: ${iterations} file ops in ${totalTime}ms (avg: ${avgTime.toFixed(2)}ms) on ${os.platform()}`
+      );
     });
   });
 
   describe('CLI integration', () => {
-    const executeCLI = (args) => {
+    const executeCLI = args => {
       return new Promise((resolve, reject) => {
-        const child = spawn(PlatformUtils.getNodeExecutable(), [CLI_PATH, ...args], {
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...process.env,
-            NODE_ENV: 'test',
-            MDSAAD_CONFIG_DIR: global.testUtils.TEST_CONFIG_DIR,
-            MDSAAD_CACHE_DIR: global.testUtils.TEST_CACHE_DIR
-          },
-          shell: PlatformUtils.isWindows()
-        });
+        const child = spawn(
+          PlatformUtils.getNodeExecutable(),
+          [CLI_PATH, ...args],
+          {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              NODE_ENV: 'test',
+              MDSAAD_CONFIG_DIR: global.testUtils.TEST_CONFIG_DIR,
+              MDSAAD_CACHE_DIR: global.testUtils.TEST_CACHE_DIR,
+            },
+            shell: PlatformUtils.isWindows(),
+          }
+        );
 
         let stdout = '';
         let stderr = '';
 
-        child.stdout.on('data', (data) => {
+        child.stdout.on('data', data => {
           stdout += data.toString();
         });
 
-        child.stderr.on('data', (data) => {
+        child.stderr.on('data', data => {
           stderr += data.toString();
         });
 
-        child.on('close', (code) => {
+        child.on('close', code => {
           resolve({ code, stdout: stdout.trim(), stderr: stderr.trim() });
         });
 
@@ -389,7 +440,7 @@ describe('Cross-Platform Compatibility Tests', () => {
       const testCases = [
         ['--version'],
         ['calculate', '2+2'],
-        ['platform', '--info']
+        ['platform', '--info'],
       ];
 
       for (const args of testCases) {
@@ -401,10 +452,10 @@ describe('Cross-Platform Compatibility Tests', () => {
 
     test('should handle platform-specific features', async () => {
       const result = await executeCLI(['platform', '--info']);
-      
+
       expect(result.code).toBe(0);
       expect(result.stdout).toContain('Platform');
-      
+
       if (PlatformUtils.isWindows()) {
         expect(result.stdout.toLowerCase()).toContain('windows');
       } else if (PlatformUtils.isMacOS()) {
@@ -416,14 +467,14 @@ describe('Cross-Platform Compatibility Tests', () => {
 
     test('should handle installation checks', async () => {
       const result = await executeCLI(['platform', '--install']);
-      
+
       expect(result.code).toBe(0);
       expect(result.stdout).toMatch(/node|npm|installation/i);
     });
 
     test('should run troubleshooting correctly', async () => {
       const result = await executeCLI(['platform', '--troubleshoot']);
-      
+
       expect(result.code).toBe(0);
       expect(result.stdout).toMatch(/diagnostic|check|troubleshoot/i);
     });
@@ -432,24 +483,24 @@ describe('Cross-Platform Compatibility Tests', () => {
   describe('internationalization support', () => {
     test('should handle different locale settings', async () => {
       const originalLocale = process.env.LANG;
-      
+
       // Test different locales if available
       const locales = ['en_US.UTF-8', 'es_ES.UTF-8', 'C'];
-      
+
       for (const locale of locales) {
         process.env.LANG = locale;
-        
+
         // Test date formatting
         const date = new Date('2024-01-01T12:00:00Z');
         const dateString = date.toISOString();
         expect(dateString).toContain('2024-01-01');
-        
+
         // Test number formatting
         const number = 1234.56;
         const numberString = number.toString();
         expect(numberString).toBe('1234.56');
       }
-      
+
       // Restore original locale
       if (originalLocale) {
         process.env.LANG = originalLocale;
@@ -464,7 +515,7 @@ describe('Cross-Platform Compatibility Tests', () => {
         'UTF-8: café résumé',
         'Symbols: ©®™',
         'Emoji: 🚀🌟',
-        'Math: ∑∆√π'
+        'Math: ∑∆√π',
       ];
 
       testStrings.forEach(str => {
@@ -479,16 +530,18 @@ describe('Cross-Platform Compatibility Tests', () => {
     test('should respect system resource limits', async () => {
       // Test memory usage
       const initialMemory = process.memoryUsage();
-      
+
       // Perform operations that use memory
-      const largeArray = new Array(10000).fill(0).map((_, i) => ({ id: i, data: 'test'.repeat(100) }));
-      
+      const largeArray = new Array(10000)
+        .fill(0)
+        .map((_, i) => ({ id: i, data: 'test'.repeat(100) }));
+
       const currentMemory = process.memoryUsage();
       const memoryIncrease = currentMemory.heapUsed - initialMemory.heapUsed;
-      
+
       expect(memoryIncrease).toBeGreaterThan(0); // Should use some memory
       expect(memoryIncrease).toBeLessThan(100 * 1024 * 1024); // Should not use excessive memory (100MB limit)
-      
+
       // Cleanup
       largeArray.length = 0;
     });
@@ -496,11 +549,14 @@ describe('Cross-Platform Compatibility Tests', () => {
     test('should handle file descriptor limits gracefully', async () => {
       const files = [];
       const maxFiles = 50; // Conservative limit for testing
-      
+
       try {
         // Create multiple file handles
         for (let i = 0; i < maxFiles; i++) {
-          const testFile = path.join(global.testUtils.TEST_CONFIG_DIR, `fd-test-${i}.txt`);
+          const testFile = path.join(
+            global.testUtils.TEST_CONFIG_DIR,
+            `fd-test-${i}.txt`
+          );
           await fs.writeFile(testFile, `File ${i}`);
           files.push(testFile);
         }
@@ -509,7 +565,6 @@ describe('Cross-Platform Compatibility Tests', () => {
         for (const file of files) {
           expect(await fs.pathExists(file)).toBe(true);
         }
-        
       } finally {
         // Cleanup all files
         for (const file of files) {
@@ -524,7 +579,7 @@ describe('Cross-Platform Compatibility Tests', () => {
   });
 
   describe('signal handling', () => {
-    test('should handle process signals appropriately', (done) => {
+    test('should handle process signals appropriately', done => {
       if (PlatformUtils.isWindows()) {
         // Windows has limited signal support
         done();
@@ -532,16 +587,16 @@ describe('Cross-Platform Compatibility Tests', () => {
       }
 
       let signalReceived = false;
-      
+
       const handler = () => {
         signalReceived = true;
       };
 
       process.once('SIGUSR1', handler);
-      
+
       // Send signal to self
       process.kill(process.pid, 'SIGUSR1');
-      
+
       setTimeout(() => {
         expect(signalReceived).toBe(true);
         done();
@@ -555,7 +610,11 @@ const PlatformTestUtils = {
   // Get platform-specific temp directory
   getTempDir: () => {
     if (PlatformUtils.isWindows()) {
-      return process.env.TEMP || process.env.TMP || path.join(os.homedir(), 'AppData', 'Local', 'Temp');
+      return (
+        process.env.TEMP ||
+        process.env.TMP ||
+        path.join(os.homedir(), 'AppData', 'Local', 'Temp')
+      );
     }
     return process.env.TMPDIR || '/tmp';
   },
@@ -574,7 +633,7 @@ const PlatformTestUtils = {
   // Execute platform-specific commands
   getSystemInfo: async () => {
     let command, args;
-    
+
     if (PlatformUtils.isWindows()) {
       command = 'wmic';
       args = ['os', 'get', 'Caption,Version', '/format:csv'];
@@ -588,13 +647,13 @@ const PlatformTestUtils = {
 
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, { stdio: ['pipe', 'pipe', 'pipe'] });
-      
+
       let stdout = '';
-      child.stdout.on('data', (data) => {
+      child.stdout.on('data', data => {
         stdout += data.toString();
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         if (code === 0) {
           resolve(stdout.trim());
         } else {
@@ -604,7 +663,7 @@ const PlatformTestUtils = {
 
       child.on('error', reject);
     });
-  }
+  },
 };
 
 // Export platform utilities for use in other tests

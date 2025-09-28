@@ -19,16 +19,16 @@ class ShowCommand {
       ocean: ['blue', 'brightBlue', 'cyan', 'brightCyan'],
       forest: ['green', 'brightGreen', 'yellow', 'brightYellow'],
       sunset: ['red', 'yellow', 'magenta', 'brightYellow'],
-      monochrome: ['white', 'gray', 'brightWhite', 'dim']
+      monochrome: ['white', 'gray', 'brightWhite', 'dim'],
     };
-    
+
     this.animations = {
       typewriter: 'Typewriter effect (character by character)',
       fadein: 'Fade in effect (gradual appearance)',
       slidein: 'Slide in from specified direction',
       matrix: 'Matrix digital rain effect',
       pulse: 'Pulsing color effect',
-      wave: 'Wavy movement effect'
+      wave: 'Wavy movement effect',
     };
   }
 
@@ -50,7 +50,6 @@ class ShowCommand {
 
       // Search and display art
       await this.displayArt(artName, options);
-
     } catch (error) {
       this.handleError(error);
     }
@@ -81,7 +80,9 @@ class ShowCommand {
         if (options.query) {
           await this.searchArt(options.query, options);
         } else {
-          console.log(chalk.red('❌ Please specify search query: --query "search term"'));
+          console.log(
+            chalk.red('❌ Please specify search query: --query "search term"')
+          );
         }
         return true;
 
@@ -119,20 +120,24 @@ class ShowCommand {
     const searchResults = asciiArtDb.searchArt(artName, {
       category: options.category,
       limit: 1,
-      fuzzy: true
+      fuzzy: true,
     });
 
     if (searchResults.length === 0) {
       console.log(chalk.red(`❌ ASCII art "${artName}" not found`));
       console.log(chalk.gray('Use "mdsaad show list" to see available art'));
-      console.log(chalk.gray('Use "mdsaad show search --query <term>" to search'));
+      console.log(
+        chalk.gray('Use "mdsaad show search --query <term>" to search')
+      );
       return;
     }
 
     const result = searchResults[0];
     const art = result.artData;
 
-    console.log(chalk.cyan(`🎨 Displaying: ${chalk.white(art.name)} (${art.category})`));
+    console.log(
+      chalk.cyan(`🎨 Displaying: ${chalk.white(art.name)} (${art.category})`)
+    );
     if (result.description) {
       console.log(chalk.gray(`📝 ${result.description}`));
     }
@@ -150,7 +155,7 @@ class ShowCommand {
       animated: options.animated,
       animation: options.animation || 'typewriter',
       speed: parseInt(options.speed) || 100,
-      colorScheme: options.colorScheme || 'default'
+      colorScheme: options.colorScheme || 'default',
     };
 
     // Display art
@@ -170,8 +175,8 @@ class ShowCommand {
     // Prepare color scheme
     let colors;
     if (colorScheme && this.colorSchemes[colorScheme]) {
-      colors = Array.isArray(this.colorSchemes[colorScheme]) 
-        ? this.colorSchemes[colorScheme] 
+      colors = Array.isArray(this.colorSchemes[colorScheme])
+        ? this.colorSchemes[colorScheme]
         : [this.colorSchemes[colorScheme]];
     } else {
       colors = [color];
@@ -183,14 +188,14 @@ class ShowCommand {
         case 'typewriter':
           await animationService.animateTypewriter(content, {
             speed: speed,
-            color: colors[0]
+            color: colors[0],
           });
           break;
 
         case 'fadein':
           await animationService.animateFadeIn(content, {
             speed: speed * 2,
-            color: colors[0]
+            color: colors[0],
           });
           break;
 
@@ -198,7 +203,7 @@ class ShowCommand {
           await animationService.animateSlideIn(content, {
             direction: options.direction || 'right',
             speed: speed,
-            color: colors[0]
+            color: colors[0],
           });
           break;
 
@@ -206,7 +211,7 @@ class ShowCommand {
           await animationService.animateMatrixRain(content, {
             duration: 3000,
             speed: speed,
-            color: 'green'
+            color: 'green',
           });
           break;
 
@@ -214,7 +219,7 @@ class ShowCommand {
           await animationService.animatePulse(content, {
             cycles: 3,
             speed: speed * 3,
-            colors: colors
+            colors: colors,
           });
           break;
 
@@ -222,7 +227,7 @@ class ShowCommand {
           await animationService.animateWave(content, {
             cycles: 2,
             speed: speed,
-            color: colors[0]
+            color: colors[0],
           });
           break;
 
@@ -244,7 +249,7 @@ class ShowCommand {
    */
   async displayWithColorScheme(content, colors) {
     const lines = content.split('\n');
-    
+
     lines.forEach((line, index) => {
       const colorIndex = index % colors.length;
       const color = colors[colorIndex];
@@ -265,20 +270,28 @@ class ShowCommand {
         console.log(chalk.red(`❌ Category "${category}" not found or empty`));
         return;
       }
-      
-      console.log(chalk.cyan(`📂 ${category.toUpperCase()}: (${art.length} items)`));
+
+      console.log(
+        chalk.cyan(`📂 ${category.toUpperCase()}: (${art.length} items)`)
+      );
       art.forEach(item => {
-        console.log(`  ${chalk.white(item.name)} - ${chalk.gray(item.lines)} lines, ${chalk.gray(item.width)} chars wide`);
+        console.log(
+          `  ${chalk.white(item.name)} - ${chalk.gray(item.lines)} lines, ${chalk.gray(item.width)} chars wide`
+        );
       });
     } else {
       const categories = asciiArtDb.getCategories();
-      
+
       for (const cat of categories) {
         const art = asciiArtDb.getCategory(cat);
-        console.log(chalk.cyan(`📂 ${cat.toUpperCase()}: (${art.length} items)`));
-        
+        console.log(
+          chalk.cyan(`📂 ${cat.toUpperCase()}: (${art.length} items)`)
+        );
+
         art.forEach(item => {
-          console.log(`  ${chalk.white(item.name)} - ${chalk.gray(item.lines)} lines, ${chalk.gray(item.width)} chars wide`);
+          console.log(
+            `  ${chalk.white(item.name)} - ${chalk.gray(item.lines)} lines, ${chalk.gray(item.width)} chars wide`
+          );
         });
         console.log();
       }
@@ -291,14 +304,20 @@ class ShowCommand {
   showCategories() {
     console.log(chalk.yellow('📂 Available Categories'));
     console.log();
-    
+
     const categories = asciiArtDb.getCategories();
     categories.forEach(category => {
       const art = asciiArtDb.getCategory(category);
-      console.log(`${chalk.cyan(category)} - ${chalk.white(art.length)} artworks`);
+      console.log(
+        `${chalk.cyan(category)} - ${chalk.white(art.length)} artworks`
+      );
     });
     console.log();
-    console.log(chalk.gray('Use "mdsaad show list --category <name>" to list art in a category'));
+    console.log(
+      chalk.gray(
+        'Use "mdsaad show list --category <name>" to list art in a category'
+      )
+    );
   }
 
   /**
@@ -311,12 +330,16 @@ class ShowCommand {
     const results = asciiArtDb.searchArt(query, {
       category: options.category,
       limit: options.limit || 10,
-      fuzzy: true
+      fuzzy: true,
     });
 
     if (results.length === 0) {
       console.log(chalk.red('❌ No matching ASCII art found'));
-      console.log(chalk.gray('Try different search terms or browse categories with "mdsaad show categories"'));
+      console.log(
+        chalk.gray(
+          'Try different search terms or browse categories with "mdsaad show categories"'
+        )
+      );
       return;
     }
 
@@ -325,13 +348,17 @@ class ShowCommand {
 
     results.forEach((result, index) => {
       const { name, category, description, score } = result;
-      console.log(`${chalk.white(`${index + 1}.`)} ${chalk.cyan(name)} (${chalk.gray(category)})`);
+      console.log(
+        `${chalk.white(`${index + 1}.`)} ${chalk.cyan(name)} (${chalk.gray(category)})`
+      );
       console.log(`   ${chalk.gray(description)}`);
       console.log(`   ${chalk.gray('Match score:')} ${chalk.white(score)}`);
       console.log();
     });
 
-    console.log(chalk.gray('Use "mdsaad show <name>" to display any of these artworks'));
+    console.log(
+      chalk.gray('Use "mdsaad show <name>" to display any of these artworks')
+    );
   }
 
   /**
@@ -358,21 +385,30 @@ class ShowCommand {
     console.log(chalk.yellow('⭐ Popular ASCII Art'));
     console.log();
 
-    const popularArt = asciiArtDb.getPopularArt(options.limit || 5, options.category);
-    
+    const popularArt = asciiArtDb.getPopularArt(
+      options.limit || 5,
+      options.category
+    );
+
     if (popularArt.length === 0) {
       console.log(chalk.red('❌ No popular art available'));
       return;
     }
 
     popularArt.forEach((item, index) => {
-      console.log(`${chalk.white(`${index + 1}.`)} ${chalk.cyan(item.name)} (${chalk.gray(item.category)})`);
+      console.log(
+        `${chalk.white(`${index + 1}.`)} ${chalk.cyan(item.name)} (${chalk.gray(item.category)})`
+      );
       console.log(`   ${chalk.gray(item.description)}`);
-      console.log(`   ${chalk.gray('Popularity:')} ${chalk.white(item.popularity)}/100`);
+      console.log(
+        `   ${chalk.gray('Popularity:')} ${chalk.white(item.popularity)}/100`
+      );
       console.log();
     });
 
-    console.log(chalk.gray('Use "mdsaad show <name>" to display any of these artworks'));
+    console.log(
+      chalk.gray('Use "mdsaad show <name>" to display any of these artworks')
+    );
   }
 
   /**
@@ -383,10 +419,16 @@ class ShowCommand {
     console.log();
 
     const stats = asciiArtDb.getStatistics();
-    
-    console.log(`${chalk.cyan('Total Artworks:')} ${chalk.white(stats.totalArt)}`);
-    console.log(`${chalk.cyan('Categories:')} ${chalk.white(stats.categories)}`);
-    console.log(`${chalk.cyan('Average Size:')} ${chalk.white(stats.averageSize)} characters`);
+
+    console.log(
+      `${chalk.cyan('Total Artworks:')} ${chalk.white(stats.totalArt)}`
+    );
+    console.log(
+      `${chalk.cyan('Categories:')} ${chalk.white(stats.categories)}`
+    );
+    console.log(
+      `${chalk.cyan('Average Size:')} ${chalk.white(stats.averageSize)} characters`
+    );
     console.log();
 
     console.log(chalk.cyan('Category Breakdown:'));
@@ -396,11 +438,15 @@ class ShowCommand {
     console.log();
 
     if (stats.largestArt) {
-      console.log(`${chalk.cyan('Largest Artwork:')} ${chalk.white(stats.largestArt.name)} (${stats.largestArt.size} chars)`);
+      console.log(
+        `${chalk.cyan('Largest Artwork:')} ${chalk.white(stats.largestArt.name)} (${stats.largestArt.size} chars)`
+      );
     }
-    
+
     if (stats.smallestArt) {
-      console.log(`${chalk.cyan('Smallest Artwork:')} ${chalk.white(stats.smallestArt.name)} (${stats.smallestArt.size} chars)`);
+      console.log(
+        `${chalk.cyan('Smallest Artwork:')} ${chalk.white(stats.smallestArt.name)} (${stats.smallestArt.size} chars)`
+      );
     }
   }
 
@@ -416,7 +462,9 @@ class ShowCommand {
       console.log(`${chalk.cyan(name)}: ${chalk.gray(colorList)}`);
     });
     console.log();
-    console.log(chalk.gray('Use --color-scheme <name> to apply a color scheme'));
+    console.log(
+      chalk.gray('Use --color-scheme <name> to apply a color scheme')
+    );
   }
 
   /**
@@ -430,7 +478,9 @@ class ShowCommand {
       console.log(`${chalk.cyan(name)}: ${chalk.gray(description)}`);
     });
     console.log();
-    console.log(chalk.gray('Use --animated --animation <name> to apply an animation'));
+    console.log(
+      chalk.gray('Use --animated --animation <name> to apply an animation')
+    );
   }
 
   /**
@@ -438,16 +488,20 @@ class ShowCommand {
    */
   showArtMetadata(art, metadata) {
     console.log(chalk.gray('─'.repeat(60)));
-    console.log(chalk.gray(`📏 Size: ${art.lines} lines × ${art.width} chars (${art.size} total)`));
-    
+    console.log(
+      chalk.gray(
+        `📏 Size: ${art.lines} lines × ${art.width} chars (${art.size} total)`
+      )
+    );
+
     if (metadata.tags && metadata.tags.length > 0) {
       console.log(chalk.gray(`🏷️  Tags: ${metadata.tags.join(', ')}`));
     }
-    
+
     if (metadata.difficulty) {
       console.log(chalk.gray(`⭐ Complexity: ${metadata.difficulty}/10`));
     }
-    
+
     console.log(chalk.gray(`📁 Category: ${art.category}`));
   }
 
@@ -456,13 +510,15 @@ class ShowCommand {
    */
   adjustWidth(content, maxWidth) {
     const lines = content.split('\n');
-    
-    return lines.map(line => {
-      if (line.length <= maxWidth) {
-        return line;
-      }
-      return line.substring(0, maxWidth - 3) + '...';
-    }).join('\n');
+
+    return lines
+      .map(line => {
+        if (line.length <= maxWidth) {
+          return line;
+        }
+        return line.substring(0, maxWidth - 3) + '...';
+      })
+      .join('\n');
   }
 
   /**
@@ -471,37 +527,51 @@ class ShowCommand {
   showHelp() {
     console.log(chalk.yellow('🎨 ASCII Art Display System Help'));
     console.log();
-    
+
     console.log(chalk.cyan('Basic Usage:'));
     console.log('  mdsaad show <artname>              →  Display ASCII art');
-    console.log('  mdsaad show batman                 →  Show Batman ASCII art');
-    console.log('  mdsaad show superman --animated    →  Animated Superman art');
+    console.log(
+      '  mdsaad show batman                 →  Show Batman ASCII art'
+    );
+    console.log(
+      '  mdsaad show superman --animated    →  Animated Superman art'
+    );
     console.log();
-    
+
     console.log(chalk.cyan('Art Management:'));
-    console.log('  mdsaad show list                   →  List all available art');
+    console.log(
+      '  mdsaad show list                   →  List all available art'
+    );
     console.log('  mdsaad show list --category logos  →  List art in category');
     console.log('  mdsaad show categories             →  Show all categories');
     console.log('  mdsaad show search --query hero    →  Search for art');
     console.log('  mdsaad show random                 →  Display random art');
     console.log('  mdsaad show popular                →  Show popular art');
     console.log();
-    
+
     console.log(chalk.cyan('Display Options:'));
     console.log('  -a, --animated                     →  Enable animations');
-    console.log('  --animation <type>                 →  Animation type (typewriter, fadein, etc.)');
+    console.log(
+      '  --animation <type>                 →  Animation type (typewriter, fadein, etc.)'
+    );
     console.log('  -c, --color <color>                →  Set text color');
     console.log('  --color-scheme <scheme>            →  Apply color scheme');
-    console.log('  -w, --width <number>               →  Maximum display width');
-    console.log('  --speed <ms>                       →  Animation speed (milliseconds)');
+    console.log(
+      '  -w, --width <number>               →  Maximum display width'
+    );
+    console.log(
+      '  --speed <ms>                       →  Animation speed (milliseconds)'
+    );
     console.log();
-    
+
     console.log(chalk.cyan('Information:'));
-    console.log('  mdsaad show stats                  →  Show database statistics');
+    console.log(
+      '  mdsaad show stats                  →  Show database statistics'
+    );
     console.log('  mdsaad show colors                 →  List color schemes');
     console.log('  mdsaad show animations             →  List animation types');
     console.log();
-    
+
     console.log(chalk.cyan('Examples:'));
     console.log('  mdsaad show batman --animated --animation typewriter');
     console.log('  mdsaad show mdsaad --color-scheme rainbow');
@@ -514,13 +584,17 @@ class ShowCommand {
    */
   handleError(error) {
     console.log(chalk.red('❌ ASCII art display failed:'), error.message);
-    
+
     if (error.message.includes('not initialized')) {
-      console.log(chalk.yellow('💡 Try restarting the command or check file permissions'));
+      console.log(
+        chalk.yellow('💡 Try restarting the command or check file permissions')
+      );
     } else if (error.message.includes('not found')) {
-      console.log(chalk.yellow('💡 Use "mdsaad show list" to see available art'));
+      console.log(
+        chalk.yellow('💡 Use "mdsaad show list" to see available art')
+      );
     }
-    
+
     console.log(chalk.gray('Use "mdsaad show help" for usage information'));
   }
 }

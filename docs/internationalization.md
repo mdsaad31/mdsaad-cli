@@ -4,38 +4,42 @@ The mdsaad CLI tool includes a comprehensive internationalization system support
 
 ## Supported Languages
 
-| Code | Language | Native Name | Direction | Status |
-|------|----------|-------------|-----------|--------|
-| `en` | English | English | LTR | ✅ Complete |
-| `hi` | Hindi | हिंदी | LTR | ✅ Complete |
-| `es` | Spanish | Español | LTR | ✅ Complete |
-| `fr` | French | Français | LTR | ✅ Complete |
-| `de` | German | Deutsch | LTR | ✅ Complete |
-| `zh` | Chinese | 中文(简体) | LTR | ✅ Complete |
-| `ja` | Japanese | 日本語 | LTR | ✅ Complete |
-| `ru` | Russian | Русский | LTR | ✅ Complete |
-| `ar` | Arabic | العربية | RTL | ✅ Complete |
+| Code | Language | Native Name | Direction | Status      |
+| ---- | -------- | ----------- | --------- | ----------- |
+| `en` | English  | English     | LTR       | ✅ Complete |
+| `hi` | Hindi    | हिंदी       | LTR       | ✅ Complete |
+| `es` | Spanish  | Español     | LTR       | ✅ Complete |
+| `fr` | French   | Français    | LTR       | ✅ Complete |
+| `de` | German   | Deutsch     | LTR       | ✅ Complete |
+| `zh` | Chinese  | 中文(简体)  | LTR       | ✅ Complete |
+| `ja` | Japanese | 日本語      | LTR       | ✅ Complete |
+| `ru` | Russian  | Русский     | LTR       | ✅ Complete |
+| `ar` | Arabic   | العربية     | RTL       | ✅ Complete |
 
 ## Features
 
 ### 🌍 Multi-Language Support
+
 - **9 Languages**: Comprehensive coverage of major world languages
 - **RTL Support**: Full support for right-to-left languages (Arabic)
 - **Unicode Support**: Proper handling of all character sets
 - **Locale Detection**: Automatic detection from system environment
 
 ### 🔄 Dynamic Language Switching
+
 - **Runtime Switching**: Change languages without restarting
 - **Persistent Settings**: Language preference saved to configuration
 - **Fallback System**: Graceful degradation to English for missing translations
 
 ### 📝 Advanced Translation Features
+
 - **Parameter Interpolation**: `{{param}}` syntax for dynamic content
 - **Pluralization**: Language-specific plural rules
 - **Nested Keys**: Hierarchical translation organization
 - **Validation**: Translation completeness checking
 
 ### 🛠️ Developer Tools
+
 - **Interactive Manager**: CLI utility for translation management
 - **Export/Import**: CSV, TSV, JSON format support
 - **Statistics**: Translation coverage and file size metrics
@@ -46,6 +50,7 @@ The mdsaad CLI tool includes a comprehensive internationalization system support
 ### Command Line Interface
 
 #### List Available Languages
+
 ```bash
 mdsaad language --list
 # or
@@ -53,6 +58,7 @@ mdsaad lang --list
 ```
 
 #### Show Current Language
+
 ```bash
 mdsaad language --current
 # or
@@ -60,6 +66,7 @@ mdsaad lang --current
 ```
 
 #### Set Language
+
 ```bash
 mdsaad language --set es    # Spanish
 mdsaad language --set hi    # Hindi
@@ -68,6 +75,7 @@ mdsaad language --set zh    # Chinese
 ```
 
 #### Interactive Selection
+
 ```bash
 mdsaad language
 # Opens interactive language selection menu
@@ -76,6 +84,7 @@ mdsaad language
 ### Programmatic Usage
 
 #### Basic Translation
+
 ```javascript
 const i18n = require('./src/services/i18n');
 
@@ -90,6 +99,7 @@ const greeting = i18n.translate('test.message', { name: 'John' });
 ```
 
 #### Language Management
+
 ```javascript
 // Check supported languages
 const languages = i18n.getSupportedLanguages();
@@ -106,37 +116,40 @@ console.log(current);
 ```
 
 #### Pluralization
+
 ```javascript
 // Automatic plural form selection
-const items1 = i18n.translatePlural('items.count', 1);    // "1 item"
-const items5 = i18n.translatePlural('items.count', 5);    // "5 items"
-const items0 = i18n.translatePlural('items.count', 0);    // "0 items"
+const items1 = i18n.translatePlural('items.count', 1); // "1 item"
+const items5 = i18n.translatePlural('items.count', 5); // "5 items"
+const items0 = i18n.translatePlural('items.count', 0); // "0 items"
 
 // With additional parameters
-const message = i18n.translatePlural('notifications', count, { 
-  user: 'Alice' 
+const message = i18n.translatePlural('notifications', count, {
+  user: 'Alice',
 });
 ```
 
 #### Locale-aware Formatting
+
 ```javascript
 // Format numbers according to current locale
-const price = i18n.formatNumber(1234.56, { 
-  style: 'currency', 
-  currency: 'USD' 
+const price = i18n.formatNumber(1234.56, {
+  style: 'currency',
+  currency: 'USD',
 });
 
 // Format dates according to current locale
-const date = i18n.formatDate(new Date(), { 
-  year: 'numeric', 
-  month: 'long', 
-  day: 'numeric' 
+const date = i18n.formatDate(new Date(), {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
 });
 ```
 
 ## Translation File Structure
 
 ### File Organization
+
 ```
 src/assets/translations/
 ├── en.json     # English (base language)
@@ -151,6 +164,7 @@ src/assets/translations/
 ```
 
 ### Translation File Format
+
 ```json
 {
   "meta": {
@@ -179,6 +193,7 @@ src/assets/translations/
 ```
 
 ### Pluralization Support
+
 ```json
 {
   "items": {
@@ -198,9 +213,10 @@ src/assets/translations/
 The system automatically detects the user's preferred language from multiple sources:
 
 ### Detection Priority
+
 1. **Environment Variables**:
    - `LANG`
-   - `LANGUAGE` 
+   - `LANGUAGE`
    - `LC_ALL`
    - `LC_MESSAGES`
    - `LC_CTYPE`
@@ -213,6 +229,7 @@ The system automatically detects the user's preferred language from multiple sou
    - Korean → Japanese
 
 ### Language Code Mapping
+
 ```javascript
 // Examples of automatic detection
 'en_US.UTF-8' → 'en'
@@ -224,11 +241,13 @@ The system automatically detects the user's preferred language from multiple sou
 ## Management Tools
 
 ### I18N Manager Utility
+
 ```bash
 node utils/i18n-manager.js
 ```
 
 Interactive management system with features:
+
 - 🌐 Show current language settings
 - 🔄 Change language interactively
 - 📊 View translation statistics
@@ -238,6 +257,7 @@ Interactive management system with features:
 - 📤 Export translations (CSV/TSV/JSON)
 
 ### Translation Validation
+
 ```bash
 # Check for missing translations
 node utils/i18n-manager.js
@@ -245,6 +265,7 @@ node utils/i18n-manager.js
 ```
 
 Sample validation output:
+
 ```
 🔧 Validating Translations...
 
@@ -256,6 +277,7 @@ Sample validation output:
 ```
 
 ### Export Translations
+
 ```bash
 # Export to CSV for external editing
 node utils/i18n-manager.js
@@ -265,6 +287,7 @@ node utils/i18n-manager.js
 ## RTL (Right-to-Left) Support
 
 ### Arabic Language Support
+
 The system includes full RTL support for Arabic:
 
 ```javascript
@@ -277,6 +300,7 @@ console.log(langInfo.direction); // 'rtl' for Arabic
 ```
 
 ### RTL Considerations
+
 - **Text Direction**: Automatic detection and metadata
 - **Layout Adjustments**: Direction information for UI frameworks
 - **Unicode Support**: Proper handling of Arabic script
@@ -285,6 +309,7 @@ console.log(langInfo.direction); // 'rtl' for Arabic
 ## Configuration Integration
 
 ### Persistent Language Settings
+
 ```javascript
 // Language preference is automatically saved
 await i18n.setLanguage('es');
@@ -294,6 +319,7 @@ await i18n.initialize(); // Loads saved preference
 ```
 
 ### Configuration File
+
 ```json
 {
   "language": "es",
@@ -311,19 +337,23 @@ await i18n.initialize(); // Loads saved preference
 ### Language-Specific Rules
 
 #### English, Spanish, French, German
+
 - **one**: n = 1
 - **other**: n ≠ 1
 
 #### Hindi, French
-- **one**: n = 0 or n = 1  
+
+- **one**: n = 0 or n = 1
 - **other**: n > 1
 
 #### Russian (Complex)
+
 - **one**: n % 10 = 1 and n % 100 ≠ 11
 - **few**: n % 10 ∈ {2,3,4} and n % 100 ∉ {12,13,14}
 - **other**: all other cases
 
 #### Arabic (Most Complex)
+
 - **zero**: n = 0
 - **one**: n = 1
 - **two**: n = 2
@@ -332,11 +362,13 @@ await i18n.initialize(); // Loads saved preference
 - **other**: all other cases
 
 #### Chinese, Japanese
+
 - **other**: No plural distinctions
 
 ## Error Handling
 
 ### Graceful Degradation
+
 ```javascript
 // Missing translation falls back to English
 i18n.translate('missing.key'); // Returns English version
@@ -349,6 +381,7 @@ i18n.translate('completely.missing'); // Returns 'completely.missing'
 ```
 
 ### Error Scenarios
+
 1. **Missing Translation Files**: Creates basic fallback
 2. **Malformed JSON**: Reports error, continues with English
 3. **Unsupported Language**: Throws clear error message
@@ -357,16 +390,19 @@ i18n.translate('completely.missing'); // Returns 'completely.missing'
 ## Performance Considerations
 
 ### Loading Strategy
+
 - **Lazy Loading**: Languages loaded only when needed
 - **Memory Efficient**: Only active language + English in memory
 - **Caching**: Translation lookups are O(1) after parsing
 
 ### File Sizes
+
 - **English (base)**: ~8KB
 - **Other languages**: ~6-10KB each
 - **Total package**: ~65KB for all translations
 
 ### Benchmarks
+
 ```
 Translation lookup: <1ms
 Language switching: ~10ms
@@ -379,24 +415,26 @@ Pluralization: <1ms
 ### For Developers
 
 #### Translation Keys
+
 ```javascript
 // ✅ Good: Hierarchical, descriptive
-'commands.calculate.description'
-'errors.validation.required'
-'prompts.confirm.delete'
+'commands.calculate.description';
+'errors.validation.required';
+'prompts.confirm.delete';
 
 // ❌ Bad: Flat, unclear
-'calc_desc'
-'err1'
-'confirm'
+'calc_desc';
+'err1';
+'confirm';
 ```
 
 #### Parameter Usage
+
 ```javascript
 // ✅ Good: Clear parameter names
-i18n.translate('welcome.message', { 
+i18n.translate('welcome.message', {
   userName: 'Alice',
-  itemCount: 5 
+  itemCount: 5,
 });
 
 // ❌ Bad: Unclear parameters
@@ -404,6 +442,7 @@ i18n.translate('msg', { a: 'Alice', b: 5 });
 ```
 
 #### Pluralization
+
 ```javascript
 // ✅ Good: Use translatePlural for counts
 i18n.translatePlural('items.found', count);
@@ -415,6 +454,7 @@ const msg = count === 1 ? 'item' : 'items';
 ### For Translators
 
 #### Translation Guidelines
+
 1. **Maintain Context**: Understand where text appears
 2. **Preserve Parameters**: Keep `{{param}}` placeholders intact
 3. **Cultural Adaptation**: Adapt content to local culture
@@ -422,11 +462,12 @@ const msg = count === 1 ? 'item' : 'items';
 5. **Length Considerations**: Account for text expansion/contraction
 
 #### Common Patterns
+
 ```json
 {
   "buttons": {
     "save": "Save",
-    "cancel": "Cancel", 
+    "cancel": "Cancel",
     "delete": "Delete"
   },
   "status": {
@@ -440,11 +481,13 @@ const msg = count === 1 ? 'item' : 'items';
 ## Testing
 
 ### Automated Tests
+
 ```bash
 npm test -- --testPathPatterns=i18n
 ```
 
 Test coverage includes:
+
 - ✅ Language loading and switching
 - ✅ Translation parameter interpolation
 - ✅ Pluralization rules for all languages
@@ -454,6 +497,7 @@ Test coverage includes:
 - ✅ Configuration integration
 
 ### Manual Testing
+
 ```bash
 # Test different languages
 mdsaad language --set es && mdsaad --help
@@ -496,6 +540,7 @@ formatCurrency(amount) {
 ### Common Issues
 
 #### Language Not Persisting
+
 ```bash
 # Check configuration
 mdsaad config
@@ -511,6 +556,7 @@ config.initialize().then(() => {
 ```
 
 #### Missing Translations
+
 ```bash
 # Validate completeness
 node utils/i18n-manager.js
@@ -518,11 +564,13 @@ node utils/i18n-manager.js
 ```
 
 #### RTL Display Issues
+
 - Ensure terminal supports RTL rendering
 - Check font support for Arabic characters
 - Verify terminal encoding (UTF-8)
 
 ### Debug Mode
+
 ```bash
 # Enable debug logging
 mdsaad --debug language --current
@@ -550,12 +598,14 @@ If migrating from a simple string-based system:
 ## Resources
 
 ### External Tools
+
 - **Google Translate**: For initial translations (manual review required)
 - **Crowdin**: For collaborative translation management
 - **Transifex**: Alternative translation platform
 - **i18n-ally**: VS Code extension for translation editing
 
 ### Standards
+
 - **ICU Message Format**: For advanced pluralization
 - **CLDR**: Unicode locale data repository
 - **BCP 47**: Language tags specification
@@ -563,4 +613,4 @@ If migrating from a simple string-based system:
 
 ---
 
-*The i18n system in mdsaad CLI provides enterprise-grade internationalization features while maintaining simplicity and ease of use. It's designed to scale from simple applications to complex multi-language deployments.*
+_The i18n system in mdsaad CLI provides enterprise-grade internationalization features while maintaining simplicity and ease of use. It's designed to scale from simple applications to complex multi-language deployments._

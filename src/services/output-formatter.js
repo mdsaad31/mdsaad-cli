@@ -28,22 +28,26 @@ try {
 } catch (error) {
   // Fallback for gradient if import fails
   gradient = {
-    rainbow: (text) => chalk.rainbow ? chalk.rainbow(text) : chalk.cyan(text),
-    pastel: (text) => chalk.blue(text),
-    cristal: (text) => chalk.cyan(text),
-    teen: (text) => chalk.magenta(text),
-    mind: (text) => chalk.yellow(text),
-    morning: (text) => chalk.yellow(text),
-    vice: (text) => chalk.magenta(text),
-    passion: (text) => chalk.red(text),
-    fruit: (text) => chalk.green(text),
-    instagram: (text) => chalk.magenta(text),
-    atlas: (text) => chalk.blue(text),
-    retro: (text) => chalk.yellow(text),
-    summer: (text) => chalk.green(text),
+    rainbow: text => (chalk.rainbow ? chalk.rainbow(text) : chalk.cyan(text)),
+    pastel: text => chalk.blue(text),
+    cristal: text => chalk.cyan(text),
+    teen: text => chalk.magenta(text),
+    mind: text => chalk.yellow(text),
+    morning: text => chalk.yellow(text),
+    vice: text => chalk.magenta(text),
+    passion: text => chalk.red(text),
+    fruit: text => chalk.green(text),
+    instagram: text => chalk.magenta(text),
+    atlas: text => chalk.blue(text),
+    retro: text => chalk.yellow(text),
+    summer: text => chalk.green(text),
     rainbow: {
-      multiline: (text) => text.split('\n').map(line => chalk.rainbow ? chalk.rainbow(line) : chalk.cyan(line)).join('\n')
-    }
+      multiline: text =>
+        text
+          .split('\n')
+          .map(line => (chalk.rainbow ? chalk.rainbow(line) : chalk.cyan(line)))
+          .join('\n'),
+    },
   };
 }
 
@@ -51,14 +55,14 @@ class OutputFormatter {
   constructor() {
     this.theme = {
       primary: '#007ACC',
-      secondary: '#61DAFB', 
+      secondary: '#61DAFB',
       success: '#28a745',
       warning: '#ffc107',
       error: '#dc3545',
       info: '#17a2b8',
-      muted: '#6c757d'
+      muted: '#6c757d',
     };
-    
+
     this.emojis = {
       success: '✅',
       error: '❌',
@@ -75,7 +79,7 @@ class OutputFormatter {
       crossmark: '❎',
       arrow: '➤',
       bullet: '•',
-      diamond: '◆'
+      diamond: '◆',
     };
     this.isInitialized = false;
   }
@@ -87,10 +91,10 @@ class OutputFormatter {
     try {
       // Test color support
       this.supportsColor = chalk.supportsColor !== false;
-      
-      // Test emoji support (basic check)  
+
+      // Test emoji support (basic check)
       this.supportsEmoji = true;
-      
+
       this.isInitialized = true;
       return true;
     } catch (error) {
@@ -104,7 +108,9 @@ class OutputFormatter {
    * Format success messages with consistent styling
    */
   success(message, details = null) {
-    console.log(chalk.hex(this.theme.success)(`${this.emojis.success} ${message}`));
+    console.log(
+      chalk.hex(this.theme.success)(`${this.emojis.success} ${message}`)
+    );
     if (details && Array.isArray(details)) {
       details.forEach(detail => {
         console.log(chalk.gray(`  ${this.emojis.bullet} ${detail}`));
@@ -124,7 +130,9 @@ class OutputFormatter {
     }
     if (suggestions && Array.isArray(suggestions)) {
       console.log();
-      console.log(chalk.hex(this.theme.info)(`${this.emojis.lightbulb} Suggestions:`));
+      console.log(
+        chalk.hex(this.theme.info)(`${this.emojis.lightbulb} Suggestions:`)
+      );
       suggestions.forEach(suggestion => {
         console.log(chalk.gray(`  ${this.emojis.arrow} ${suggestion}`));
       });
@@ -135,7 +143,9 @@ class OutputFormatter {
    * Format warning messages with consistent styling
    */
   warning(message, details = null) {
-    console.log(chalk.hex(this.theme.warning)(`${this.emojis.warning} ${message}`));
+    console.log(
+      chalk.hex(this.theme.warning)(`${this.emojis.warning} ${message}`)
+    );
     if (details) {
       console.log(chalk.gray(`  ${details}`));
     }
@@ -159,14 +169,20 @@ class OutputFormatter {
     try {
       if (typeof gradient === 'function') {
         const titleGradient = gradient(['#007ACC', '#61DAFB']);
-        titleText = titleGradient(`${this.emojis.sparkles} ${title} ${this.emojis.sparkles}`);
+        titleText = titleGradient(
+          `${this.emojis.sparkles} ${title} ${this.emojis.sparkles}`
+        );
       } else {
-        titleText = chalk.cyan(`${this.emojis.sparkles} ${title} ${this.emojis.sparkles}`);
+        titleText = chalk.cyan(
+          `${this.emojis.sparkles} ${title} ${this.emojis.sparkles}`
+        );
       }
     } catch (error) {
-      titleText = chalk.cyan(`${this.emojis.sparkles} ${title} ${this.emojis.sparkles}`);
+      titleText = chalk.cyan(
+        `${this.emojis.sparkles} ${title} ${this.emojis.sparkles}`
+      );
     }
-    
+
     console.log();
     console.log(titleText);
     if (subtitle) {
@@ -185,9 +201,9 @@ class OutputFormatter {
       borderStyle: 'round',
       borderColor: this.theme.primary,
       backgroundColor: null,
-      align: 'left'
+      align: 'left',
     };
-    
+
     const boxOptions = { ...defaultOptions, ...options };
     console.log(boxen(content, boxOptions));
   }
@@ -196,7 +212,9 @@ class OutputFormatter {
    * Create loading spinners and progress indicators
    */
   loading(message) {
-    console.log(chalk.hex(this.theme.info)(`${this.emojis.loading} ${message}`));
+    console.log(
+      chalk.hex(this.theme.info)(`${this.emojis.loading} ${message}`)
+    );
   }
 
   /**
@@ -205,12 +223,14 @@ class OutputFormatter {
   spinner(message) {
     return {
       start: () => {
-        console.log(chalk.hex(this.theme.info)(`${this.emojis.loading} ${message}`));
+        console.log(
+          chalk.hex(this.theme.info)(`${this.emojis.loading} ${message}`)
+        );
       },
       stop: () => {
         // Simple implementation - just clears the line in real scenarios
         // For now, we'll just not print anything on stop
-      }
+      },
     };
   }
 
@@ -220,7 +240,7 @@ class OutputFormatter {
   keyValue(pairs, options = {}) {
     const { indent = 2, separator = ':', color = this.theme.muted } = options;
     const prefix = ' '.repeat(indent);
-    
+
     pairs.forEach(([key, value]) => {
       console.log(`${prefix}${chalk.hex(color)(key)}${separator} ${value}`);
     });
@@ -236,8 +256,8 @@ class OutputFormatter {
       style: {
         head: [this.theme.primary],
         border: [this.theme.muted],
-        compact: false
-      }
+        compact: false,
+      },
     };
 
     const tableOptions = { ...defaultOptions, ...options };
@@ -267,8 +287,8 @@ class OutputFormatter {
       style: {
         head: [this.theme.primary],
         border: [this.theme.muted],
-        compact: false
-      }
+        compact: false,
+      },
     };
 
     const tableOptions = { ...defaultOptions, ...options };
@@ -293,16 +313,20 @@ class OutputFormatter {
    */
   progressive(basicInfo, detailedInfo, options = {}) {
     const { showDetails = false, prompt = 'Show more details' } = options;
-    
+
     // Always show basic info
     console.log(basicInfo);
-    
+
     if (showDetails) {
       console.log();
       console.log(chalk.hex(this.theme.muted)('--- Details ---'));
       console.log(detailedInfo);
     } else if (detailedInfo) {
-      console.log(chalk.hex(this.theme.muted)(`\n💡 Use --verbose to see ${prompt.toLowerCase()}`));
+      console.log(
+        chalk.hex(this.theme.muted)(
+          `\n💡 Use --verbose to see ${prompt.toLowerCase()}`
+        )
+      );
     }
   }
 
@@ -310,15 +334,19 @@ class OutputFormatter {
    * Format command examples with syntax highlighting
    */
   examples(examples) {
-    console.log(chalk.hex(this.theme.info)(`${this.emojis.lightbulb} Examples:`));
+    console.log(
+      chalk.hex(this.theme.info)(`${this.emojis.lightbulb} Examples:`)
+    );
     console.log();
-    
+
     examples.forEach(example => {
       if (typeof example === 'string') {
         console.log(chalk.gray(`  ${this.emojis.arrow} ${example}`));
       } else {
         console.log(chalk.cyan(`  ${example.description}:`));
-        console.log(chalk.gray(`    ${this.emojis.diamond} ${example.command}`));
+        console.log(
+          chalk.gray(`    ${this.emojis.diamond} ${example.command}`)
+        );
         if (example.output) {
           console.log(chalk.dim(`    → ${example.output}`));
         }
@@ -332,15 +360,21 @@ class OutputFormatter {
    */
   helpSection(title, content, options = {}) {
     const { collapsible = false, expanded = true } = options;
-    
+
     if (collapsible && !expanded) {
-      console.log(chalk.hex(this.theme.primary)(`${this.emojis.arrow} ${title} (use --help-${title.toLowerCase()} for details)`));
+      console.log(
+        chalk.hex(this.theme.primary)(
+          `${this.emojis.arrow} ${title} (use --help-${title.toLowerCase()} for details)`
+        )
+      );
       return;
     }
 
-    console.log(chalk.hex(this.theme.primary)(`${this.emojis.diamond} ${title}`));
+    console.log(
+      chalk.hex(this.theme.primary)(`${this.emojis.diamond} ${title}`)
+    );
     console.log();
-    
+
     if (Array.isArray(content)) {
       content.forEach(item => {
         console.log(chalk.gray(`  ${this.emojis.bullet} ${item}`));
@@ -348,7 +382,7 @@ class OutputFormatter {
     } else {
       console.log(chalk.gray(`  ${content}`));
     }
-    
+
     console.log();
   }
 
@@ -357,7 +391,7 @@ class OutputFormatter {
    */
   status(label, status, details = null) {
     let emoji, color;
-    
+
     switch (status.toLowerCase()) {
       case 'success':
       case 'ok':
@@ -382,7 +416,9 @@ class OutputFormatter {
         color = this.theme.info;
     }
 
-    console.log(`${chalk.hex(color)(emoji)} ${label}: ${chalk.hex(color)(status)}`);
+    console.log(
+      `${chalk.hex(color)(emoji)} ${label}: ${chalk.hex(color)(status)}`
+    );
     if (details) {
       console.log(chalk.gray(`  ${details}`));
     }
@@ -392,9 +428,13 @@ class OutputFormatter {
    * Format lists with consistent bullet points and indentation
    */
   list(items, options = {}) {
-    const { bullet = this.emojis.bullet, indent = 2, numbered = false } = options;
+    const {
+      bullet = this.emojis.bullet,
+      indent = 2,
+      numbered = false,
+    } = options;
     const prefix = ' '.repeat(indent);
-    
+
     items.forEach((item, index) => {
       const marker = numbered ? `${index + 1}.` : bullet;
       console.log(`${prefix}${chalk.hex(this.theme.muted)(marker)} ${item}`);
@@ -406,10 +446,14 @@ class OutputFormatter {
    */
   code(code, language = null) {
     const border = '─'.repeat(Math.min(code.length + 4, 80));
-    
+
     console.log(chalk.hex(this.theme.muted)(`┌${border}┐`));
     code.split('\n').forEach(line => {
-      console.log(chalk.hex(this.theme.muted)(`│ ${chalk.cyan(line.padEnd(Math.min(code.length + 2, 78)))} │`));
+      console.log(
+        chalk.hex(this.theme.muted)(
+          `│ ${chalk.cyan(line.padEnd(Math.min(code.length + 2, 78)))} │`
+        )
+      );
     });
     console.log(chalk.hex(this.theme.muted)(`└${border}┘`));
   }
@@ -419,26 +463,28 @@ class OutputFormatter {
    */
   metrics(data, options = {}) {
     const { title = 'Metrics', format = 'table' } = options;
-    
+
     console.log(chalk.hex(this.theme.primary)(`${this.emojis.gear} ${title}`));
     console.log();
-    
+
     if (format === 'table') {
       const tableData = Object.entries(data).map(([key, value]) => [
         chalk.cyan(key),
-        typeof value === 'number' ? value.toLocaleString() : value
+        typeof value === 'number' ? value.toLocaleString() : value,
       ]);
-      
+
       this.table(tableData, {
         head: ['Metric', 'Value'],
-        colWidths: [25, 20]
+        colWidths: [25, 20],
       });
     } else {
       // Key-value format
-      this.keyValue(Object.entries(data).map(([key, value]) => [
-        key,
-        typeof value === 'number' ? value.toLocaleString() : value
-      ]));
+      this.keyValue(
+        Object.entries(data).map(([key, value]) => [
+          key,
+          typeof value === 'number' ? value.toLocaleString() : value,
+        ])
+      );
     }
   }
 
@@ -459,14 +505,20 @@ class OutputFormatter {
       return;
     }
 
-    console.log(chalk.hex(this.theme.info)(`${this.emojis.lightbulb} Suggestions for "${query}":`));
+    console.log(
+      chalk.hex(this.theme.info)(
+        `${this.emojis.lightbulb} Suggestions for "${query}":`
+      )
+    );
     console.log();
-    
+
     suggestions.forEach(suggestion => {
       if (typeof suggestion === 'string') {
         console.log(chalk.gray(`  ${this.emojis.arrow} ${suggestion}`));
       } else {
-        console.log(`  ${chalk.cyan(suggestion.name)} ${chalk.gray(suggestion.description || '')}`);
+        console.log(
+          `  ${chalk.cyan(suggestion.name)} ${chalk.gray(suggestion.description || '')}`
+        );
       }
     });
   }
@@ -492,13 +544,13 @@ class OutputFormatter {
     const percentage = Math.round((current / total) * 100);
     const filledBlocks = Math.round((percentage / 100) * 20);
     const emptyBlocks = 20 - filledBlocks;
-    
-    const progressBar = 
-      '█'.repeat(filledBlocks) + 
-      '░'.repeat(emptyBlocks);
-    
-    process.stdout.write(`\r${label} [${chalk.green(progressBar)}] ${percentage}% (${current}/${total})`);
-    
+
+    const progressBar = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
+
+    process.stdout.write(
+      `\r${label} [${chalk.green(progressBar)}] ${percentage}% (${current}/${total})`
+    );
+
     if (current === total) {
       console.log(); // New line when complete
     }
@@ -514,9 +566,10 @@ class OutputFormatter {
       } else {
         // Fallback: cycle through colors for rainbow effect
         const colors = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
-        return text.split('').map((char, i) => 
-          chalk[colors[i % colors.length]](char)
-        ).join('');
+        return text
+          .split('')
+          .map((char, i) => chalk[colors[i % colors.length]](char))
+          .join('');
       }
     } catch (error) {
       // Final fallback
@@ -531,11 +584,11 @@ class OutputFormatter {
     const width = 20;
     const filledWidth = Math.round(width * percentage);
     const emptyWidth = width - filledWidth;
-    
+
     const filled = '█'.repeat(filledWidth);
     const empty = '░'.repeat(emptyWidth);
     const percent = Math.round(percentage * 100);
-    
+
     return `${label} [${chalk.green(filled)}${chalk.gray(empty)}] ${percent}%`;
   }
 
@@ -544,7 +597,9 @@ class OutputFormatter {
    */
   subheader(title) {
     console.log();
-    console.log(chalk.hex(this.theme.secondary)(`${this.emojis.diamond} ${title}`));
+    console.log(
+      chalk.hex(this.theme.secondary)(`${this.emojis.diamond} ${title}`)
+    );
     console.log();
   }
 
@@ -557,9 +612,9 @@ class OutputFormatter {
         head: options.headers || [],
         style: {
           head: [options.colors?.header || 'cyan'],
-          border: [options.colors?.border || 'gray']
+          border: [options.colors?.border || 'gray'],
         },
-        colWidths: options.colWidths
+        colWidths: options.colWidths,
       });
 
       // Add data rows
@@ -583,7 +638,9 @@ class OutputFormatter {
 
       let output = '';
       if (title) {
-        output += chalk.hex(this.theme.primary)(`${this.emojis.gear} ${title}\n\n`);
+        output += chalk.hex(this.theme.primary)(
+          `${this.emojis.gear} ${title}\n\n`
+        );
       }
       output += table.toString();
       return output;
@@ -591,14 +648,16 @@ class OutputFormatter {
       // Fallback to simple format
       let output = '';
       if (title) {
-        output += chalk.hex(this.theme.primary)(`${this.emojis.gear} ${title}\n\n`);
+        output += chalk.hex(this.theme.primary)(
+          `${this.emojis.gear} ${title}\n\n`
+        );
       }
-      
+
       if (options.headers) {
         output += options.headers.map(h => chalk.cyan(h)).join(' | ') + '\n';
         output += options.headers.map(() => '---').join(' | ') + '\n';
       }
-      
+
       if (Array.isArray(data)) {
         data.forEach(row => {
           if (Array.isArray(row)) {
@@ -606,7 +665,7 @@ class OutputFormatter {
           }
         });
       }
-      
+
       return output;
     }
   }
@@ -617,13 +676,17 @@ class OutputFormatter {
   formatObject(title, obj, options = {}) {
     let output = '';
     if (title) {
-      output += chalk.hex(this.theme.primary)(`${this.emojis.gear} ${title}\n\n`);
+      output += chalk.hex(this.theme.primary)(
+        `${this.emojis.gear} ${title}\n\n`
+      );
     }
 
     Object.entries(obj).forEach(([key, value]) => {
       const formattedKey = chalk.cyan(key.padEnd(options.keyWidth || 20));
-      const formattedValue = typeof value === 'object' ? 
-        JSON.stringify(value, null, 2) : String(value);
+      const formattedValue =
+        typeof value === 'object'
+          ? JSON.stringify(value, null, 2)
+          : String(value);
       output += `  ${formattedKey}: ${formattedValue}\n`;
     });
 

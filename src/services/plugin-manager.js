@@ -28,7 +28,7 @@ class PluginManager extends EventEmitter {
   async initialize() {
     try {
       debugService.debug('Initializing plugin manager', null, 'plugin');
-      
+
       // Ensure plugin directories exist
       await fs.ensureDir(this.pluginDirectory);
       await fs.ensureDir(this.systemPluginDirectory);
@@ -43,12 +43,18 @@ class PluginManager extends EventEmitter {
       await this.loadUserPlugins();
 
       this.isInitialized = true;
-      debugService.debug(`Plugin manager initialized with ${this.plugins.size} plugins`);
+      debugService.debug(
+        `Plugin manager initialized with ${this.plugins.size} plugins`
+      );
       this.emit('initialized', { pluginCount: this.plugins.size });
-      
+
       return true;
     } catch (error) {
-      debugService.debug('Plugin manager initialization failed', { error: error.message }, 'plugin');
+      debugService.debug(
+        'Plugin manager initialization failed',
+        { error: error.message },
+        'plugin'
+      );
       return false;
     }
   }
@@ -63,21 +69,21 @@ class PluginManager extends EventEmitter {
       debugService: require('./debug-service'),
       configService: require('./config'),
       cacheService: require('./cache'),
-      
+
       // Utility functions
       registerCommand: this.registerCommand.bind(this),
       registerHook: this.registerHook.bind(this),
       executeHook: this.executeHook.bind(this),
       getConfig: this.getConfig.bind(this),
       setConfig: this.setConfig.bind(this),
-      
+
       // Plugin utilities
       createLogger: this.createPluginLogger.bind(this),
       createCache: this.createPluginCache.bind(this),
-      
+
       // Version info
       version: require('../../package.json').version,
-      apiVersion: '1.0.0'
+      apiVersion: '1.0.0',
     };
   }
 
@@ -86,15 +92,21 @@ class PluginManager extends EventEmitter {
    */
   async loadSystemPlugins() {
     try {
-      const systemPluginFiles = await this.discoverPlugins(this.systemPluginDirectory);
-      
+      const systemPluginFiles = await this.discoverPlugins(
+        this.systemPluginDirectory
+      );
+
       for (const pluginFile of systemPluginFiles) {
         await this.loadPlugin(pluginFile, 'system');
       }
-      
+
       debugService.debug(`Loaded ${systemPluginFiles.length} system plugins`);
     } catch (error) {
-      debugService.debug('Error loading system plugins', { error: error.message }, 'plugin');
+      debugService.debug(
+        'Error loading system plugins',
+        { error: error.message },
+        'plugin'
+      );
     }
   }
 
@@ -104,14 +116,18 @@ class PluginManager extends EventEmitter {
   async loadUserPlugins() {
     try {
       const userPluginFiles = await this.discoverPlugins(this.pluginDirectory);
-      
+
       for (const pluginFile of userPluginFiles) {
         await this.loadPlugin(pluginFile, 'user');
       }
-      
+
       debugService.debug(`Loaded ${userPluginFiles.length} user plugins`);
     } catch (error) {
-      debugService.debug('Error loading user plugins', { error: error.message }, 'plugin');
+      debugService.debug(
+        'Error loading user plugins',
+        { error: error.message },
+        'plugin'
+      );
     }
   }
 
@@ -132,15 +148,21 @@ class PluginManager extends EventEmitter {
           const packagePath = path.join(filePath, 'package.json');
           if (await fs.pathExists(packagePath)) {
             const packageJson = await fs.readJson(packagePath);
-            if (packageJson.keywords && packageJson.keywords.includes('mdsaad-plugin')) {
-              const entryPoint = path.join(filePath, packageJson.main || 'index.js');
+            if (
+              packageJson.keywords &&
+              packageJson.keywords.includes('mdsaad-plugin')
+            ) {
+              const entryPoint = path.join(
+                filePath,
+                packageJson.main || 'index.js'
+              );
               if (await fs.pathExists(entryPoint)) {
                 pluginFiles.push({
                   path: entryPoint,
                   name: packageJson.name,
                   version: packageJson.version,
                   description: packageJson.description,
-                  packageJson
+                  packageJson,
                 });
               }
             }
@@ -151,14 +173,18 @@ class PluginManager extends EventEmitter {
             path: filePath,
             name: path.basename(file, '.js'),
             version: '1.0.0',
-            description: 'Simple plugin'
+            description: 'Simple plugin',
           });
         }
       }
 
       return pluginFiles;
     } catch (error) {
-      debugService.debug('Error discovering plugins', { directory, error: error.message }, 'plugin');
+      debugService.debug(
+        'Error discovering plugins',
+        { directory, error: error.message },
+        'plugin'
+      );
       return [];
     }
   }
@@ -168,10 +194,14 @@ class PluginManager extends EventEmitter {
    */
   async loadPlugin(pluginInfo, type = 'user') {
     try {
-      debugService.debug(`Loading plugin: ${pluginInfo.name}`, pluginInfo, 'plugin');
+      debugService.debug(
+        `Loading plugin: ${pluginInfo.name}`,
+        pluginInfo,
+        'plugin'
+      );
 
       // Validate plugin before loading
-      if (!await this.validatePlugin(pluginInfo)) {
+      if (!(await this.validatePlugin(pluginInfo))) {
         throw new Error(`Plugin validation failed: ${pluginInfo.name}`);
       }
 
@@ -192,7 +222,7 @@ class PluginManager extends EventEmitter {
         active: false,
         loadTime: Date.now(),
         commands: [],
-        hooks: []
+        hooks: [],
       };
 
       // Call plugin initialization if available
@@ -209,8 +239,15 @@ class PluginManager extends EventEmitter {
 
       return plugin;
     } catch (error) {
-      debugService.debug(`Failed to load plugin: ${pluginInfo.name}`, { error: error.message }, 'plugin');
-      this.emit('pluginError', { plugin: pluginInfo.name, error: error.message });
+      debugService.debug(
+        `Failed to load plugin: ${pluginInfo.name}`,
+        { error: error.message },
+        'plugin'
+      );
+      this.emit('pluginError', {
+        plugin: pluginInfo.name,
+        error: error.message,
+      });
       throw error;
     }
   }
@@ -221,8 +258,12 @@ class PluginManager extends EventEmitter {
   async validatePlugin(pluginInfo) {
     try {
       // Check if file exists
-      if (!await fs.pathExists(pluginInfo.path)) {
-        debugService.debug(`Plugin file not found: ${pluginInfo.path}`, null, 'plugin');
+      if (!(await fs.pathExists(pluginInfo.path))) {
+        debugService.debug(
+          `Plugin file not found: ${pluginInfo.path}`,
+          null,
+          'plugin'
+        );
         return false;
       }
 
@@ -230,24 +271,36 @@ class PluginManager extends EventEmitter {
       const resolvedPath = path.resolve(pluginInfo.path);
       const pluginDirResolved = path.resolve(this.pluginDirectory);
       const systemPluginDirResolved = path.resolve(this.systemPluginDirectory);
-      
+
       const isInUserDir = resolvedPath.startsWith(pluginDirResolved);
       const isInSystemDir = resolvedPath.startsWith(systemPluginDirResolved);
-      
+
       if (!isInUserDir && !isInSystemDir) {
-        debugService.debug(`Plugin outside allowed directories: ${resolvedPath}`, null, 'plugin');
+        debugService.debug(
+          `Plugin outside allowed directories: ${resolvedPath}`,
+          null,
+          'plugin'
+        );
         return false;
       }
 
       // Check if plugin is already loaded
       if (this.plugins.has(pluginInfo.name)) {
-        debugService.debug(`Plugin already loaded: ${pluginInfo.name}`, null, 'plugin');
+        debugService.debug(
+          `Plugin already loaded: ${pluginInfo.name}`,
+          null,
+          'plugin'
+        );
         return false;
       }
 
       return true;
     } catch (error) {
-      debugService.debug('Plugin validation error', { plugin: pluginInfo.name, error: error.message }, 'plugin');
+      debugService.debug(
+        'Plugin validation error',
+        { plugin: pluginInfo.name, error: error.message },
+        'plugin'
+      );
       return false;
     }
   }
@@ -265,23 +318,31 @@ class PluginManager extends EventEmitter {
         name: commandName,
         handler: commandHandler,
         plugin: pluginName,
-        registeredAt: Date.now()
+        registeredAt: Date.now(),
       };
 
       this.loadedCommands.set(commandName, command);
-      
+
       // Add to plugin's command list
       const plugin = this.plugins.get(pluginName);
       if (plugin) {
         plugin.commands.push(commandName);
       }
 
-      debugService.debug(`Command registered: ${commandName} by ${pluginName}`, null, 'plugin');
+      debugService.debug(
+        `Command registered: ${commandName} by ${pluginName}`,
+        null,
+        'plugin'
+      );
       this.emit('commandRegistered', command);
-      
+
       return true;
     } catch (error) {
-      debugService.debug('Command registration failed', { command: commandName, plugin: pluginName, error: error.message }, 'plugin');
+      debugService.debug(
+        'Command registration failed',
+        { command: commandName, plugin: pluginName, error: error.message },
+        'plugin'
+      );
       return false;
     }
   }
@@ -298,7 +359,7 @@ class PluginManager extends EventEmitter {
       const hook = {
         handler: hookHandler,
         plugin: pluginName,
-        registeredAt: Date.now()
+        registeredAt: Date.now(),
       };
 
       this.hooks.get(hookName).push(hook);
@@ -309,10 +370,18 @@ class PluginManager extends EventEmitter {
         plugin.hooks.push(hookName);
       }
 
-      debugService.debug(`Hook registered: ${hookName} by ${pluginName}`, null, 'plugin');
+      debugService.debug(
+        `Hook registered: ${hookName} by ${pluginName}`,
+        null,
+        'plugin'
+      );
       return true;
     } catch (error) {
-      debugService.debug('Hook registration failed', { hook: hookName, plugin: pluginName, error: error.message }, 'plugin');
+      debugService.debug(
+        'Hook registration failed',
+        { hook: hookName, plugin: pluginName, error: error.message },
+        'plugin'
+      );
       return false;
     }
   }
@@ -328,20 +397,28 @@ class PluginManager extends EventEmitter {
       }
 
       let result = data;
-      
+
       for (const hook of hookHandlers) {
         try {
           if (typeof hook.handler === 'function') {
             result = await hook.handler(result);
           }
         } catch (error) {
-          debugService.debug(`Hook handler error: ${hookName}`, { plugin: hook.plugin, error: error.message }, 'plugin');
+          debugService.debug(
+            `Hook handler error: ${hookName}`,
+            { plugin: hook.plugin, error: error.message },
+            'plugin'
+          );
         }
       }
 
       return result;
     } catch (error) {
-      debugService.debug('Hook execution error', { hook: hookName, error: error.message }, 'plugin');
+      debugService.debug(
+        'Hook execution error',
+        { hook: hookName, error: error.message },
+        'plugin'
+      );
       return data;
     }
   }
@@ -354,7 +431,11 @@ class PluginManager extends EventEmitter {
       const configService = require('./config');
       return configService.get(`plugins.${pluginName}.${key}`, defaultValue);
     } catch (error) {
-      debugService.debug('Plugin config get error', { plugin: pluginName, key, error: error.message }, 'plugin');
+      debugService.debug(
+        'Plugin config get error',
+        { plugin: pluginName, key, error: error.message },
+        'plugin'
+      );
       return defaultValue;
     }
   }
@@ -368,7 +449,11 @@ class PluginManager extends EventEmitter {
       configService.set(`plugins.${pluginName}.${key}`, value);
       return true;
     } catch (error) {
-      debugService.debug('Plugin config set error', { plugin: pluginName, key, error: error.message }, 'plugin');
+      debugService.debug(
+        'Plugin config set error',
+        { plugin: pluginName, key, error: error.message },
+        'plugin'
+      );
       return false;
     }
   }
@@ -378,11 +463,16 @@ class PluginManager extends EventEmitter {
    */
   createPluginLogger(pluginName) {
     return {
-      debug: (message, data) => debugService.debug(message, data, `plugin:${pluginName}`),
-      info: (message) => console.log(outputFormatter.info(`[${pluginName}] ${message}`)),
-      warning: (message) => console.log(outputFormatter.warning(`[${pluginName}] ${message}`)),
-      error: (message) => console.log(outputFormatter.error(`[${pluginName}] ${message}`)),
-      success: (message) => console.log(outputFormatter.success(`[${pluginName}] ${message}`))
+      debug: (message, data) =>
+        debugService.debug(message, data, `plugin:${pluginName}`),
+      info: message =>
+        console.log(outputFormatter.info(`[${pluginName}] ${message}`)),
+      warning: message =>
+        console.log(outputFormatter.warning(`[${pluginName}] ${message}`)),
+      error: message =>
+        console.log(outputFormatter.error(`[${pluginName}] ${message}`)),
+      success: message =>
+        console.log(outputFormatter.success(`[${pluginName}] ${message}`)),
     };
   }
 
@@ -392,10 +482,11 @@ class PluginManager extends EventEmitter {
   createPluginCache(pluginName) {
     const cacheService = require('./cache');
     return {
-      get: (key) => cacheService.get(`plugin:${pluginName}:${key}`),
-      set: (key, value, ttl) => cacheService.set(`plugin:${pluginName}:${key}`, value, ttl),
-      delete: (key) => cacheService.delete(`plugin:${pluginName}:${key}`),
-      clear: () => cacheService.clear(`plugin:${pluginName}`)
+      get: key => cacheService.get(`plugin:${pluginName}:${key}`),
+      set: (key, value, ttl) =>
+        cacheService.set(`plugin:${pluginName}:${key}`, value, ttl),
+      delete: key => cacheService.delete(`plugin:${pluginName}:${key}`),
+      clear: () => cacheService.clear(`plugin:${pluginName}`),
     };
   }
 
@@ -423,7 +514,10 @@ class PluginManager extends EventEmitter {
       for (const hookName of plugin.hooks) {
         const hooks = this.hooks.get(hookName);
         if (hooks) {
-          this.hooks.set(hookName, hooks.filter(h => h.plugin !== pluginName));
+          this.hooks.set(
+            hookName,
+            hooks.filter(h => h.plugin !== pluginName)
+          );
         }
       }
 
@@ -432,10 +526,14 @@ class PluginManager extends EventEmitter {
 
       debugService.debug(`Plugin unloaded: ${pluginName}`);
       this.emit('pluginUnloaded', { name: pluginName });
-      
+
       return true;
     } catch (error) {
-      debugService.debug('Plugin unload error', { plugin: pluginName, error: error.message }, 'plugin');
+      debugService.debug(
+        'Plugin unload error',
+        { plugin: pluginName, error: error.message },
+        'plugin'
+      );
       return false;
     }
   }
@@ -459,14 +557,17 @@ class PluginManager extends EventEmitter {
    */
   getStatistics() {
     const plugins = this.listPlugins();
-    
+
     return {
       totalPlugins: plugins.length,
       activePlugins: plugins.filter(p => p.active).length,
       systemPlugins: plugins.filter(p => p.type === 'system').length,
       userPlugins: plugins.filter(p => p.type === 'user').length,
       totalCommands: this.loadedCommands.size,
-      totalHooks: Array.from(this.hooks.values()).reduce((sum, hooks) => sum + hooks.length, 0)
+      totalHooks: Array.from(this.hooks.values()).reduce(
+        (sum, hooks) => sum + hooks.length,
+        0
+      ),
     };
   }
 
@@ -476,31 +577,35 @@ class PluginManager extends EventEmitter {
   async installPlugin(source) {
     try {
       debugService.debug(`Installing plugin from: ${source}`, null, 'plugin');
-      
+
       // Implementation would depend on source type (file, npm package, git repo)
       // For now, we'll implement basic file copying
-      
+
       if (await fs.pathExists(source)) {
         const pluginName = path.basename(source, path.extname(source));
         const targetPath = path.join(this.pluginDirectory, pluginName + '.js');
-        
+
         await fs.copy(source, targetPath);
         debugService.debug(`Plugin file copied to: ${targetPath}`);
-        
+
         // Load the plugin
         const pluginInfo = {
           path: targetPath,
           name: pluginName,
           version: '1.0.0',
-          description: 'Installed plugin'
+          description: 'Installed plugin',
         };
-        
+
         return await this.loadPlugin(pluginInfo, 'user');
       } else {
         throw new Error('Plugin source not found or not supported');
       }
     } catch (error) {
-      debugService.debug('Plugin installation failed', { source, error: error.message }, 'plugin');
+      debugService.debug(
+        'Plugin installation failed',
+        { source, error: error.message },
+        'plugin'
+      );
       throw error;
     }
   }
@@ -524,11 +629,15 @@ class PluginManager extends EventEmitter {
 
       // Remove plugin file
       await fs.remove(plugin.path);
-      
+
       debugService.debug(`Plugin uninstalled: ${pluginName}`);
       return true;
     } catch (error) {
-      debugService.debug('Plugin uninstall failed', { plugin: pluginName, error: error.message }, 'plugin');
+      debugService.debug(
+        'Plugin uninstall failed',
+        { plugin: pluginName, error: error.message },
+        'plugin'
+      );
       throw error;
     }
   }

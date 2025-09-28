@@ -25,17 +25,17 @@ class ConfigService {
         deepseek: null,
         openrouter: null,
         nvidia: null,
-        groq: null
+        groq: null,
       },
       preferences: {
         weatherUnits: 'metric',
         currencyFavorites: ['USD', 'EUR', 'GBP'],
-        colorScheme: 'auto'
+        colorScheme: 'auto',
       },
       rateLimit: {
         ai: { requests: 10, window: 3600000 }, // 10 requests per hour
-        weather: { requests: 1000, window: 86400000 } // 1000 requests per day
-      }
+        weather: { requests: 1000, window: 86400000 }, // 1000 requests per day
+      },
     };
   }
 
@@ -44,11 +44,11 @@ class ConfigService {
       // Ensure config directory exists
       await fs.ensureDir(this.configDir);
       await fs.ensureDir(this.defaultConfig.cacheDirectory);
-      
+
       // Load existing config or create default
       if (await fs.pathExists(this.configFile)) {
         const existingConfig = await fs.readJson(this.configFile);
-        
+
         // Validate the existing config
         if (this.validateConfig(existingConfig)) {
           this.config = this.mergeWithDefaults(existingConfig);
@@ -63,12 +63,11 @@ class ConfigService {
         await this.save();
         logger.info('Created new configuration file');
       }
-      
+
       // Set up environment variable overrides
       this.applyEnvironmentOverrides();
-      
+
       this.isInitialized = true;
-      
     } catch (error) {
       logger.error('Failed to initialize configuration:', error.message);
       this.config = { ...this.defaultConfig };
@@ -79,7 +78,7 @@ class ConfigService {
   get(key, defaultValue = null) {
     const keys = key.split('.');
     let value = this.config;
-    
+
     for (const k of keys) {
       if (value && typeof value === 'object' && value.hasOwnProperty(k)) {
         value = value[k];
@@ -87,7 +86,7 @@ class ConfigService {
         return defaultValue;
       }
     }
-    
+
     return value;
   }
 
@@ -103,7 +102,7 @@ class ConfigService {
   set(key, value) {
     const keys = key.split('.');
     let target = this.config;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       const k = keys[i];
       if (!target[k] || typeof target[k] !== 'object') {
@@ -111,7 +110,7 @@ class ConfigService {
       }
       target = target[k];
     }
-    
+
     target[keys[keys.length - 1]] = value;
     this.save();
   }
@@ -156,7 +155,14 @@ class ConfigService {
       }
 
       // Validate required top-level properties
-      const requiredProps = ['language', 'defaultPrecision', 'cacheDirectory', 'apiKeys', 'preferences', 'rateLimit'];
+      const requiredProps = [
+        'language',
+        'defaultPrecision',
+        'cacheDirectory',
+        'apiKeys',
+        'preferences',
+        'rateLimit',
+      ];
       for (const prop of requiredProps) {
         if (!config.hasOwnProperty(prop)) {
           logger.warn(`Missing required config property: ${prop}`);
@@ -165,14 +171,28 @@ class ConfigService {
       }
 
       // Validate language
-      const supportedLanguages = ['en', 'hi', 'es', 'fr', 'de', 'zh', 'ja', 'ru', 'ar'];
+      const supportedLanguages = [
+        'en',
+        'hi',
+        'es',
+        'fr',
+        'de',
+        'zh',
+        'ja',
+        'ru',
+        'ar',
+      ];
       if (!supportedLanguages.includes(config.language)) {
         logger.warn(`Unsupported language: ${config.language}`);
         return false;
       }
 
       // Validate precision
-      if (typeof config.defaultPrecision !== 'number' || config.defaultPrecision < 0 || config.defaultPrecision > 20) {
+      if (
+        typeof config.defaultPrecision !== 'number' ||
+        config.defaultPrecision < 0 ||
+        config.defaultPrecision > 20
+      ) {
         logger.warn('Invalid defaultPrecision value');
         return false;
       }
@@ -189,16 +209,19 @@ class ConfigService {
    */
   mergeWithDefaults(existingConfig) {
     const merged = { ...this.defaultConfig };
-    
+
     // Deep merge nested objects
     Object.keys(existingConfig).forEach(key => {
-      if (typeof existingConfig[key] === 'object' && existingConfig[key] !== null) {
+      if (
+        typeof existingConfig[key] === 'object' &&
+        existingConfig[key] !== null
+      ) {
         merged[key] = { ...merged[key], ...existingConfig[key] };
       } else {
         merged[key] = existingConfig[key];
       }
     });
-    
+
     return merged;
   }
 
@@ -214,7 +237,7 @@ class ConfigService {
       deepseek: process.env.MDSAAD_DEEPSEEK_KEY,
       openrouter: process.env.MDSAAD_OPENROUTER_KEY,
       nvidia: process.env.MDSAAD_NVIDIA_KEY,
-      groq: process.env.MDSAAD_GROQ_KEY
+      groq: process.env.MDSAAD_GROQ_KEY,
     };
 
     Object.keys(envApiKeys).forEach(service => {
@@ -280,10 +303,12 @@ class ConfigService {
     const stats = {
       configFile: this.configFile,
       configSize: JSON.stringify(this.config).length,
-      apiKeysConfigured: Object.values(this.config.apiKeys).filter(key => key !== null).length,
+      apiKeysConfigured: Object.values(this.config.apiKeys).filter(
+        key => key !== null
+      ).length,
       totalApiKeys: Object.keys(this.config.apiKeys).length,
       language: this.config.language,
-      cacheDirectory: this.config.cacheDirectory
+      cacheDirectory: this.config.cacheDirectory,
     };
 
     return stats;
@@ -295,7 +320,7 @@ class ConfigService {
   async updateConfig(updates) {
     try {
       const updatedConfig = { ...this.config, ...updates };
-      
+
       if (this.validateConfig(updatedConfig)) {
         this.config = updatedConfig;
         await this.save();

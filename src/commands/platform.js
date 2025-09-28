@@ -19,7 +19,7 @@ class CrossPlatformCommand {
    * Execute the cross-platform command
    */
   async execute(args, options) {
-    const { 
+    const {
       info = false,
       install = false,
       setupCompletion = false,
@@ -29,7 +29,7 @@ class CrossPlatformCommand {
       force = false,
       troubleshoot = false,
       packageManager = null,
-      verbose = false
+      verbose = false,
     } = options;
 
     try {
@@ -62,14 +62,15 @@ class CrossPlatformCommand {
 
       // Default action - show overview
       return await this.showOverview();
-
     } catch (error) {
-      console.error(outputFormatter.error('Cross-platform command failed:', error.message));
-      
+      console.error(
+        outputFormatter.error('Cross-platform command failed:', error.message)
+      );
+
       if (verbose || debugService.debugMode) {
         console.error(error.stack);
       }
-      
+
       process.exit(1);
     }
   }
@@ -88,10 +89,10 @@ class CrossPlatformCommand {
    */
   async showPlatformInfo(verbose = false) {
     console.log(outputFormatter.header('🔧 Platform Information'));
-    
+
     const info = platformService.getSystemInfo();
     const terminalInfo = info.terminalFeatures;
-    
+
     // Basic platform info
     console.log(outputFormatter.info('System Details'));
     const systemTable = outputFormatter.createTable([
@@ -100,7 +101,7 @@ class CrossPlatformCommand {
       ['OS Version', info.release],
       ['Node.js', process.version],
       ['Shell', platformService.detectShell()],
-      ['Terminal', info.environment?.TERM || 'Unknown']
+      ['Terminal', info.environment?.TERM || 'Unknown'],
     ]);
     console.log(systemTable);
 
@@ -111,7 +112,7 @@ class CrossPlatformCommand {
       ['Unicode', terminalInfo.unicode ? '✓ Supported' : '✗ Not supported'],
       ['Interactive', terminalInfo.interactive ? '✓ Yes' : '✗ No'],
       ['Width', `${terminalInfo.width || 'Unknown'} columns`],
-      ['Height', `${terminalInfo.height || 'Unknown'} rows`]
+      ['Height', `${terminalInfo.height || 'Unknown'} rows`],
     ]);
     console.log(terminalTable);
 
@@ -124,7 +125,7 @@ class CrossPlatformCommand {
         ['Cache', paths.cache],
         ['Data', paths.data],
         ['Logs', paths.logs],
-        ['Temp', paths.temp]
+        ['Temp', paths.temp],
       ]);
       console.log(pathTable);
     } else {
@@ -133,14 +134,15 @@ class CrossPlatformCommand {
     if (verbose) {
       // Package managers
       console.log(outputFormatter.info('Package Managers'));
-      const packageManagers = await installationService.getAvailablePackageManagers();
-      
+      const packageManagers =
+        await installationService.getAvailablePackageManagers();
+
       if (packageManagers.length > 0) {
         const pmTable = outputFormatter.createTable(
           packageManagers.map(pm => [
             pm.name,
             pm.version || 'Unknown',
-            pm.available ? '✓ Available' : '✗ Not found'
+            pm.available ? '✓ Available' : '✗ Not found',
           ])
         );
         console.log(pmTable);
@@ -163,18 +165,27 @@ class CrossPlatformCommand {
    */
   async showInstallationInfo(packageManager = null) {
     console.log(outputFormatter.header('📦 Installation Information'));
-    
-    const methods = await installationService.getInstallationMethods(packageManager);
-    
+
+    const methods =
+      await installationService.getInstallationMethods(packageManager);
+
     console.log(outputFormatter.info('Available Installation Methods'));
-    
+
     methods.forEach((method, index) => {
-      console.log(outputFormatter.highlight(`${index + 1}. ${method.name}`, 'important'));
-      console.log(`   Command: ${outputFormatter.highlight(method.command, 'default')}`);
-      console.log(`   Status: ${method.available ? 
-        outputFormatter.success('✓ Available') : 
-        outputFormatter.warning('⚠ Requires installation')}`);
-      
+      console.log(
+        outputFormatter.highlight(`${index + 1}. ${method.name}`, 'important')
+      );
+      console.log(
+        `   Command: ${outputFormatter.highlight(method.command, 'default')}`
+      );
+      console.log(
+        `   Status: ${
+          method.available
+            ? outputFormatter.success('✓ Available')
+            : outputFormatter.warning('⚠ Requires installation')
+        }`
+      );
+
       if (method.notes) {
         console.log(`   ${method.notes}`);
       }
@@ -183,23 +194,29 @@ class CrossPlatformCommand {
 
     // Installation verification
     const verification = await installationService.verifyInstallation();
-    
+
     console.log(outputFormatter.info('Current Installation Status'));
-    
+
     if (verification.installed) {
-      console.log(outputFormatter.success('✓ mdsaad is installed and accessible'));
-      console.log(`Version: ${outputFormatter.highlight(verification.version, 'success')}`);
+      console.log(
+        outputFormatter.success('✓ mdsaad is installed and accessible')
+      );
+      console.log(
+        `Version: ${outputFormatter.highlight(verification.version, 'success')}`
+      );
       console.log(`Location: ${verification.path}`);
-      
+
       if (verification.conflicts && verification.conflicts.length > 0) {
-        console.log(outputFormatter.warning('\n⚠ Installation Conflicts Detected:'));
+        console.log(
+          outputFormatter.warning('\n⚠ Installation Conflicts Detected:')
+        );
         verification.conflicts.forEach(conflict => {
           console.log(`   • ${conflict}`);
         });
       }
     } else {
       console.log(outputFormatter.error('✗ mdsaad is not properly installed'));
-      
+
       if (verification.issues && verification.issues.length > 0) {
         console.log('\nIssues found:');
         verification.issues.forEach(issue => {
@@ -210,7 +227,7 @@ class CrossPlatformCommand {
 
     // Troubleshooting tips
     const troubleshooting = await installationService.getTroubleshootingTips();
-    
+
     if (troubleshooting.length > 0) {
       console.log(outputFormatter.info('Troubleshooting Tips'));
       troubleshooting.forEach((tip, index) => {
@@ -224,24 +241,31 @@ class CrossPlatformCommand {
    */
   async setupTabCompletion(shell = null, options = {}) {
     console.log(outputFormatter.header('⚡ Setting up Tab Completion'));
-    
+
     const detectedShell = shell || platformService.detectShell();
-    console.log(`Detected shell: ${outputFormatter.highlight(detectedShell, 'important')}`);
-    
+    console.log(
+      `Detected shell: ${outputFormatter.highlight(detectedShell, 'important')}`
+    );
+
     try {
-      const result = await tabCompletionService.installTabCompletion(detectedShell, options);
-      
+      const result = await tabCompletionService.installTabCompletion(
+        detectedShell,
+        options
+      );
+
       if (result.success) {
-        console.log(outputFormatter.success('✓ Tab completion installed successfully!'));
-        
+        console.log(
+          outputFormatter.success('✓ Tab completion installed successfully!')
+        );
+
         if (result.configFile) {
           console.log(`Modified: ${result.configFile}`);
         }
-        
+
         if (result.scriptPath) {
           console.log(`Script: ${result.scriptPath}`);
         }
-        
+
         if (result.instructions && result.instructions.length > 0) {
           console.log(outputFormatter.info('Next Steps'));
           result.instructions.forEach((instruction, index) => {
@@ -249,14 +273,17 @@ class CrossPlatformCommand {
           });
         }
       } else {
-        console.log(outputFormatter.error('✗ Tab completion installation failed'));
+        console.log(
+          outputFormatter.error('✗ Tab completion installation failed')
+        );
         if (result.error) {
           console.log(result.error);
         }
       }
-      
     } catch (error) {
-      console.log(outputFormatter.error('✗ Tab completion setup failed:', error.message));
+      console.log(
+        outputFormatter.error('✗ Tab completion setup failed:', error.message)
+      );
     }
   }
 
@@ -265,20 +292,25 @@ class CrossPlatformCommand {
    */
   async uninstallTabCompletion(shell = null) {
     console.log(outputFormatter.header('🗑️ Removing Tab Completion'));
-    
+
     const detectedShell = shell || platformService.detectShell();
-    console.log(`Detected shell: ${outputFormatter.highlight(detectedShell, 'important')}`);
-    
+    console.log(
+      `Detected shell: ${outputFormatter.highlight(detectedShell, 'important')}`
+    );
+
     try {
-      const result = await tabCompletionService.uninstallTabCompletion(detectedShell);
-      
+      const result =
+        await tabCompletionService.uninstallTabCompletion(detectedShell);
+
       if (result.success) {
-        console.log(outputFormatter.success('✓ Tab completion removed successfully!'));
-        
+        console.log(
+          outputFormatter.success('✓ Tab completion removed successfully!')
+        );
+
         if (result.configFile) {
           console.log(`Modified: ${result.configFile}`);
         }
-        
+
         console.log('Restart your terminal for changes to take effect.');
       } else {
         console.log(outputFormatter.error('✗ Tab completion removal failed'));
@@ -286,9 +318,10 @@ class CrossPlatformCommand {
           console.log(result.error);
         }
       }
-      
     } catch (error) {
-      console.log(outputFormatter.error('✗ Tab completion removal failed:', error.message));
+      console.log(
+        outputFormatter.error('✗ Tab completion removal failed:', error.message)
+      );
     }
   }
 
@@ -297,27 +330,29 @@ class CrossPlatformCommand {
    */
   async checkTabCompletion(shell = null) {
     console.log(outputFormatter.header('🔍 Tab Completion Status'));
-    
+
     const shells = shell ? [shell] : tabCompletionService.supportedShells;
-    
+
     for (const shellName of shells) {
       const status = await tabCompletionService.checkInstallation(shellName);
-      
+
       console.log(outputFormatter.info(`${shellName.toUpperCase()} Shell`));
-      
+
       const statusTable = outputFormatter.createTable([
         ['Installed', status.installed ? '✓ Yes' : '✗ No'],
         ['Working', status.working ? '✓ Yes' : '✗ No'],
         ['Script Path', status.scriptPath || 'Not found'],
-        ['Config File', status.configFile || 'Not configured']
+        ['Config File', status.configFile || 'Not configured'],
       ]);
-      
+
       console.log(statusTable);
-      
+
       if (!status.installed && shellName === platformService.detectShell()) {
-        console.log(outputFormatter.info(`Run: mdsaad platform --setup-completion`));
+        console.log(
+          outputFormatter.info(`Run: mdsaad platform --setup-completion`)
+        );
       }
-      
+
       console.log();
     }
   }
@@ -327,94 +362,130 @@ class CrossPlatformCommand {
    */
   async troubleshootInstallation() {
     console.log(outputFormatter.header('🔧 Installation Troubleshooting'));
-    
+
     const spinner = outputFormatter.spinner('Running diagnostics...');
     spinner.start();
-    
+
     try {
       // Check installation
       const verification = await installationService.verifyInstallation();
-      
+
       // Check permissions
-      const permissions = await platformService.checkFilePermissions(process.cwd());
-      
+      const permissions = await platformService.checkFilePermissions(
+        process.cwd()
+      );
+
       // Check package managers
-      const packageManagers = await installationService.getAvailablePackageManagers();
-      
+      const packageManagers =
+        await installationService.getAvailablePackageManagers();
+
       // Check tab completion
       const completionStatus = await tabCompletionService.checkInstallation();
-      
+
       spinner.stop();
-      
+
       console.log(outputFormatter.info('Diagnostic Results'));
-      
+
       // Installation status
-      console.log(`Installation: ${verification.installed ? 
-        outputFormatter.success('✓ Working') : 
-        outputFormatter.error('✗ Issues found')}`);
-      
+      console.log(
+        `Installation: ${
+          verification.installed
+            ? outputFormatter.success('✓ Working')
+            : outputFormatter.error('✗ Issues found')
+        }`
+      );
+
       if (!verification.installed && verification.issues) {
         verification.issues.forEach(issue => {
           console.log(`   • ${outputFormatter.warning(issue)}`);
         });
       }
-      
+
       // Permissions
-      console.log(`Permissions: ${permissions.readable && permissions.writable ? 
-        outputFormatter.success('✓ OK') : 
-        outputFormatter.warning('⚠ Limited')}`);
-      
+      console.log(
+        `Permissions: ${
+          permissions.readable && permissions.writable
+            ? outputFormatter.success('✓ OK')
+            : outputFormatter.warning('⚠ Limited')
+        }`
+      );
+
       if (!permissions.writable) {
-        console.log(`   • ${outputFormatter.warning('No write access to current directory')}`);
+        console.log(
+          `   • ${outputFormatter.warning('No write access to current directory')}`
+        );
       }
-      
+
       // Package managers
       const availablePMs = packageManagers.filter(pm => pm.available);
-      console.log(`Package Managers: ${availablePMs.length > 0 ? 
-        outputFormatter.success(`✓ ${availablePMs.length} available`) : 
-        outputFormatter.error('✗ None found')}`);
-      
+      console.log(
+        `Package Managers: ${
+          availablePMs.length > 0
+            ? outputFormatter.success(`✓ ${availablePMs.length} available`)
+            : outputFormatter.error('✗ None found')
+        }`
+      );
+
       // Tab completion
-      console.log(`Tab Completion: ${completionStatus.installed ? 
-        outputFormatter.success('✓ Installed') : 
-        outputFormatter.info('⚡ Available for setup')}`);
-      
+      console.log(
+        `Tab Completion: ${
+          completionStatus.installed
+            ? outputFormatter.success('✓ Installed')
+            : outputFormatter.info('⚡ Available for setup')
+        }`
+      );
+
       // Recommendations
       console.log(outputFormatter.info('Recommendations'));
-      
+
       const recommendations = [];
-      
+
       if (!verification.installed) {
-        recommendations.push('Reinstall mdsaad using a supported package manager');
+        recommendations.push(
+          'Reinstall mdsaad using a supported package manager'
+        );
       }
-      
+
       if (availablePMs.length === 0) {
-        recommendations.push('Install Node.js and npm from https://nodejs.org/');
+        recommendations.push(
+          'Install Node.js and npm from https://nodejs.org/'
+        );
       }
-      
+
       if (!permissions.writable) {
-        recommendations.push('Ensure you have write permissions in the current directory');
+        recommendations.push(
+          'Ensure you have write permissions in the current directory'
+        );
       }
-      
+
       if (!completionStatus.installed) {
-        recommendations.push('Set up tab completion with: mdsaad platform --setup-completion');
+        recommendations.push(
+          'Set up tab completion with: mdsaad platform --setup-completion'
+        );
       }
-      
+
       if (verification.conflicts && verification.conflicts.length > 0) {
-        recommendations.push('Resolve installation conflicts by removing duplicate installations');
+        recommendations.push(
+          'Resolve installation conflicts by removing duplicate installations'
+        );
       }
-      
+
       if (recommendations.length === 0) {
-        console.log(outputFormatter.success('✓ No issues detected - installation looks good!'));
+        console.log(
+          outputFormatter.success(
+            '✓ No issues detected - installation looks good!'
+          )
+        );
       } else {
         recommendations.forEach((rec, index) => {
           console.log(`${index + 1}. ${rec}`);
         });
       }
-      
     } catch (error) {
       spinner.stop();
-      console.log(outputFormatter.error('Troubleshooting failed:', error.message));
+      console.log(
+        outputFormatter.error('Troubleshooting failed:', error.message)
+      );
     }
   }
 
@@ -423,9 +494,11 @@ class CrossPlatformCommand {
    */
   async showOverview() {
     console.log(outputFormatter.header('🌍 Cross-Platform Compatibility'));
-    console.log('mdsaad provides comprehensive cross-platform support for Windows, macOS, and Linux.');
+    console.log(
+      'mdsaad provides comprehensive cross-platform support for Windows, macOS, and Linux.'
+    );
     console.log();
-    
+
     console.log(outputFormatter.info('Available Commands'));
     const commands = [
       ['--info', 'Show detailed platform information'],
@@ -435,10 +508,10 @@ class CrossPlatformCommand {
       ['--check-completion', 'Check tab completion status'],
       ['--troubleshoot', 'Run installation diagnostics'],
     ];
-    
+
     const commandTable = outputFormatter.createTable(commands);
     console.log(commandTable);
-    
+
     console.log(outputFormatter.info('Supported Features'));
     console.log('• Automatic platform detection and adaptation');
     console.log('• Terminal capability detection (colors, Unicode, etc.)');
@@ -446,9 +519,11 @@ class CrossPlatformCommand {
     console.log('• Tab completion for Bash, Zsh, Fish, and PowerShell');
     console.log('• Multiple package manager support (npm, yarn, pnpm)');
     console.log('• Installation verification and troubleshooting');
-    
+
     console.log();
-    console.log(outputFormatter.info('Use --help with any option for more details'));
+    console.log(
+      outputFormatter.info('Use --help with any option for more details')
+    );
   }
 
   /**
@@ -461,48 +536,49 @@ class CrossPlatformCommand {
       options: [
         {
           flags: '--info',
-          description: 'Show detailed platform and system information'
+          description: 'Show detailed platform and system information',
         },
         {
           flags: '--install [manager]',
-          description: 'Show installation methods and status'
+          description: 'Show installation methods and status',
         },
         {
           flags: '--setup-completion [shell]',
-          description: 'Set up tab completion for specified shell'
+          description: 'Set up tab completion for specified shell',
         },
         {
           flags: '--uninstall-completion [shell]',
-          description: 'Remove tab completion for specified shell'
+          description: 'Remove tab completion for specified shell',
         },
         {
           flags: '--check-completion [shell]',
-          description: 'Check tab completion installation status'
+          description: 'Check tab completion installation status',
         },
         {
           flags: '--troubleshoot',
-          description: 'Run installation diagnostics and troubleshooting'
+          description: 'Run installation diagnostics and troubleshooting',
         },
         {
           flags: '--shell <shell>',
-          description: 'Specify shell for completion (bash, zsh, fish, powershell)'
+          description:
+            'Specify shell for completion (bash, zsh, fish, powershell)',
         },
         {
           flags: '--force',
-          description: 'Force reinstallation of tab completion'
+          description: 'Force reinstallation of tab completion',
         },
         {
           flags: '--verbose',
-          description: 'Show detailed information and debug output'
-        }
+          description: 'Show detailed information and debug output',
+        },
       ],
       examples: [
         'mdsaad platform --info                    # Show platform information',
         'mdsaad platform --install                 # Show installation status',
         'mdsaad platform --setup-completion        # Set up tab completion',
         'mdsaad platform --setup-completion zsh    # Set up for specific shell',
-        'mdsaad platform --troubleshoot            # Diagnose installation issues'
-      ]
+        'mdsaad platform --troubleshoot            # Diagnose installation issues',
+      ],
     };
   }
 }

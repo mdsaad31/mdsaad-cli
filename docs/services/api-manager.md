@@ -26,26 +26,30 @@ The **API Management Service** provides centralized management of multiple API p
 ## Features
 
 ### 🔄 Automatic Provider Failover
+
 ```javascript
 // Automatically tries providers in priority order until one succeeds
 const result = await apiManager.makeRequest('ai-service', '/chat', {
   method: 'POST',
   data: { message: 'Hello' },
-  preferredProvider: 'gemini'
+  preferredProvider: 'gemini',
 });
 ```
 
 ### ⚡ Circuit Breaker Protection
+
 - **Closed**: Normal operation, requests pass through
 - **Open**: Provider temporarily disabled due to failures
 - **Half-Open**: Testing if provider has recovered
 
 ### 🚦 Rate Limiting
+
 - Per-provider request limits with configurable time windows
 - Automatic blocking when limits exceeded
 - Sliding window implementation for accurate rate tracking
 
 ### 📊 Comprehensive Monitoring
+
 - Request/response tracking with detailed metrics
 - Success/failure rates and performance statistics
 - Circuit breaker state monitoring
@@ -67,7 +71,7 @@ apiManager.registerProvider('gemini', {
   apiKey: process.env.GEMINI_API_KEY,
   priority: 5,
   rateLimit: { requests: 60, window: 60000 }, // 60 req/min
-  timeout: 30000
+  timeout: 30000,
 });
 ```
 
@@ -76,7 +80,7 @@ apiManager.registerProvider('gemini', {
 ```javascript
 // Simple request with automatic provider selection
 const response = await apiManager.makeRequest('ai-service', '/models', {
-  method: 'GET'
+  method: 'GET',
 });
 
 // Request with preferred provider and custom options
@@ -84,7 +88,7 @@ const response = await apiManager.makeRequest('ai-service', '/chat', {
   method: 'POST',
   data: { message: 'Hello, world!' },
   preferredProvider: 'gemini',
-  timeout: 15000
+  timeout: 15000,
 });
 ```
 
@@ -104,6 +108,7 @@ const stats = apiManager.getStatistics();
 ## CLI Commands
 
 ### Status and Monitoring
+
 ```bash
 # Show overall API status
 mdsaad api status
@@ -119,6 +124,7 @@ mdsaad api config
 ```
 
 ### Provider Management
+
 ```bash
 # Enable a provider
 mdsaad api enable --provider gemini
@@ -134,6 +140,7 @@ mdsaad api test --provider gemini
 ```
 
 ### Configuration
+
 ```bash
 # Configure API providers
 mdsaad config set apiProviders.gemini.baseURL "https://api.gemini.com"
@@ -145,6 +152,7 @@ mdsaad config set apiProviders.gemini.priority 5
 ## Configuration Schema
 
 ### Provider Configuration
+
 ```json
 {
   "apiProviders": {
@@ -168,63 +176,69 @@ mdsaad config set apiProviders.gemini.priority 5
 
 ### Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `baseURL` | string | required | API base URL |
-| `apiKey` | string | null | Authentication key |
-| `enabled` | boolean | true | Whether provider is enabled |
-| `priority` | number | 1 | Provider priority (higher = preferred) |
-| `timeout` | number | 30000 | Request timeout in milliseconds |
-| `retryCount` | number | 3 | Number of retry attempts |
-| `retryDelay` | number | 1000 | Delay between retries in ms |
-| `rateLimit.requests` | number | 100 | Max requests per window |
-| `rateLimit.window` | number | 3600000 | Time window in milliseconds |
-| `healthCheck` | string | null | Health check endpoint URL |
+| Option               | Type    | Default  | Description                            |
+| -------------------- | ------- | -------- | -------------------------------------- |
+| `baseURL`            | string  | required | API base URL                           |
+| `apiKey`             | string  | null     | Authentication key                     |
+| `enabled`            | boolean | true     | Whether provider is enabled            |
+| `priority`           | number  | 1        | Provider priority (higher = preferred) |
+| `timeout`            | number  | 30000    | Request timeout in milliseconds        |
+| `retryCount`         | number  | 3        | Number of retry attempts               |
+| `retryDelay`         | number  | 1000     | Delay between retries in ms            |
+| `rateLimit.requests` | number  | 100      | Max requests per window                |
+| `rateLimit.window`   | number  | 3600000  | Time window in milliseconds            |
+| `healthCheck`        | string  | null     | Health check endpoint URL              |
 
 ## Rate Limiting
 
 ### Implementation
+
 - **Sliding Window**: Uses sliding window algorithm for accurate rate limiting
 - **Per-Provider**: Each provider has independent rate limits
 - **Automatic Blocking**: Requests blocked when limits exceeded
 - **Configurable Windows**: Support for second, minute, hour-based windows
 
 ### Example Rate Limits
+
 ```javascript
 // Different rate limit configurations
 const providers = {
-  gemini: { requests: 60, window: 60000 },      // 60 req/minute
-  openrouter: { requests: 100, window: 60000 },  // 100 req/minute
-  deepseek: { requests: 50, window: 60000 }      // 50 req/minute
+  gemini: { requests: 60, window: 60000 }, // 60 req/minute
+  openrouter: { requests: 100, window: 60000 }, // 100 req/minute
+  deepseek: { requests: 50, window: 60000 }, // 50 req/minute
 };
 ```
 
 ## Circuit Breaker
 
 ### States and Transitions
+
 1. **CLOSED** → **OPEN**: After 5 consecutive failures
 2. **OPEN** → **HALF_OPEN**: After 60-second timeout
 3. **HALF_OPEN** → **CLOSED**: On successful request
 4. **HALF_OPEN** → **OPEN**: On failure
 
 ### Configuration
+
 ```javascript
 const circuitBreakerConfig = {
-  failureThreshold: 5,      // Failures to trigger opening
-  timeout: 60000,           // Time before attempting recovery
-  monitoringPeriod: 10000   // Health check interval
+  failureThreshold: 5, // Failures to trigger opening
+  timeout: 60000, // Time before attempting recovery
+  monitoringPeriod: 10000, // Health check interval
 };
 ```
 
 ## Monitoring and Logging
 
 ### Statistics Tracked
+
 - **Request Counts**: Total, successful, failed requests per provider
 - **Performance Metrics**: Response times, throughput
 - **Health Status**: Circuit breaker states, rate limit status
 - **Failure Tracking**: Consecutive failures, total failures
 
 ### Log Entry Format
+
 ```json
 {
   "requestId": "req_1234567890_abc123",
@@ -242,17 +256,20 @@ const circuitBreakerConfig = {
 ## Error Handling
 
 ### Error Types
+
 - **Network Errors**: Connection timeouts, DNS failures
 - **HTTP Errors**: 4xx/5xx status codes
 - **Rate Limit Errors**: 429 Too Many Requests
 - **Circuit Breaker Errors**: Provider temporarily unavailable
 
 ### Automatic Recovery
+
 - **Retry Logic**: Exponential backoff for transient failures
 - **Circuit Recovery**: Automatic attempt after timeout period
 - **Rate Limit Recovery**: Automatic unblocking after window expiry
 
 ### Error Response Format
+
 ```javascript
 {
   error: 'All API providers failed. Last error: Connection timeout',
@@ -266,16 +283,19 @@ const circuitBreakerConfig = {
 ## Performance Optimization
 
 ### Caching Strategy
+
 - **Request Logging**: Cached for 24 hours for analysis
 - **Statistics**: Real-time statistics with efficient in-memory storage
 - **Health Checks**: Cached health status to reduce overhead
 
 ### Memory Management
+
 - **Sliding Windows**: Automatic cleanup of old rate limit entries
 - **Request History**: Limited to last 100 entries per provider
 - **Log Rotation**: Automatic cleanup of old log entries
 
 ### Asynchronous Operations
+
 - **Non-blocking**: All operations designed to be non-blocking
 - **Background Tasks**: Health checks and cleanup run in background
 - **Promise-based**: Full Promise support for async operations
@@ -283,16 +303,19 @@ const circuitBreakerConfig = {
 ## Security Considerations
 
 ### API Key Management
+
 - **Environment Variables**: Store API keys in environment variables
 - **Configuration Security**: Never log API keys in plain text
 - **Key Rotation**: Support for updating API keys without restart
 
 ### Request Sanitization
+
 - **Input Validation**: All requests validated before sending
 - **Header Sanitization**: Automatic sanitization of request headers
 - **URL Validation**: Ensure all URLs are properly formatted
 
 ### Rate Limit Protection
+
 - **DDoS Prevention**: Rate limiting prevents abuse
 - **Fair Usage**: Ensures fair distribution of API quota
 - **Automatic Blocking**: Temporary blocking of abusive patterns
@@ -300,12 +323,14 @@ const circuitBreakerConfig = {
 ## Testing
 
 ### Unit Tests
+
 ```bash
 # Run API manager tests
 npm test -- tests/services/api-manager.test.js
 ```
 
 ### Test Coverage
+
 - **Provider Registration**: Registration and configuration tests
 - **Rate Limiting**: Rate limit enforcement and recovery
 - **Circuit Breaker**: All state transitions and recovery
@@ -314,6 +339,7 @@ npm test -- tests/services/api-manager.test.js
 - **Statistics**: Metrics accuracy and completeness
 
 ### Integration Tests
+
 ```javascript
 // Example integration test
 describe('API Integration', () => {
@@ -329,17 +355,20 @@ describe('API Integration', () => {
 ### Common Issues
 
 1. **All Providers Disabled**
+
    ```bash
    mdsaad api status
    mdsaad api enable --provider gemini
    ```
 
 2. **Circuit Breaker Stuck Open**
+
    ```bash
    mdsaad api reset --provider gemini
    ```
 
 3. **Rate Limit Exceeded**
+
    ```bash
    mdsaad api stats
    # Wait for rate limit window to reset
@@ -351,6 +380,7 @@ describe('API Integration', () => {
    ```
 
 ### Debug Mode
+
 ```bash
 # Enable debug logging
 mdsaad config set debug true
@@ -358,6 +388,7 @@ mdsaad api status
 ```
 
 ### Health Checks
+
 ```bash
 # Manual health check
 mdsaad api test --provider gemini
@@ -369,6 +400,7 @@ mdsaad api stats
 ## Future Enhancements
 
 ### Planned Features
+
 - **Load Balancing**: Round-robin and weighted load balancing
 - **Geographic Routing**: Route requests based on geographic location
 - **Custom Retry Strategies**: Configurable retry patterns per provider
@@ -377,6 +409,7 @@ mdsaad api stats
 - **Webhook Support**: Real-time notifications for provider status changes
 
 ### API Extensions
+
 - **GraphQL Support**: Native GraphQL provider support
 - **Streaming**: Real-time streaming API support
 - **Batch Requests**: Batch multiple requests for efficiency

@@ -1,6 +1,6 @@
 /**
  * Configuration Command - Set up API keys securely
- * 
+ *
  * This command helps users configure their API keys for MDSAAD services.
  * Keys are stored in user's home directory (~/.mdsaad/config.json)
  */
@@ -8,7 +8,14 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
-const { loadUserConfig, saveUserConfig, checkApiKeysConfigured, getSetupInstructions, CONFIG_DIR, CONFIG_FILE } = require('../config/mdsaad-keys');
+const {
+  loadUserConfig,
+  saveUserConfig,
+  checkApiKeysConfigured,
+  getSetupInstructions,
+  CONFIG_DIR,
+  CONFIG_FILE,
+} = require('../config/mdsaad-keys');
 
 class ConfigCommand {
   constructor() {
@@ -20,7 +27,7 @@ class ConfigCommand {
       show: 'Show current configuration status',
       set: 'Set a specific API key',
       remove: 'Remove configuration',
-      help: 'Show configuration help'
+      help: 'Show configuration help',
     };
   }
 
@@ -54,11 +61,11 @@ class ConfigCommand {
 
     const rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
 
-    const question = (prompt) => {
-      return new Promise((resolve) => {
+    const question = prompt => {
+      return new Promise(resolve => {
         rl.question(prompt, resolve);
       });
     };
@@ -111,7 +118,7 @@ class ConfigCommand {
 
       // Save configuration
       const saved = saveUserConfig(config);
-      
+
       if (saved) {
         console.log('\n✅ Configuration saved successfully!');
         console.log(`📁 Config file: ${CONFIG_FILE}`);
@@ -119,7 +126,6 @@ class ConfigCommand {
       } else {
         console.log('\n❌ Failed to save configuration');
       }
-
     } catch (error) {
       console.error('Error during setup:', error.message);
     } finally {
@@ -135,13 +141,19 @@ class ConfigCommand {
     console.log('=================================\n');
 
     const status = checkApiKeysConfigured();
-    
+
     console.log(`📁 Config file: ${CONFIG_FILE}`);
-    console.log(`📁 Config exists: ${fs.existsSync(CONFIG_FILE) ? '✅ Yes' : '❌ No'}\n`);
+    console.log(
+      `📁 Config exists: ${fs.existsSync(CONFIG_FILE) ? '✅ Yes' : '❌ No'}\n`
+    );
 
     console.log('🔑 API Keys Status:');
-    console.log(`   AI Services: ${status.ai ? '✅ Configured' : '❌ Not configured'}`);
-    console.log(`   Weather Services: ${status.weather ? '✅ Configured' : '❌ Not configured'}\n`);
+    console.log(
+      `   AI Services: ${status.ai ? '✅ Configured' : '❌ Not configured'}`
+    );
+    console.log(
+      `   Weather Services: ${status.weather ? '✅ Configured' : '❌ Not configured'}\n`
+    );
 
     if (!status.hasAnyKeys) {
       console.log('⚠️  No API keys configured!');
@@ -152,7 +164,13 @@ class ConfigCommand {
     const config = loadUserConfig();
     if (config.apiKeys) {
       console.log('🔍 Configured Services:');
-      const services = ['openrouter', 'groq', 'deepseek', 'gemini', 'weatherapi'];
+      const services = [
+        'openrouter',
+        'groq',
+        'deepseek',
+        'gemini',
+        'weatherapi',
+      ];
       services.forEach(service => {
         const hasKey = config.apiKeys[service];
         console.log(`   ${service}: ${hasKey ? '✅' : '❌'}`);
@@ -166,13 +184,23 @@ class ConfigCommand {
   async setApiKey(service, key) {
     if (!service || !key) {
       console.log('❌ Usage: mdsaad config set <service> <api_key>');
-      console.log('   Services: openrouter, groq, deepseek, gemini, weatherapi');
+      console.log(
+        '   Services: openrouter, groq, deepseek, gemini, weatherapi'
+      );
       return;
     }
 
-    const validServices = ['openrouter', 'groq', 'deepseek', 'gemini', 'weatherapi'];
+    const validServices = [
+      'openrouter',
+      'groq',
+      'deepseek',
+      'gemini',
+      'weatherapi',
+    ];
     if (!validServices.includes(service.toLowerCase())) {
-      console.log(`❌ Invalid service. Valid options: ${validServices.join(', ')}`);
+      console.log(
+        `❌ Invalid service. Valid options: ${validServices.join(', ')}`
+      );
       return;
     }
 
@@ -180,7 +208,7 @@ class ConfigCommand {
     if (!config.apiKeys) config.apiKeys = {};
 
     config.apiKeys[service.toLowerCase()] = key;
-    
+
     const saved = saveUserConfig(config);
     if (saved) {
       console.log(`✅ ${service} API key saved successfully!`);
@@ -220,14 +248,20 @@ class ConfigCommand {
     });
 
     console.log('\nExamples:');
-    console.log('   mdsaad config setup                    # Interactive setup');
-    console.log('   mdsaad config show                     # Show current status');
+    console.log(
+      '   mdsaad config setup                    # Interactive setup'
+    );
+    console.log(
+      '   mdsaad config show                     # Show current status'
+    );
     console.log('   mdsaad config set openrouter sk-123... # Set specific key');
-    console.log('   mdsaad config remove                   # Remove all config');
+    console.log(
+      '   mdsaad config remove                   # Remove all config'
+    );
 
     const instructions = getSetupInstructions();
     console.log('\n' + instructions.message);
-    
+
     instructions.methods.forEach(method => {
       console.log(`\n${method.title}:`);
       method.instructions.forEach(inst => {

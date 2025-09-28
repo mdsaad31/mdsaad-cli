@@ -10,7 +10,11 @@ class TabCompletion {
   constructor() {
     this.commands = new Map();
     this.globalOptions = [
-      '--help', '--version', '--verbose', '--debug', '--lang'
+      '--help',
+      '--version',
+      '--verbose',
+      '--debug',
+      '--lang',
     ];
     this.completionCache = new Map();
   }
@@ -25,7 +29,7 @@ class TabCompletion {
       options: config.options || [],
       subcommands: config.subcommands || [],
       argumentCompletions: config.argumentCompletions || {},
-      customCompletions: config.customCompletions || null
+      customCompletions: config.customCompletions || null,
     });
   }
 
@@ -34,8 +38,9 @@ class TabCompletion {
    */
   generateBashCompletion() {
     const commands = Array.from(this.commands.keys());
-    const aliases = Array.from(this.commands.values())
-      .flatMap(cmd => cmd.aliases);
+    const aliases = Array.from(this.commands.values()).flatMap(
+      cmd => cmd.aliases
+    );
 
     return `#!/bin/bash
 # MDSAAD CLI Tab Completion for Bash
@@ -93,7 +98,7 @@ complete -F _mdsaad_completion mdsaad
    */
   generateZshCompletion() {
     const commands = Array.from(this.commands.keys());
-    
+
     let zshScript = `#compdef mdsaad
 # MDSAAD CLI Tab Completion for Zsh
 
@@ -178,7 +183,7 @@ _mdsaad "$@"
    */
   generatePowerShellCompletion() {
     const commands = Array.from(this.commands.keys());
-    
+
     return `# MDSAAD CLI Tab Completion for PowerShell
 
 Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
@@ -222,35 +227,40 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
    */
   getCompletions(input, position = input.length) {
     const parts = input.slice(0, position).split(/\s+/).filter(Boolean);
-    
+
     if (parts.length === 0) {
       return {
         suggestions: Array.from(this.commands.keys()),
-        type: 'command'
+        type: 'command',
       };
     }
 
     const commandName = parts[0];
-    
+
     // If we're still typing the command name
     if (parts.length === 1 && !input.endsWith(' ')) {
       const matchingCommands = Array.from(this.commands.keys())
         .filter(cmd => cmd.startsWith(commandName))
         .concat(
           Array.from(this.commands.values())
-            .filter(cmd => cmd.aliases.some(alias => alias.startsWith(commandName)))
+            .filter(cmd =>
+              cmd.aliases.some(alias => alias.startsWith(commandName))
+            )
             .map(cmd => cmd.name)
         );
-      
+
       return {
         suggestions: matchingCommands,
-        type: 'command'
+        type: 'command',
       };
     }
 
     // Get command config
-    const command = this.commands.get(commandName) || 
-      Array.from(this.commands.values()).find(cmd => cmd.aliases.includes(commandName));
+    const command =
+      this.commands.get(commandName) ||
+      Array.from(this.commands.values()).find(cmd =>
+        cmd.aliases.includes(commandName)
+      );
 
     if (!command) {
       return { suggestions: [], type: 'unknown' };
@@ -259,13 +269,14 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
     // If current word starts with -, complete options
     const currentWord = parts[parts.length - 1] || '';
     if (currentWord.startsWith('-') || input.endsWith(' -')) {
-      const options = command.options.map(opt => opt.flag)
+      const options = command.options
+        .map(opt => opt.flag)
         .concat(this.globalOptions)
         .filter(opt => opt.startsWith(currentWord));
-      
+
       return {
         suggestions: options,
-        type: 'option'
+        type: 'option',
       };
     }
 
@@ -279,7 +290,7 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
     if (command.argumentCompletions && command.argumentCompletions[argIndex]) {
       return {
         suggestions: command.argumentCompletions[argIndex],
-        type: 'argument'
+        type: 'argument',
       };
     }
 
@@ -292,7 +303,7 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
   async installCompletions() {
     const shell = process.env.SHELL || '';
     const homeDir = process.env.HOME || process.env.USERPROFILE;
-    
+
     try {
       if (shell.includes('bash')) {
         await this.installBashCompletion(homeDir);
@@ -301,9 +312,11 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
       } else if (process.platform === 'win32') {
         await this.installPowerShellCompletion(homeDir);
       }
-      
+
       console.log('✅ Tab completion installed successfully');
-      console.log('💡 Restart your shell or run "source ~/.bashrc" to activate');
+      console.log(
+        '💡 Restart your shell or run "source ~/.bashrc" to activate'
+      );
     } catch (error) {
       console.log('❌ Failed to install tab completion:', error.message);
     }
@@ -315,18 +328,21 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
   async installBashCompletion(homeDir) {
     const completionScript = this.generateBashCompletion();
     const completionDir = path.join(homeDir, '.bash_completion.d');
-    
+
     await fs.ensureDir(completionDir);
     await fs.writeFile(path.join(completionDir, 'mdsaad'), completionScript);
-    
+
     // Add source line to .bashrc if not present
     const bashrcPath = path.join(homeDir, '.bashrc');
     const sourceLine = 'source ~/.bash_completion.d/mdsaad';
-    
+
     if (await fs.pathExists(bashrcPath)) {
       const bashrcContent = await fs.readFile(bashrcPath, 'utf8');
       if (!bashrcContent.includes(sourceLine)) {
-        await fs.appendFile(bashrcPath, `\n# MDSAAD CLI completion\n${sourceLine}\n`);
+        await fs.appendFile(
+          bashrcPath,
+          `\n# MDSAAD CLI completion\n${sourceLine}\n`
+        );
       }
     }
   }
@@ -337,18 +353,21 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
   async installZshCompletion(homeDir) {
     const completionScript = this.generateZshCompletion();
     const completionDir = path.join(homeDir, '.zsh', 'completions');
-    
+
     await fs.ensureDir(completionDir);
     await fs.writeFile(path.join(completionDir, '_mdsaad'), completionScript);
-    
+
     // Add fpath to .zshrc if not present
     const zshrcPath = path.join(homeDir, '.zshrc');
     const fpathLine = 'fpath=(~/.zsh/completions $fpath)';
-    
+
     if (await fs.pathExists(zshrcPath)) {
       const zshrcContent = await fs.readFile(zshrcPath, 'utf8');
       if (!zshrcContent.includes(fpathLine)) {
-        await fs.appendFile(zshrcPath, `\n# MDSAAD CLI completion\n${fpathLine}\nautoload -U compinit && compinit\n`);
+        await fs.appendFile(
+          zshrcPath,
+          `\n# MDSAAD CLI completion\n${fpathLine}\nautoload -U compinit && compinit\n`
+        );
       }
     }
   }
@@ -360,21 +379,27 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
     const completionScript = this.generatePowerShellCompletion();
     const documentsDir = path.join(homeDir, 'Documents');
     const psDir = path.join(documentsDir, 'PowerShell');
-    
+
     await fs.ensureDir(psDir);
-    await fs.writeFile(path.join(psDir, 'mdsaad-completion.ps1'), completionScript);
-    
+    await fs.writeFile(
+      path.join(psDir, 'mdsaad-completion.ps1'),
+      completionScript
+    );
+
     // Add to PowerShell profile
     const profilePath = path.join(psDir, 'Microsoft.PowerShell_profile.ps1');
     const sourceLine = '. $PSScriptRoot/mdsaad-completion.ps1';
-    
+
     let profileContent = '';
     if (await fs.pathExists(profilePath)) {
       profileContent = await fs.readFile(profilePath, 'utf8');
     }
-    
+
     if (!profileContent.includes(sourceLine)) {
-      await fs.appendFile(profilePath, `\n# MDSAAD CLI completion\n${sourceLine}\n`);
+      await fs.appendFile(
+        profilePath,
+        `\n# MDSAAD CLI completion\n${sourceLine}\n`
+      );
     }
   }
 
@@ -387,16 +412,16 @@ Register-ArgumentCompleter -Native -CommandName mdsaad -ScriptBlock {
       aliases: ['calc'],
       options: [
         { flag: '--precision', description: 'Number of decimal places' },
-        { flag: '--verbose', description: 'Show detailed output' }
-      ]
+        { flag: '--verbose', description: 'Show detailed output' },
+      ],
     });
 
     this.registerCommand('ai', {
       options: [
         { flag: '--model', description: 'AI model to use' },
         { flag: '--provider', description: 'AI provider' },
-        { flag: '--temperature', description: 'Response creativity' }
-      ]
+        { flag: '--temperature', description: 'Response creativity' },
+      ],
     });
 
     console.log('Tab completion system initialized');

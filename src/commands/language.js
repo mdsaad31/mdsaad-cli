@@ -12,22 +12,21 @@ class LanguageCommand {
   async execute(options = {}) {
     try {
       await i18n.initialize();
-      
+
       if (options.list) {
         return await this.listLanguages();
       }
-      
+
       if (options.current) {
         return await this.showCurrentLanguage();
       }
-      
+
       if (options.set) {
         return await this.setLanguage(options.set);
       }
-      
+
       // Interactive language selection
       return await this.interactiveSelection();
-      
     } catch (error) {
       console.error(chalk.red('❌ Language command failed:'), error.message);
       process.exit(1);
@@ -36,39 +35,38 @@ class LanguageCommand {
 
   async listLanguages() {
     console.log(chalk.blue.bold('\n🌍 Available Languages:\n'));
-    
+
     const languages = i18n.getSupportedLanguages();
     const current = i18n.getCurrentLanguage();
-    
+
     languages.forEach((lang, index) => {
       const isActive = lang.code === current.code;
       const prefix = isActive ? chalk.green('● ') : '  ';
-      const rtlIndicator = lang.direction === 'rtl' ? chalk.yellow(' (RTL)') : '';
+      const rtlIndicator =
+        lang.direction === 'rtl' ? chalk.yellow(' (RTL)') : '';
       const number = chalk.gray(`${(index + 1).toString().padStart(2)}.`);
-      
-      console.log(`${prefix}${number} ${chalk.cyan(lang.code)} - ${lang.name}${rtlIndicator}`);
+
+      console.log(
+        `${prefix}${number} ${chalk.cyan(lang.code)} - ${lang.name}${rtlIndicator}`
+      );
     });
-    
+
     console.log(chalk.gray(`\nTotal: ${languages.length} languages`));
     console.log(chalk.blue(`Current: ${current.name} (${current.code})`));
   }
 
   async showCurrentLanguage() {
     const current = i18n.getCurrentLanguage();
-    
+
     console.log(chalk.blue('\n📍 Current Language:'));
     console.log(`Name: ${chalk.green(current.name)}`);
     console.log(`Code: ${chalk.cyan(current.code)}`);
     console.log(`Direction: ${chalk.yellow(current.direction.toUpperCase())}`);
-    
+
     // Show sample translations
     console.log(chalk.blue('\nSample Translations:'));
-    const samples = [
-      'global.appName',
-      'global.success',
-      'global.loading'
-    ];
-    
+    const samples = ['global.appName', 'global.success', 'global.loading'];
+
     samples.forEach(key => {
       const translation = i18n.translate(key);
       if (translation !== key) {
@@ -80,27 +78,30 @@ class LanguageCommand {
   async setLanguage(languageCode) {
     try {
       if (!i18n.isLanguageSupported(languageCode)) {
-        console.log(chalk.red(`❌ Language "${languageCode}" is not supported`));
+        console.log(
+          chalk.red(`❌ Language "${languageCode}" is not supported`)
+        );
         console.log(chalk.gray('Use --list to see available languages'));
         return;
       }
 
       await i18n.setLanguage(languageCode);
-      
+
       // Save to configuration
       await configService.initialize();
       configService.set('language', languageCode);
       await configService.save();
-      
+
       const newLang = i18n.getCurrentLanguage();
-      console.log(chalk.green(`✅ Language changed to ${newLang.name} (${newLang.code})`));
-      
+      console.log(
+        chalk.green(`✅ Language changed to ${newLang.name} (${newLang.code})`)
+      );
+
       // Show sample translation
       const sample = i18n.translate('global.appName');
       if (sample && sample !== 'global.appName') {
         console.log(chalk.blue(`Sample: ${sample}`));
       }
-      
     } catch (error) {
       console.log(chalk.red(`❌ Failed to set language: ${error.message}`));
     }
@@ -109,10 +110,10 @@ class LanguageCommand {
   async interactiveSelection() {
     const languages = i18n.getSupportedLanguages();
     const current = i18n.getCurrentLanguage();
-    
+
     console.log(chalk.blue.bold('\n🌐 Language Selection\n'));
     console.log(chalk.gray(`Current: ${current.name} (${current.code})\n`));
-    
+
     const { selectedLang } = await inquirer.prompt([
       {
         type: 'list',
@@ -122,31 +123,31 @@ class LanguageCommand {
           const isActive = lang.code === current.code;
           const rtlIndicator = lang.direction === 'rtl' ? ' ← RTL' : '';
           const activeMarker = isActive ? ' (current)' : '';
-          
+
           return {
             name: `${lang.name} (${lang.code})${rtlIndicator}${activeMarker}`,
             value: lang.code,
-            short: lang.name
+            short: lang.name,
           };
         }),
-        default: current.code
-      }
+        default: current.code,
+      },
     ]);
-    
+
     if (selectedLang === current.code) {
       console.log(chalk.yellow('Language unchanged'));
       return;
     }
-    
+
     const { confirm } = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'confirm',
         message: 'Save this language preference?',
-        default: true
-      }
+        default: true,
+      },
     ]);
-    
+
     if (confirm) {
       await this.setLanguage(selectedLang);
     } else {

@@ -11,21 +11,27 @@ This is a common issue with global npm packages. The CLI installs correctly but 
 Run these commands to identify the problem:
 
 ### **1. Verify Installation**
+
 ```bash
 npm list -g mdsaad-cli
 ```
+
 ✅ Should show: `mdsaad-cli@1.0.0`
 
 ### **2. Check npm Global Directory**
+
 ```bash
 npm config get prefix
 ```
+
 📁 Common locations:
+
 - **Windows**: `C:\Users\[username]\AppData\Roaming\npm`
 - **macOS**: `/usr/local` or `~/.npm-global`
 - **Linux**: `/usr/local` or `~/.npm-global`
 
 ### **3. Check if Binary Exists**
+
 ```bash
 # Windows
 dir "%USERPROFILE%\AppData\Roaming\npm\mdsaad*"
@@ -41,8 +47,10 @@ ls -la $(npm config get prefix)/bin/mdsaad*
 ### **Windows Solutions**
 
 #### **Method 1: Add npm to PATH (Recommended)**
+
 1. Open PowerShell as Administrator
 2. Run:
+
 ```powershell
 # Get npm global path
 $npmPath = npm config get prefix
@@ -59,12 +67,14 @@ if ($currentPath -notlike "*$npmPath*") {
 ```
 
 #### **Method 2: Use npx (Immediate Fix)**
+
 ```bash
 npx mdsaad-cli --version
 npx mdsaad-cli ai "Hello!"
 ```
 
 #### **Method 3: PowerShell Profile Setup**
+
 ```powershell
 # Add this to your PowerShell profile
 $npmGlobalPath = npm config get prefix
@@ -74,6 +84,7 @@ $env:PATH += ";$npmGlobalPath"
 ### **macOS Solutions**
 
 #### **Method 1: Fix npm Global Directory**
+
 ```bash
 # Create npm global directory
 mkdir ~/.npm-global
@@ -90,6 +101,7 @@ npm install -g mdsaad-cli
 ```
 
 #### **Method 2: Use Homebrew Node**
+
 ```bash
 # If using Homebrew
 brew install node
@@ -99,6 +111,7 @@ npm install -g mdsaad-cli
 ### **Linux Solutions**
 
 #### **Method 1: Fix Global Directory Permissions**
+
 ```bash
 # Create npm global directory
 mkdir ~/.npm-global
@@ -113,6 +126,7 @@ npm install -g mdsaad-cli
 ```
 
 #### **Method 2: Use sudo (Not recommended but works)**
+
 ```bash
 sudo npm install -g mdsaad-cli
 ```
@@ -122,6 +136,7 @@ sudo npm install -g mdsaad-cli
 ## **🚀 Alternative Installation Methods**
 
 ### **1. Direct Download & Setup (Windows)**
+
 ```batch
 @echo off
 REM Download and setup script
@@ -132,21 +147,25 @@ node src/cli.js %*
 ```
 
 ### **2. Global Alias Setup**
+
 Add this to your shell configuration:
 
 **PowerShell (Windows)**:
+
 ```powershell
 # Add to $PROFILE
 function mdsaad { npx mdsaad-cli @args }
 ```
 
 **Bash/Zsh (macOS/Linux)**:
+
 ```bash
 # Add to ~/.bashrc or ~/.zshrc
 alias mdsaad='npx mdsaad-cli'
 ```
 
 ### **3. Yarn Alternative**
+
 ```bash
 # If you have Yarn
 yarn global add mdsaad-cli
@@ -162,6 +181,7 @@ yarn global bin
 Save this as `fix-mdsaad.bat` (Windows) or `fix-mdsaad.sh` (macOS/Linux):
 
 ### **Windows (fix-mdsaad.bat)**
+
 ```batch
 @echo off
 echo 🔧 Fixing MDSAAD CLI Installation...
@@ -211,6 +231,7 @@ pause
 ```
 
 ### **macOS/Linux (fix-mdsaad.sh)**
+
 ```bash
 #!/bin/bash
 echo "🔧 Fixing MDSAAD CLI Installation..."
@@ -236,7 +257,7 @@ fi
 BIN_DIR="$NPM_PREFIX/bin"
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     echo "🛤️ Adding npm bin to PATH..."
-    
+
     # Add to appropriate shell config
     if [[ "$SHELL" == *"zsh"* ]]; then
         echo "export PATH=\"$BIN_DIR:\$PATH\"" >> ~/.zshrc
@@ -245,7 +266,7 @@ if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
         echo "export PATH=\"$BIN_DIR:\$PATH\"" >> ~/.bashrc
         echo "✅ Added to ~/.bashrc"
     fi
-    
+
     # Apply immediately
     export PATH="$BIN_DIR:$PATH"
 else
@@ -272,11 +293,13 @@ fi
 ### **For Users Having Issues:**
 
 1. **Try the quick fix first:**
+
    ```bash
    npx mdsaad-cli --version
    ```
 
 2. **If that works, the issue is PATH-related. Run our fix script or:**
+
    ```bash
    # Add npm to PATH permanently
    echo 'export PATH=$(npm config get prefix)/bin:$PATH' >> ~/.bashrc
@@ -290,6 +313,7 @@ fi
    ```
 
 ### **Support Message for Users:**
+
 ```
 If you're having trouble with the 'mdsaad' command after installation:
 

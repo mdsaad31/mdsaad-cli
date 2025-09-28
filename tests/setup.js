@@ -25,7 +25,7 @@ global.testUtils = {
   TEST_DIR,
   TEST_CONFIG_DIR,
   TEST_CACHE_DIR,
-  
+
   /**
    * Setup test directories
    */
@@ -34,7 +34,7 @@ global.testUtils = {
     await fs.ensureDir(TEST_CONFIG_DIR);
     await fs.ensureDir(TEST_CACHE_DIR);
   },
-  
+
   /**
    * Cleanup test directories
    */
@@ -45,7 +45,7 @@ global.testUtils = {
       // Ignore cleanup errors in tests
     }
   },
-  
+
   /**
    * Create mock configuration
    */
@@ -55,14 +55,14 @@ global.testUtils = {
       theme: 'default',
       cacheEnabled: true,
       debugMode: false,
-      ...config
+      ...config,
     };
-    
+
     const configPath = path.join(TEST_CONFIG_DIR, 'config.json');
     await fs.writeJson(configPath, defaultConfig);
     return configPath;
   },
-  
+
   /**
    * Create mock cache entry
    */
@@ -70,14 +70,14 @@ global.testUtils = {
     const cacheData = {
       data,
       timestamp: Date.now(),
-      ttl
+      ttl,
     };
-    
+
     const cachePath = path.join(TEST_CACHE_DIR, `${key}.json`);
     await fs.writeJson(cachePath, cacheData);
     return cachePath;
   },
-  
+
   /**
    * Mock console methods for testing output
    */
@@ -85,23 +85,23 @@ global.testUtils = {
     const originalLog = console.log;
     const originalError = console.error;
     const originalWarn = console.warn;
-    
+
     const logs = [];
     const errors = [];
     const warnings = [];
-    
+
     console.log = jest.fn((...args) => {
       logs.push(args.join(' '));
     });
-    
+
     console.error = jest.fn((...args) => {
       errors.push(args.join(' '));
     });
-    
+
     console.warn = jest.fn((...args) => {
       warnings.push(args.join(' '));
     });
-    
+
     return {
       logs,
       errors,
@@ -110,17 +110,17 @@ global.testUtils = {
         console.log = originalLog;
         console.error = originalError;
         console.warn = originalWarn;
-      }
+      },
     };
   },
-  
+
   /**
    * Wait for a specified amount of time
    */
   wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   },
-  
+
   /**
    * Create a mock HTTP server response
    */
@@ -130,26 +130,28 @@ global.testUtils = {
       status,
       statusText: status === 200 ? 'OK' : 'Error',
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
       },
       config: {},
-      request: {}
+      request: {},
     };
   },
-  
+
   /**
    * Generate random test data
    */
   randomString(length = 10) {
-    return Math.random().toString(36).substring(2, length + 2);
+    return Math.random()
+      .toString(36)
+      .substring(2, length + 2);
   },
-  
+
   /**
    * Generate random number in range
    */
   randomNumber(min = 0, max = 100) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+  },
 };
 
 // Global test matchers
@@ -158,18 +160,19 @@ expect.extend({
    * Check if value is a valid color code
    */
   toBeValidColorCode(received) {
-    const colorCodeRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$|^rgb\(\d+,\s*\d+,\s*\d+\)$|^rgba\(\d+,\s*\d+,\s*\d+,\s*[\d.]+\)$/;
+    const colorCodeRegex =
+      /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$|^rgb\(\d+,\s*\d+,\s*\d+\)$|^rgba\(\d+,\s*\d+,\s*\d+,\s*[\d.]+\)$/;
     const pass = colorCodeRegex.test(received);
-    
+
     return {
       message: () =>
         pass
           ? `expected ${received} not to be a valid color code`
           : `expected ${received} to be a valid color code`,
-      pass
+      pass,
     };
   },
-  
+
   /**
    * Check if value is within a numeric range
    */
@@ -180,26 +183,26 @@ expect.extend({
         pass
           ? `expected ${received} not to be within range ${floor} - ${ceiling}`
           : `expected ${received} to be within range ${floor} - ${ceiling}`,
-      pass
+      pass,
     };
   },
-  
+
   /**
    * Check if array contains objects with specific properties
    */
   toContainObjectWithProperty(received, property, value) {
-    const pass = received.some(item => 
-      typeof item === 'object' && item[property] === value
+    const pass = received.some(
+      item => typeof item === 'object' && item[property] === value
     );
-    
+
     return {
       message: () =>
         pass
           ? `expected array not to contain object with ${property}: ${value}`
           : `expected array to contain object with ${property}: ${value}`,
-      pass
+      pass,
     };
-  }
+  },
 });
 
 // Mock network requests by default in tests
@@ -211,14 +214,14 @@ jest.mock('axios', () => ({
     delete: jest.fn(),
     defaults: {
       headers: {
-        common: {}
-      }
-    }
+        common: {},
+      },
+    },
   })),
   get: jest.fn(),
   post: jest.fn(),
   put: jest.fn(),
-  delete: jest.fn()
+  delete: jest.fn(),
 }));
 
 // Global setup
@@ -235,7 +238,7 @@ afterAll(async () => {
 beforeEach(() => {
   // Clear all mocks before each test
   jest.clearAllMocks();
-  
+
   // Reset environment variables
   process.env.NODE_ENV = 'test';
   delete process.env.DEBUG;

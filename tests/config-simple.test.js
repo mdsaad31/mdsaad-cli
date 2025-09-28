@@ -13,7 +13,7 @@ const mockLogger = {
   warn: jest.fn(),
   error: jest.fn(),
   verbose: jest.fn(),
-  debug: jest.fn()
+  debug: jest.fn(),
 };
 
 // Import and create a testable version of ConfigService
@@ -33,17 +33,17 @@ class TestConfigService {
         deepseek: null,
         openrouter: null,
         nvidia: null,
-        groq: null
+        groq: null,
       },
       preferences: {
         weatherUnits: 'metric',
         currencyFavorites: ['USD', 'EUR', 'GBP'],
-        colorScheme: 'auto'
+        colorScheme: 'auto',
       },
       rateLimit: {
         ai: { requests: 10, window: 3600000 },
-        weather: { requests: 1000, window: 86400000 }
-      }
+        weather: { requests: 1000, window: 86400000 },
+      },
     };
   }
 
@@ -52,10 +52,10 @@ class TestConfigService {
     try {
       await fs.ensureDir(this.configDir);
       await fs.ensureDir(this.defaultConfig.cacheDirectory);
-      
+
       if (await fs.pathExists(this.configFile)) {
         const existingConfig = await fs.readJson(this.configFile);
-        
+
         if (this.validateConfig(existingConfig)) {
           this.config = this.mergeWithDefaults(existingConfig);
           mockLogger.verbose('Configuration loaded successfully');
@@ -69,9 +69,8 @@ class TestConfigService {
         await this.save();
         mockLogger.info('Created new configuration file');
       }
-      
+
       this.applyEnvironmentOverrides();
-      
     } catch (error) {
       mockLogger.error('Failed to initialize configuration:', error.message);
       this.config = { ...this.defaultConfig };
@@ -81,7 +80,7 @@ class TestConfigService {
   get(key, defaultValue = null) {
     const keys = key.split('.');
     let value = this.config;
-    
+
     for (const k of keys) {
       if (value && typeof value === 'object' && value.hasOwnProperty(k)) {
         value = value[k];
@@ -89,14 +88,14 @@ class TestConfigService {
         return defaultValue;
       }
     }
-    
+
     return value;
   }
 
   set(key, value) {
     const keys = key.split('.');
     let target = this.config;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
       const k = keys[i];
       if (!target[k] || typeof target[k] !== 'object') {
@@ -104,7 +103,7 @@ class TestConfigService {
       }
       target = target[k];
     }
-    
+
     target[keys[keys.length - 1]] = value;
     this.save();
   }
@@ -131,7 +130,14 @@ class TestConfigService {
         return false;
       }
 
-      const requiredProps = ['language', 'defaultPrecision', 'cacheDirectory', 'apiKeys', 'preferences', 'rateLimit'];
+      const requiredProps = [
+        'language',
+        'defaultPrecision',
+        'cacheDirectory',
+        'apiKeys',
+        'preferences',
+        'rateLimit',
+      ];
       for (const prop of requiredProps) {
         if (!config.hasOwnProperty(prop)) {
           mockLogger.warn(`Missing required config property: ${prop}`);
@@ -139,13 +145,27 @@ class TestConfigService {
         }
       }
 
-      const supportedLanguages = ['en', 'hi', 'es', 'fr', 'de', 'zh', 'ja', 'ru', 'ar'];
+      const supportedLanguages = [
+        'en',
+        'hi',
+        'es',
+        'fr',
+        'de',
+        'zh',
+        'ja',
+        'ru',
+        'ar',
+      ];
       if (!supportedLanguages.includes(config.language)) {
         mockLogger.warn(`Unsupported language: ${config.language}`);
         return false;
       }
 
-      if (typeof config.defaultPrecision !== 'number' || config.defaultPrecision < 0 || config.defaultPrecision > 20) {
+      if (
+        typeof config.defaultPrecision !== 'number' ||
+        config.defaultPrecision < 0 ||
+        config.defaultPrecision > 20
+      ) {
         mockLogger.warn('Invalid defaultPrecision value');
         return false;
       }
@@ -159,15 +179,18 @@ class TestConfigService {
 
   mergeWithDefaults(existingConfig) {
     const merged = { ...this.defaultConfig };
-    
+
     Object.keys(existingConfig).forEach(key => {
-      if (typeof existingConfig[key] === 'object' && existingConfig[key] !== null) {
+      if (
+        typeof existingConfig[key] === 'object' &&
+        existingConfig[key] !== null
+      ) {
         merged[key] = { ...merged[key], ...existingConfig[key] };
       } else {
         merged[key] = existingConfig[key];
       }
     });
-    
+
     return merged;
   }
 
@@ -179,7 +202,7 @@ class TestConfigService {
       deepseek: process.env.MDSAAD_DEEPSEEK_KEY,
       openrouter: process.env.MDSAAD_OPENROUTER_KEY,
       nvidia: process.env.MDSAAD_NVIDIA_KEY,
-      groq: process.env.MDSAAD_GROQ_KEY
+      groq: process.env.MDSAAD_GROQ_KEY,
     };
 
     Object.keys(envApiKeys).forEach(service => {
@@ -232,10 +255,12 @@ class TestConfigService {
     const stats = {
       configFile: this.configFile,
       configSize: JSON.stringify(this.config).length,
-      apiKeysConfigured: Object.values(this.config.apiKeys).filter(key => key !== null).length,
+      apiKeysConfigured: Object.values(this.config.apiKeys).filter(
+        key => key !== null
+      ).length,
       totalApiKeys: Object.keys(this.config.apiKeys).length,
       language: this.config.language,
-      cacheDirectory: this.config.cacheDirectory
+      cacheDirectory: this.config.cacheDirectory,
     };
 
     return stats;
@@ -244,7 +269,7 @@ class TestConfigService {
   async updateConfig(updates) {
     try {
       const updatedConfig = { ...this.config, ...updates };
-      
+
       if (this.validateConfig(updatedConfig)) {
         this.config = updatedConfig;
         await this.save();
@@ -279,7 +304,7 @@ describe('Configuration Service', () => {
   describe('Initialization', () => {
     test('should initialize with default configuration', async () => {
       await config.initialize();
-      
+
       expect(config.get('language')).toBe('en');
       expect(config.get('defaultPrecision')).toBe(4);
       expect(config.get('apiKeys')).toBeDefined();
@@ -289,21 +314,21 @@ describe('Configuration Service', () => {
 
     test('should create configuration directory', async () => {
       await config.initialize();
-      
+
       const configDir = path.join(testConfigDir, '.mdsaad');
       expect(await fs.pathExists(configDir)).toBe(true);
     });
 
     test('should create cache directory', async () => {
       await config.initialize();
-      
+
       const cacheDir = path.join(testConfigDir, '.mdsaad', 'cache');
       expect(await fs.pathExists(cacheDir)).toBe(true);
     });
 
     test('should create configuration file', async () => {
       await config.initialize();
-      
+
       const configFile = path.join(testConfigDir, '.mdsaad', 'config.json');
       expect(await fs.pathExists(configFile)).toBe(true);
     });
@@ -323,7 +348,7 @@ describe('Configuration Service', () => {
     test('should set configuration values', () => {
       config.set('language', 'es');
       expect(config.get('language')).toBe('es');
-      
+
       config.set('preferences.weatherUnits', 'imperial');
       expect(config.get('preferences.weatherUnits')).toBe('imperial');
     });
@@ -362,18 +387,18 @@ describe('Configuration Service', () => {
         cacheDirectory: '/test/path',
         apiKeys: {},
         preferences: {},
-        rateLimit: {}
+        rateLimit: {},
       };
-      
+
       expect(config.validateConfig(validConfig)).toBe(true);
     });
 
     test('should reject invalid configuration', () => {
       const invalidConfig = {
         language: 'invalid-lang',
-        defaultPrecision: -1
+        defaultPrecision: -1,
       };
-      
+
       expect(config.validateConfig(invalidConfig)).toBe(false);
     });
 
@@ -392,16 +417,16 @@ describe('Configuration Service', () => {
     test('should provide configuration statistics', () => {
       config.setApiKey('openweather', 'test-key');
       config.setApiKey('gemini', 'another-key');
-      
+
       const stats = config.getStats();
-      
+
       expect(stats).toHaveProperty('configFile');
       expect(stats).toHaveProperty('configSize');
       expect(stats).toHaveProperty('apiKeysConfigured');
       expect(stats).toHaveProperty('totalApiKeys');
       expect(stats).toHaveProperty('language');
       expect(stats).toHaveProperty('cacheDirectory');
-      
+
       expect(stats.apiKeysConfigured).toBe(2);
       expect(stats.language).toBe('en');
     });

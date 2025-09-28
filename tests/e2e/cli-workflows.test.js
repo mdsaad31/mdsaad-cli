@@ -8,42 +8,42 @@ const fs = require('fs-extra');
 
 describe('CLI End-to-End Workflows', () => {
   const CLI_PATH = path.join(__dirname, '../../src/cli.js');
-  
+
   // Helper function to execute CLI commands
   const executeCLI = (args, options = {}) => {
     return new Promise((resolve, reject) => {
       const child = spawn('node', [CLI_PATH, ...args], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { 
-          ...process.env, 
+        env: {
+          ...process.env,
           NODE_ENV: 'test',
           CI: 'true',
           MDSAAD_CONFIG_DIR: global.testUtils.TEST_CONFIG_DIR,
-          MDSAAD_CACHE_DIR: global.testUtils.TEST_CACHE_DIR
+          MDSAAD_CACHE_DIR: global.testUtils.TEST_CACHE_DIR,
         },
-        timeout: options.timeout || 10000
+        timeout: options.timeout || 10000,
       });
 
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data) => {
+      child.stdout.on('data', data => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data) => {
+      child.stderr.on('data', data => {
         stderr += data.toString();
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         resolve({
           code,
           stdout: stdout.trim(),
-          stderr: stderr.trim()
+          stderr: stderr.trim(),
         });
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         reject(error);
       });
 
@@ -145,14 +145,27 @@ describe('CLI End-to-End Workflows', () => {
     });
 
     test('should handle animated ASCII art', async () => {
-      const result = await executeCLI(['show', 'batman', '--animated', '--animation', 'typewriter', '--speed', '10']);
+      const result = await executeCLI([
+        'show',
+        'batman',
+        '--animated',
+        '--animation',
+        'typewriter',
+        '--speed',
+        '10',
+      ]);
 
       expect(result.code).toBe(0);
       expect(result.stdout.length).toBeGreaterThan(50);
     });
 
     test('should apply color schemes', async () => {
-      const result = await executeCLI(['show', 'batman', '--color-scheme', 'rainbow']);
+      const result = await executeCLI([
+        'show',
+        'batman',
+        '--color-scheme',
+        'rainbow',
+      ]);
 
       expect(result.code).toBe(0);
       expect(result.stdout.length).toBeGreaterThan(50);
@@ -178,11 +191,11 @@ describe('CLI End-to-End Workflows', () => {
       // Create mock weather cache to avoid API calls
       await global.testUtils.createMockCache('weather_London', {
         location: { name: 'London', country: 'UK' },
-        current: { 
-          temp_c: 20, 
+        current: {
+          temp_c: 20,
           condition: { text: 'Sunny', icon: 'sunny.png' },
-          humidity: 65
-        }
+          humidity: 65,
+        },
       });
 
       const result = await executeCLI(['weather', 'London']);
@@ -195,13 +208,13 @@ describe('CLI End-to-End Workflows', () => {
     test('should show detailed weather information', async () => {
       await global.testUtils.createMockCache('weather_Paris', {
         location: { name: 'Paris' },
-        current: { 
+        current: {
           temp_c: 22,
           condition: { text: 'Cloudy' },
           humidity: 70,
           wind_kph: 15,
-          pressure_mb: 1013
-        }
+          pressure_mb: 1013,
+        },
       });
 
       const result = await executeCLI(['weather', 'Paris', '--detailed']);
@@ -216,13 +229,25 @@ describe('CLI End-to-End Workflows', () => {
         location: { name: 'Tokyo' },
         forecast: {
           forecastday: [
-            { date: '2024-01-01', day: { maxtemp_c: 25, condition: { text: 'Clear' } } },
-            { date: '2024-01-02', day: { maxtemp_c: 27, condition: { text: 'Sunny' } } }
-          ]
-        }
+            {
+              date: '2024-01-01',
+              day: { maxtemp_c: 25, condition: { text: 'Clear' } },
+            },
+            {
+              date: '2024-01-02',
+              day: { maxtemp_c: 27, condition: { text: 'Sunny' } },
+            },
+          ],
+        },
       });
 
-      const result = await executeCLI(['weather', 'Tokyo', '--forecast', '--days', '2']);
+      const result = await executeCLI([
+        'weather',
+        'Tokyo',
+        '--forecast',
+        '--days',
+        '2',
+      ]);
 
       expect(result.code).toBe(0);
       expect(result.stdout).toContain('Forecast');
@@ -234,7 +259,7 @@ describe('CLI End-to-End Workflows', () => {
       await global.testUtils.createMockCache('exchange_rates_USD', {
         result: 'success',
         base_code: 'USD',
-        conversion_rates: { EUR: 0.85 }
+        conversion_rates: { EUR: 0.85 },
       });
 
       const result = await executeCLI(['convert', '100', 'USD', 'EUR']);
@@ -258,8 +283,8 @@ describe('CLI End-to-End Workflows', () => {
         conversion_rates: {
           EUR: 0.85,
           GBP: 0.73,
-          JPY: 110.0
-        }
+          JPY: 110.0,
+        },
       });
 
       const result = await executeCLI(['convert', '--rates']);
@@ -270,7 +295,13 @@ describe('CLI End-to-End Workflows', () => {
     });
 
     test('should handle verbose conversion mode', async () => {
-      const result = await executeCLI(['convert', '5', 'kg', 'pounds', '--verbose']);
+      const result = await executeCLI([
+        'convert',
+        '5',
+        'kg',
+        'pounds',
+        '--verbose',
+      ]);
 
       expect(result.code).toBe(0);
       expect(result.stdout).toContain('Formula');
@@ -425,7 +456,12 @@ describe('CLI End-to-End Workflows', () => {
       // Perform multiple calculations
       const calc1 = await executeCLI(['calculate', '10 + 5']);
       const calc2 = await executeCLI(['calculate', 'sqrt(16)']);
-      const calc3 = await executeCLI(['calculate', 'pi * 2', '--precision', '4']);
+      const calc3 = await executeCLI([
+        'calculate',
+        'pi * 2',
+        '--precision',
+        '4',
+      ]);
 
       expect(calc1.code).toBe(0);
       expect(calc1.stdout).toContain('15');
@@ -442,13 +478,18 @@ describe('CLI End-to-End Workflows', () => {
       await global.testUtils.createMockCache('exchange_rates_USD', {
         result: 'success',
         base_code: 'USD',
-        conversion_rates: { EUR: 0.85, GBP: 0.73 }
+        conversion_rates: { EUR: 0.85, GBP: 0.73 },
       });
 
       // Perform multiple conversions
       const conv1 = await executeCLI(['convert', '100', 'USD', 'EUR']);
       const conv2 = await executeCLI(['convert', '10', 'meters', 'feet']);
-      const conv3 = await executeCLI(['convert', '20', 'celsius', 'fahrenheit']);
+      const conv3 = await executeCLI([
+        'convert',
+        '20',
+        'celsius',
+        'fahrenheit',
+      ]);
 
       expect(conv1.code).toBe(0);
       expect(conv1.stdout).toContain('85');
@@ -480,7 +521,7 @@ describe('CLI End-to-End Workflows', () => {
       const promises = [
         executeCLI(['calculate', '2+2']),
         executeCLI(['convert', '5', 'meters', 'feet']),
-        executeCLI(['show', 'batman', '--color-scheme', 'monochrome'])
+        executeCLI(['show', 'batman', '--color-scheme', 'monochrome']),
       ];
 
       const results = await Promise.all(promises);

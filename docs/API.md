@@ -112,6 +112,7 @@ const validator = new InputValidator();
 Validates input against specified type with optional configuration.
 
 **Parameters:**
+
 - `input` (string): Input to validate
 - `type` (string): Validation type ('email', 'url', 'apiKey', 'expression', 'cityName', 'currencyCode', 'command', 'path')
 - `options` (object): Optional validation configuration
@@ -127,7 +128,7 @@ const email = validator.validate('user@example.com', 'email');
 // URL validation with custom options
 const url = validator.validate('https://api.example.com', 'url', {
   allowHttp: false,
-  maxLength: 200
+  maxLength: 200,
 });
 
 // Mathematical expression validation
@@ -139,6 +140,7 @@ const expr = validator.validate('sin(pi/2) + cos(0)', 'expression');
 Sanitizes input by removing or encoding potentially dangerous content.
 
 **Parameters:**
+
 - `input` (string): Input to sanitize
 - `type` (string): Sanitization type ('html', 'sql', 'path', 'text')
 
@@ -154,6 +156,7 @@ const safePath = validator.sanitize('../../etc/passwd', 'path');
 Checks and enforces rate limiting per identifier.
 
 **Parameters:**
+
 - `identifier` (string): Unique identifier (user ID, IP, etc.)
 - `limit` (number): Maximum requests allowed
 - `windowMs` (number): Time window in milliseconds
@@ -187,6 +190,7 @@ await security.initialize();
 Encrypts text using AES-256-GCM encryption.
 
 **Parameters:**
+
 - `text` (string): Text to encrypt
 
 **Returns:** Object with encrypted data, IV, and authentication tag
@@ -201,6 +205,7 @@ const encrypted = security.encrypt('sensitive data');
 Decrypts previously encrypted data.
 
 **Parameters:**
+
 - `encryptedData` (object): Object with encrypted, iv, and authTag properties
 
 **Returns:** Decrypted string
@@ -214,6 +219,7 @@ const decrypted = security.decrypt(encrypted);
 Securely stores an API key for a service.
 
 **Parameters:**
+
 - `service` (string): Service name
 - `apiKey` (string): API key to store
 
@@ -228,6 +234,7 @@ await security.storeApiKey('weather-api', 'your-api-key-here');
 Retrieves a stored API key for a service.
 
 **Parameters:**
+
 - `service` (string): Service name
 
 **Returns:** API key string or null if not found
@@ -277,14 +284,15 @@ const agent = network.createSecureAgent();
 Validates and sanitizes HTTP headers.
 
 **Parameters:**
+
 - `headers` (object): HTTP headers object
 
 **Returns:** Sanitized headers object with security headers added
 
 ```javascript
 const secureHeaders = network.validateHeaders({
-  'Authorization': 'Bearer token',
-  'Content-Type': 'application/json'
+  Authorization: 'Bearer token',
+  'Content-Type': 'application/json',
 });
 ```
 
@@ -293,6 +301,7 @@ const secureHeaders = network.validateHeaders({
 Makes a secure HTTP request with built-in security measures.
 
 **Parameters:**
+
 - `url` (string): Request URL
 - `options` (object): Request options
 
@@ -301,7 +310,7 @@ Makes a secure HTTP request with built-in security measures.
 ```javascript
 const response = await network.secureRequest('https://api.example.com/data', {
   method: 'GET',
-  headers: { 'Authorization': 'Bearer token' }
+  headers: { Authorization: 'Bearer token' },
 });
 ```
 
@@ -340,15 +349,15 @@ module.exports = {
   name: 'my-plugin',
   version: '1.0.0',
   description: 'My awesome plugin',
-  
+
   // Plugin metadata
   author: 'Your Name',
   homepage: 'https://github.com/you/my-plugin',
   repository: 'https://github.com/you/my-plugin.git',
-  
+
   // Required permissions
   permissions: ['network', 'filesystem'],
-  
+
   // Plugin commands
   commands: {
     'my-command': {
@@ -357,34 +366,34 @@ module.exports = {
         // Command implementation
         console.log('Hello from my plugin!');
         return true;
-      }
-    }
+      },
+    },
   },
-  
+
   // Plugin services
   services: {
     'my-service': class MyService {
       async initialize() {
         // Service initialization
       }
-      
+
       async process(data) {
         // Service logic
         return processedData;
       }
-    }
+    },
   },
-  
+
   // Plugin lifecycle hooks
   async initialize(cli) {
     // Called when plugin is loaded
     console.log('Plugin initialized');
   },
-  
+
   async cleanup() {
     // Called when plugin is unloaded
     console.log('Plugin cleaned up');
-  }
+  },
 };
 ```
 
@@ -396,18 +405,18 @@ Plugins receive a security context for secure operations:
 // In plugin command handler
 async function handler(args, options, context) {
   const { validator, securityManager, networkSecurity } = context.security;
-  
+
   // Validate input
   const validInput = validator.validate(args[0], 'email');
-  
+
   // Get API key securely
   const apiKey = await securityManager.getApiKey('my-service');
-  
+
   // Make secure network request
   const response = await networkSecurity.secureRequest(url, {
-    headers: { 'Authorization': `Bearer ${apiKey}` }
+    headers: { Authorization: `Bearer ${apiKey}` },
   });
-  
+
   return response;
 }
 ```
@@ -424,30 +433,30 @@ class MyCommand {
     this.name = 'my-command';
     this.description = 'Description of my command';
   }
-  
+
   // Receive security context from CLI
   setSecurity(securityContext) {
     this.validator = securityContext.validator;
     this.securityManager = securityContext.securityManager;
     this.networkSecurity = securityContext.networkSecurity;
   }
-  
+
   async execute(...args) {
     try {
       // Validate inputs
       const [input, options] = args;
       const validInput = this.validator.process(input, 'text');
-      
+
       // Implement command logic
       const result = await this.processCommand(validInput, options);
-      
+
       return result;
     } catch (error) {
       logger.error('Command execution failed:', error);
       throw error;
     }
   }
-  
+
   async processCommand(input, options) {
     // Command implementation
     return { success: true, data: 'Command completed' };
@@ -480,7 +489,7 @@ The configuration follows a hierarchical structure:
   "language": "en",
   "theme": "default",
   "debug": false,
-  
+
   // Security configuration
   "security": {
     "rateLimit": {
@@ -493,21 +502,21 @@ The configuration follows a hierarchical structure:
       "keyLength": 32
     }
   },
-  
+
   // Performance settings
   "performance": {
     "enableOptimizations": true,
     "cacheSize": "50MB",
     "startupTimeout": 5000
   },
-  
+
   // Service configurations
   "ai": {
     "defaultProvider": "openai",
     "defaultModel": "gpt-3.5-turbo",
     "temperature": 0.7
   },
-  
+
   "weather": {
     "defaultUnits": "metric",
     "defaultLanguage": "en"
@@ -548,7 +557,7 @@ console.log(`Operation took ${measurement.duration}ms`);
 
 // Log performance event
 performanceService.logPerformanceEvent('category', 'description', {
-  customData: 'value'
+  customData: 'value',
 });
 
 // Get performance report
@@ -614,9 +623,9 @@ try {
   logger.error('Operation failed', {
     operation: 'someOperation',
     error: error.message,
-    stack: error.stack
+    stack: error.stack,
   });
-  
+
   // Transform to user-friendly error
   if (error.code === 'RATE_LIMIT_EXCEEDED') {
     throw new CLIError(
@@ -625,7 +634,7 @@ try {
       { retryAfter: error.retryAfter }
     );
   }
-  
+
   // Re-throw with additional context
   throw error;
 }
@@ -641,41 +650,43 @@ module.exports = {
   name: 'secure-example',
   version: '1.0.0',
   description: 'Example of secure plugin development',
-  
+
   commands: {
     'secure-fetch': async (args, options, context) => {
       const { validator, securityManager, networkSecurity } = context.security;
-      
+
       // Validate URL input
       const url = validator.validate(args[0], 'url');
-      
+
       // Get API key securely
       const apiKey = await securityManager.getApiKey('my-api');
       if (!apiKey) {
-        throw new Error('API key not configured. Run: mdsaad security keys set my-api');
+        throw new Error(
+          'API key not configured. Run: mdsaad security keys set my-api'
+        );
       }
-      
+
       // Make secure request
       try {
         const response = await networkSecurity.secureRequest(url, {
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
         });
-        
+
         console.log('Data fetched successfully:', response.data);
         return true;
       } catch (error) {
         logger.error('Secure fetch failed:', error.message);
         return false;
       }
-    }
+    },
   },
-  
+
   async initialize(cli) {
     console.log('Secure plugin initialized with security context');
-  }
+  },
 };
 ```
 
@@ -690,37 +701,36 @@ class MyCommand {
     this.name = 'my-command';
     this.description = 'Custom command with security integration';
   }
-  
+
   setSecurity(securityContext) {
     this.validator = securityContext.validator;
     this.securityManager = securityContext.securityManager;
     this.networkSecurity = securityContext.networkSecurity;
   }
-  
+
   async execute(input, options = {}) {
     try {
       // Rate limiting
       this.validator.checkRateLimit('my-command', 10, 60000);
-      
+
       // Input validation
       const validInput = this.validator.validate(input, 'text', {
         maxLength: 500,
         allowNumbers: true,
-        allowSpecialChars: false
+        allowSpecialChars: false,
       });
-      
+
       // Process command
       const result = await this.processInput(validInput, options);
-      
+
       logger.info('Command executed successfully');
       return result;
-      
     } catch (error) {
       logger.error('Command failed:', error.message);
       throw error;
     }
   }
-  
+
   async processInput(input, options) {
     // Implementation here
     return { processed: input, options };
@@ -739,24 +749,29 @@ class PerformanceAwareCommand {
   async execute(input, options) {
     // Start performance tracking
     performanceService.markStart('my-command-execution');
-    
+
     try {
       const result = await this.heavyOperation(input);
-      
+
       // Log successful completion
-      performanceService.logPerformanceEvent('command', 'my-command completed', {
-        inputLength: input.length,
-        resultSize: JSON.stringify(result).length
-      });
-      
+      performanceService.logPerformanceEvent(
+        'command',
+        'my-command completed',
+        {
+          inputLength: input.length,
+          resultSize: JSON.stringify(result).length,
+        }
+      );
+
       return result;
-      
     } finally {
       // End performance tracking
       performanceService.markEnd('my-command-execution');
-      
+
       // Log performance metrics
-      const measurement = performanceService.getMeasurement('my-command-execution');
+      const measurement = performanceService.getMeasurement(
+        'my-command-execution'
+      );
       if (measurement && measurement.duration > 1000) {
         logger.warn(`Command took ${measurement.duration}ms to complete`);
       }

@@ -16,10 +16,10 @@ describe('Weather API Integration', () => {
   beforeEach(async () => {
     consoleMock = global.testUtils.mockConsole();
     await cacheService.initialize();
-    
+
     // Clear any cached data
     await cacheService.clear();
-    
+
     // Reset axios mocks
     jest.clearAllMocks();
   });
@@ -33,18 +33,18 @@ describe('Weather API Integration', () => {
       const mockWeatherData = {
         location: {
           name: 'London',
-          country: 'United Kingdom'
+          country: 'United Kingdom',
         },
         current: {
           temp_c: 20,
           condition: {
             text: 'Sunny',
-            icon: '//cdn.weatherapi.com/weather/64x64/day/113.png'
+            icon: '//cdn.weatherapi.com/weather/64x64/day/113.png',
           },
           humidity: 65,
           wind_kph: 10,
-          wind_dir: 'SW'
-        }
+          wind_dir: 'SW',
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -57,8 +57,8 @@ describe('Weather API Integration', () => {
         expect.stringContaining('current.json'),
         expect.objectContaining({
           params: expect.objectContaining({
-            q: 'London'
-          })
+            q: 'London',
+          }),
         })
       );
 
@@ -71,11 +71,11 @@ describe('Weather API Integration', () => {
       const mockForecastData = {
         location: {
           name: 'New York',
-          country: 'USA'
+          country: 'USA',
         },
         current: {
           temp_c: 25,
-          condition: { text: 'Cloudy' }
+          condition: { text: 'Cloudy' },
         },
         forecast: {
           forecastday: [
@@ -84,19 +84,19 @@ describe('Weather API Integration', () => {
               day: {
                 maxtemp_c: 28,
                 mintemp_c: 20,
-                condition: { text: 'Partly cloudy' }
-              }
+                condition: { text: 'Partly cloudy' },
+              },
             },
             {
               date: '2024-01-02',
               day: {
                 maxtemp_c: 30,
                 mintemp_c: 22,
-                condition: { text: 'Sunny' }
-              }
-            }
-          ]
-        }
+                condition: { text: 'Sunny' },
+              },
+            },
+          ],
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -110,19 +110,21 @@ describe('Weather API Integration', () => {
         expect.objectContaining({
           params: expect.objectContaining({
             q: 'New York',
-            days: '2'
-          })
+            days: '2',
+          }),
         })
       );
 
       expect(consoleMock.logs.some(log => log.includes('New York'))).toBe(true);
-      expect(consoleMock.logs.some(log => log.includes('2024-01-01'))).toBe(true);
+      expect(consoleMock.logs.some(log => log.includes('2024-01-01'))).toBe(
+        true
+      );
     });
 
     test('should cache weather data', async () => {
       const mockWeatherData = {
         location: { name: 'Paris' },
-        current: { temp_c: 18, condition: { text: 'Rainy' } }
+        current: { temp_c: 18, condition: { text: 'Rainy' } },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -147,48 +149,56 @@ describe('Weather API Integration', () => {
 
       await weatherCommand.execute('InvalidLocation', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('Error') || error.includes('failed')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('Error') || error.includes('failed')
+        )
+      ).toBe(true);
     });
 
     test('should handle API rate limiting', async () => {
       const rateLimitError = new Error('Rate limit exceeded');
       rateLimitError.response = { status: 429 };
-      
+
       mockedAxios.get.mockRejectedValueOnce(rateLimitError);
 
       await weatherCommand.execute('London', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('rate limit') || error.includes('Error')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('rate limit') || error.includes('Error')
+        )
+      ).toBe(true);
     });
 
     test('should handle invalid location', async () => {
       const invalidLocationError = new Error('Location not found');
       invalidLocationError.response = { status: 400 };
-      
+
       mockedAxios.get.mockRejectedValueOnce(invalidLocationError);
 
       await weatherCommand.execute('InvalidCity123', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('not found') || error.includes('Error')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('not found') || error.includes('Error')
+        )
+      ).toBe(true);
     });
 
     test('should handle API key errors', async () => {
       const apiKeyError = new Error('Invalid API key');
       apiKeyError.response = { status: 401 };
-      
+
       mockedAxios.get.mockRejectedValueOnce(apiKeyError);
 
       await weatherCommand.execute('London', {});
 
-      expect(consoleMock.errors.some(error => 
-        error.includes('API key') || error.includes('Error')
-      )).toBe(true);
+      expect(
+        consoleMock.errors.some(
+          error => error.includes('API key') || error.includes('Error')
+        )
+      ).toBe(true);
     });
   });
 
@@ -196,7 +206,7 @@ describe('Weather API Integration', () => {
     test('should respect cache TTL', async () => {
       const mockData = {
         location: { name: 'Berlin' },
-        current: { temp_c: 15 }
+        current: { temp_c: 15 },
       };
 
       mockedAxios.get.mockResolvedValue(
@@ -216,11 +226,15 @@ describe('Weather API Integration', () => {
     test('should use valid cached data', async () => {
       const cachedData = {
         location: { name: 'Tokyo' },
-        current: { temp_c: 22, condition: { text: 'Clear' } }
+        current: { temp_c: 22, condition: { text: 'Clear' } },
       };
 
       // Create valid cache entry
-      await global.testUtils.createMockCache('weather_Tokyo', cachedData, 3600000); // 1 hour TTL
+      await global.testUtils.createMockCache(
+        'weather_Tokyo',
+        cachedData,
+        3600000
+      ); // 1 hour TTL
 
       await weatherCommand.execute('Tokyo', {});
 
@@ -232,7 +246,7 @@ describe('Weather API Integration', () => {
     test('should handle cache corruption', async () => {
       const mockData = {
         location: { name: 'Sydney' },
-        current: { temp_c: 25 }
+        current: { temp_c: 25 },
       };
 
       // Create corrupted cache file
@@ -255,11 +269,11 @@ describe('Weather API Integration', () => {
     test('should handle metric units', async () => {
       const mockData = {
         location: { name: 'Madrid' },
-        current: { 
+        current: {
           temp_c: 30,
           wind_kph: 15,
-          condition: { text: 'Hot' }
-        }
+          condition: { text: 'Hot' },
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -275,11 +289,11 @@ describe('Weather API Integration', () => {
     test('should handle imperial units', async () => {
       const mockData = {
         location: { name: 'Chicago' },
-        current: { 
+        current: {
           temp_f: 86,
           wind_mph: 10,
-          condition: { text: 'Warm' }
-        }
+          condition: { text: 'Warm' },
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -300,7 +314,7 @@ describe('Weather API Integration', () => {
           name: 'Mumbai',
           country: 'India',
           lat: 19.07,
-          lon: 72.88
+          lon: 72.88,
         },
         current: {
           temp_c: 32,
@@ -310,8 +324,8 @@ describe('Weather API Integration', () => {
           wind_dir: 'SW',
           pressure_mb: 1013,
           uv: 8,
-          vis_km: 10
-        }
+          vis_km: 10,
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -335,10 +349,10 @@ describe('Weather API Integration', () => {
             {
               headline: 'Hurricane Warning',
               desc: 'Hurricane conditions expected',
-              severity: 'Severe'
-            }
-          ]
-        }
+              severity: 'Severe',
+            },
+          ],
+        },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -347,7 +361,9 @@ describe('Weather API Integration', () => {
 
       await weatherCommand.execute('Miami', { alerts: true });
 
-      expect(consoleMock.logs.some(log => log.includes('Hurricane Warning'))).toBe(true);
+      expect(
+        consoleMock.logs.some(log => log.includes('Hurricane Warning'))
+      ).toBe(true);
     });
   });
 
@@ -355,7 +371,7 @@ describe('Weather API Integration', () => {
     test('should handle auto-location', async () => {
       const autoLocationData = {
         location: { name: 'Current Location' },
-        current: { temp_c: 20 }
+        current: { temp_c: 20 },
       };
 
       mockedAxios.get.mockResolvedValueOnce(
@@ -368,8 +384,8 @@ describe('Weather API Integration', () => {
         expect.stringContaining('current.json'),
         expect.objectContaining({
           params: expect.objectContaining({
-            q: 'auto:ip'
-          })
+            q: 'auto:ip',
+          }),
         })
       );
     });
@@ -377,8 +393,14 @@ describe('Weather API Integration', () => {
 
   describe('concurrent requests', () => {
     test('should handle multiple simultaneous requests', async () => {
-      const mockData1 = { location: { name: 'City1' }, current: { temp_c: 20 } };
-      const mockData2 = { location: { name: 'City2' }, current: { temp_c: 25 } };
+      const mockData1 = {
+        location: { name: 'City1' },
+        current: { temp_c: 20 },
+      };
+      const mockData2 = {
+        location: { name: 'City2' },
+        current: { temp_c: 25 },
+      };
 
       mockedAxios.get
         .mockResolvedValueOnce(global.testUtils.mockApiResponse(mockData1))

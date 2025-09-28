@@ -71,7 +71,7 @@ class DebugService {
       category,
       message,
       data: data ? JSON.stringify(data, null, 2) : null,
-      stack: this.debugMode ? new Error().stack : null
+      stack: this.debugMode ? new Error().stack : null,
     };
 
     this.debugLog.push(logEntry);
@@ -83,7 +83,9 @@ class DebugService {
 
     // Display in debug mode
     if (this.debugMode) {
-      console.log(outputFormatter.debug(`[${category.toUpperCase()}] ${message}`, data));
+      console.log(
+        outputFormatter.debug(`[${category.toUpperCase()}] ${message}`, data)
+      );
     } else if (this.verboseMode) {
       console.log(outputFormatter.info(`🔍 ${message}`));
     }
@@ -100,17 +102,26 @@ class DebugService {
   markPerformance(label, operation = 'start') {
     const timestamp = process.hrtime.bigint();
     const key = `${label}_${operation}`;
-    
+
     this.performanceMarkers.set(key, timestamp);
-    
+
     if (operation === 'end') {
       const startKey = `${label}_start`;
       if (this.performanceMarkers.has(startKey)) {
-        const duration = Number(timestamp - this.performanceMarkers.get(startKey)) / 1000000; // Convert to ms
-        this.debug(`Performance: ${label} took ${duration.toFixed(2)}ms`, null, 'performance');
-        
+        const duration =
+          Number(timestamp - this.performanceMarkers.get(startKey)) / 1000000; // Convert to ms
+        this.debug(
+          `Performance: ${label} took ${duration.toFixed(2)}ms`,
+          null,
+          'performance'
+        );
+
         if (duration > 1000) {
-          console.log(outputFormatter.warning(`⏱️ Slow operation detected: ${label} (${duration.toFixed(2)}ms)`));
+          console.log(
+            outputFormatter.warning(
+              `⏱️ Slow operation detected: ${label} (${duration.toFixed(2)}ms)`
+            )
+          );
         }
       }
     }
@@ -131,7 +142,7 @@ class DebugService {
         loadavg: os.loadavg(),
         totalmem: os.totalmem(),
         freemem: os.freemem(),
-        cpus: os.cpus().length
+        cpus: os.cpus().length,
       },
       node: {
         version: process.version,
@@ -141,15 +152,17 @@ class DebugService {
         execPath: process.execPath,
         cwd: process.cwd(),
         memoryUsage: process.memoryUsage(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       },
       environment: {
         nodeEnv: process.env.NODE_ENV,
-        path: process.env.PATH ? process.env.PATH.split(path.delimiter).length + ' entries' : 'not set',
+        path: process.env.PATH
+          ? process.env.PATH.split(path.delimiter).length + ' entries'
+          : 'not set',
         shell: process.env.SHELL || process.env.ComSpec,
         home: os.homedir(),
-        tmpdir: os.tmpdir()
-      }
+        tmpdir: os.tmpdir(),
+      },
     };
 
     // Check for package.json
@@ -161,7 +174,8 @@ class DebugService {
           name: packageJson.name,
           version: packageJson.version,
           dependencies: Object.keys(packageJson.dependencies || {}).length,
-          devDependencies: Object.keys(packageJson.devDependencies || {}).length
+          devDependencies: Object.keys(packageJson.devDependencies || {})
+            .length,
         };
       }
     } catch (error) {
@@ -183,7 +197,7 @@ class DebugService {
    * Check network connectivity
    */
   async checkNetworkConnectivity() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const testUrls = ['8.8.8.8', 'google.com'];
       const results = {};
       let completed = 0;
@@ -197,12 +211,12 @@ class DebugService {
 
         // Simple DNS lookup test
         const dns = require('dns');
-        dns.lookup(url, (err) => {
+        dns.lookup(url, err => {
           clearTimeout(timeout);
           results[url] = {
             reachable: !err,
             latency: Date.now() - start,
-            error: err ? err.message : null
+            error: err ? err.message : null,
           };
           if (++completed === testUrls.length) resolve(results);
         });
@@ -219,12 +233,14 @@ class DebugService {
     // System information
     console.log(outputFormatter.subheader('System Information'));
     console.log(outputFormatter.formatObject('System', this.systemInfo.system));
-    
+
     console.log(outputFormatter.subheader('Node.js Information'));
     console.log(outputFormatter.formatObject('Node.js', this.systemInfo.node));
-    
+
     console.log(outputFormatter.subheader('Environment'));
-    console.log(outputFormatter.formatObject('Environment', this.systemInfo.environment));
+    console.log(
+      outputFormatter.formatObject('Environment', this.systemInfo.environment)
+    );
 
     // Configuration status
     console.log(outputFormatter.subheader('Configuration Status'));
@@ -233,7 +249,9 @@ class DebugService {
       const configSummary = configManager.getSummary();
       console.log(outputFormatter.formatObject('Configuration', configSummary));
     } catch (error) {
-      console.log(outputFormatter.error('Could not load configuration:', error.message));
+      console.log(
+        outputFormatter.error('Could not load configuration:', error.message)
+      );
     }
 
     // Service status
@@ -256,11 +274,13 @@ class DebugService {
    */
   async checkServiceStatuses() {
     const services = ['cache', 'config-manager', 'weather', 'error-handler'];
-    
+
     for (const serviceName of services) {
       try {
         const service = require(`./${serviceName}`);
-        const status = service.isInitialized ? '✅ Active' : '⚠️ Not initialized';
+        const status = service.isInitialized
+          ? '✅ Active'
+          : '⚠️ Not initialized';
         console.log(`   ${serviceName.padEnd(15)}: ${status}`);
       } catch (error) {
         console.log(`   ${serviceName.padEnd(15)}: ❌ Not available`);
@@ -273,7 +293,7 @@ class DebugService {
    */
   displayRecentDebugLog(limit = 10) {
     const recentEntries = this.debugLog.slice(-limit);
-    
+
     if (recentEntries.length === 0) {
       console.log(outputFormatter.info('No recent debug entries'));
       return;
@@ -303,16 +323,19 @@ class DebugService {
         const operation = key.replace('_end', '');
         const startKey = `${operation}_start`;
         if (this.performanceMarkers.has(startKey)) {
-          const duration = Number(timestamp - this.performanceMarkers.get(startKey)) / 1000000;
+          const duration =
+            Number(timestamp - this.performanceMarkers.get(startKey)) / 1000000;
           metrics.push([operation, `${duration.toFixed(2)}ms`]);
         }
       }
     }
 
     if (metrics.length > 0) {
-      console.log(outputFormatter.formatTable('Performance Metrics', metrics, {
-        headers: ['Operation', 'Duration']
-      }));
+      console.log(
+        outputFormatter.formatTable('Performance Metrics', metrics, {
+          headers: ['Operation', 'Duration'],
+        })
+      );
     }
   }
 
@@ -321,10 +344,13 @@ class DebugService {
    */
   async writeDebugLog() {
     try {
-      const logData = this.debugLog.map(entry => 
-        `${entry.timestamp} [${entry.category}] ${entry.message}${entry.data ? '\n' + entry.data : ''}`
-      ).join('\n\n');
-      
+      const logData = this.debugLog
+        .map(
+          entry =>
+            `${entry.timestamp} [${entry.category}] ${entry.message}${entry.data ? '\n' + entry.data : ''}`
+        )
+        .join('\n\n');
+
       await fs.writeFile(this.debugFile, logData);
     } catch (error) {
       // Silently fail to prevent recursion
@@ -350,7 +376,7 @@ class DebugService {
       debugLog: this.debugLog,
       performanceMarkers: Array.from(this.performanceMarkers.entries()),
       configuration: {},
-      errors: []
+      errors: [],
     };
 
     // Add configuration data
@@ -370,7 +396,9 @@ class DebugService {
     }
 
     await fs.writeJson(filePath, diagnostics, { spaces: 2 });
-    console.log(outputFormatter.success(`📊 Diagnostics exported to: ${filePath}`));
+    console.log(
+      outputFormatter.success(`📊 Diagnostics exported to: ${filePath}`)
+    );
   }
 
   /**
@@ -380,7 +408,7 @@ class DebugService {
     const requirements = {
       node: { min: '14.0.0', recommended: '18.0.0' },
       memory: { min: 512 * 1024 * 1024, recommended: 1024 * 1024 * 1024 }, // 512MB min, 1GB recommended
-      diskSpace: { min: 100 * 1024 * 1024 } // 100MB min
+      diskSpace: { min: 100 * 1024 * 1024 }, // 100MB min
     };
 
     const issues = [];
@@ -389,17 +417,27 @@ class DebugService {
     // Check Node.js version
     const nodeVersion = process.version.replace('v', '');
     if (this.compareVersions(nodeVersion, requirements.node.min) < 0) {
-      issues.push(`Node.js version ${nodeVersion} is below minimum required ${requirements.node.min}`);
-    } else if (this.compareVersions(nodeVersion, requirements.node.recommended) < 0) {
-      warnings.push(`Node.js version ${nodeVersion} is below recommended ${requirements.node.recommended}`);
+      issues.push(
+        `Node.js version ${nodeVersion} is below minimum required ${requirements.node.min}`
+      );
+    } else if (
+      this.compareVersions(nodeVersion, requirements.node.recommended) < 0
+    ) {
+      warnings.push(
+        `Node.js version ${nodeVersion} is below recommended ${requirements.node.recommended}`
+      );
     }
 
     // Check memory
     const freeMemory = os.freemem();
     if (freeMemory < requirements.memory.min) {
-      issues.push(`Available memory ${Math.round(freeMemory / 1024 / 1024)}MB is below minimum ${Math.round(requirements.memory.min / 1024 / 1024)}MB`);
+      issues.push(
+        `Available memory ${Math.round(freeMemory / 1024 / 1024)}MB is below minimum ${Math.round(requirements.memory.min / 1024 / 1024)}MB`
+      );
     } else if (freeMemory < requirements.memory.recommended) {
-      warnings.push(`Available memory ${Math.round(freeMemory / 1024 / 1024)}MB is below recommended ${Math.round(requirements.memory.recommended / 1024 / 1024)}MB`);
+      warnings.push(
+        `Available memory ${Math.round(freeMemory / 1024 / 1024)}MB is below recommended ${Math.round(requirements.memory.recommended / 1024 / 1024)}MB`
+      );
     }
 
     return { issues, warnings };
@@ -411,15 +449,15 @@ class DebugService {
   compareVersions(version1, version2) {
     const v1parts = version1.split('.').map(Number);
     const v2parts = version2.split('.').map(Number);
-    
+
     for (let i = 0; i < Math.max(v1parts.length, v2parts.length); i++) {
       const v1part = v1parts[i] || 0;
       const v2part = v2parts[i] || 0;
-      
+
       if (v1part > v2part) return 1;
       if (v1part < v2part) return -1;
     }
-    
+
     return 0;
   }
 }

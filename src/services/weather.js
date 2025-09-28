@@ -17,7 +17,7 @@ class WeatherService {
         baseUrl: mdsaadKeys.weather.baseUrl,
         requiresApiKey: true,
         isActive: true,
-        priority: 1
+        priority: 1,
       },
       openweathermap: {
         name: 'OpenWeatherMap',
@@ -25,17 +25,17 @@ class WeatherService {
         geocodingUrl: 'http://api.openweathermap.org/geo/1.0',
         requiresApiKey: true,
         isActive: false, // Will be activated in init if API key is configured
-        priority: 2
+        priority: 2,
       },
       weatherapi: {
         name: 'WeatherAPI (Free)',
         baseUrl: 'http://api.weatherapi.com/v1',
         requiresApiKey: true,
         isActive: false, // Will be activated in init if API key is configured
-        priority: 3
-      }
+        priority: 3,
+      },
     };
-    
+
     this.cacheTtl = 30 * 60 * 1000; // 30 minutes in milliseconds
     this.isInitialized = false;
   }
@@ -53,7 +53,9 @@ class WeatherService {
       if (openWeatherKey && !openWeatherKey.includes('YOUR_')) {
         this.providers.openweathermap.apiKey = openWeatherKey;
         this.providers.openweathermap.isActive = true;
-        loggerService.info('OpenWeatherMap provider initialized (free via MDSAAD API key)');
+        loggerService.info(
+          'OpenWeatherMap provider initialized (free via MDSAAD API key)'
+        );
       }
 
       // Use your WeatherAPI key (free access for users)
@@ -61,19 +63,26 @@ class WeatherService {
       if (weatherApiKey && !weatherApiKey.includes('YOUR_')) {
         this.providers.weatherapi.apiKey = weatherApiKey;
         this.providers.weatherapi.isActive = true;
-        loggerService.info('WeatherAPI provider initialized (free via MDSAAD API key)');
+        loggerService.info(
+          'WeatherAPI provider initialized (free via MDSAAD API key)'
+        );
       }
 
       // Check if any providers are active
-      const activeProviders = Object.values(this.providers).filter(p => p.isActive);
+      const activeProviders = Object.values(this.providers).filter(
+        p => p.isActive
+      );
       if (activeProviders.length === 0) {
-        loggerService.warn('No weather providers configured. Please set your API keys in src/config/mdsaad-keys.js');
+        loggerService.warn(
+          'No weather providers configured. Please set your API keys in src/config/mdsaad-keys.js'
+        );
       } else {
-        loggerService.info(`Weather service initialized with ${activeProviders.length} provider(s) (${activeProviders.map(p => p.name).join(', ')})`);
+        loggerService.info(
+          `Weather service initialized with ${activeProviders.length} provider(s) (${activeProviders.map(p => p.name).join(', ')})`
+        );
       }
 
       this.isInitialized = true;
-      
     } catch (error) {
       loggerService.error('Failed to initialize weather service:', error);
       throw error;
@@ -89,7 +98,7 @@ class WeatherService {
     }
 
     const { units = 'metric', lang = 'en' } = options;
-    
+
     try {
       // Try to resolve location first
       const resolvedLocation = await this.resolveLocation(location);
@@ -98,14 +107,16 @@ class WeatherService {
       }
 
       // Check if we have active providers first
-      const activeProviders = Object.entries(this.providers).filter(([, provider]) => provider.isActive);
+      const activeProviders = Object.entries(this.providers).filter(
+        ([, provider]) => provider.isActive
+      );
       if (activeProviders.length === 0) {
         throw new Error('No weather providers configured or active');
       }
 
       // Check cache first
       const cacheKey = `current:${resolvedLocation.lat}:${resolvedLocation.lon}:${units}`;
-      
+
       try {
         const cached = await cacheService.get('weather', cacheKey);
         if (cached && cached.data) {
@@ -119,36 +130,52 @@ class WeatherService {
 
       // Try to get weather from providers (prioritize by priority level)
       let weatherData = null;
-      const sortedProviders = activeProviders.sort(([,a], [,b]) => (a.priority || 999) - (b.priority || 999));
+      const sortedProviders = activeProviders.sort(
+        ([, a], [, b]) => (a.priority || 999) - (b.priority || 999)
+      );
 
       for (const [providerId, provider] of sortedProviders) {
         try {
           loggerService.info(`Fetching weather from ${provider.name}`);
-          
+
           if (providerId === 'mdsaad') {
-            weatherData = await this.getMdsaadWeatherCurrent(resolvedLocation, { units, lang });
+            weatherData = await this.getMdsaadWeatherCurrent(resolvedLocation, {
+              units,
+              lang,
+            });
           } else if (providerId === 'openweathermap') {
-            weatherData = await this.getOpenWeatherMapCurrent(resolvedLocation, { units, lang });
+            weatherData = await this.getOpenWeatherMapCurrent(
+              resolvedLocation,
+              { units, lang }
+            );
           } else if (providerId === 'weatherapi') {
-            weatherData = await this.getWeatherAPICurrent(resolvedLocation, { units, lang });
+            weatherData = await this.getWeatherAPICurrent(resolvedLocation, {
+              units,
+              lang,
+            });
           }
 
           if (weatherData) {
             // Cache successful response
-            await cacheService.set('weather', cacheKey, weatherData, this.cacheTtl);
-            
+            await cacheService.set(
+              'weather',
+              cacheKey,
+              weatherData,
+              this.cacheTtl
+            );
+
             loggerService.info(`Weather data retrieved from ${provider.name}`);
             return weatherData;
           }
-
         } catch (error) {
           loggerService.warn(`${provider.name} failed:`, error.message);
           continue; // Try next provider
         }
       }
 
-      throw new Error('All weather providers failed or no providers configured');
-
+      throw new Error(
+        'All weather providers failed or no providers configured'
+      );
     } catch (error) {
       loggerService.error('Failed to get current weather:', error);
       throw error;
@@ -164,7 +191,7 @@ class WeatherService {
     }
 
     const { units = 'metric', lang = 'en', days = 5 } = options;
-    
+
     try {
       const resolvedLocation = await this.resolveLocation(location);
       if (!resolvedLocation) {
@@ -172,14 +199,16 @@ class WeatherService {
       }
 
       // Check if we have active providers first
-      const activeProviders = Object.entries(this.providers).filter(([, provider]) => provider.isActive);
+      const activeProviders = Object.entries(this.providers).filter(
+        ([, provider]) => provider.isActive
+      );
       if (activeProviders.length === 0) {
         throw new Error('No weather providers configured or active');
       }
 
       // Check cache first
       const cacheKey = `forecast:${resolvedLocation.lat}:${resolvedLocation.lon}:${units}:${days}`;
-      
+
       try {
         const cached = await cacheService.get('weather', cacheKey);
         if (cached && cached.data) {
@@ -193,36 +222,56 @@ class WeatherService {
 
       // Try to get forecast from providers (prioritize by priority level)
       let forecastData = null;
-      const sortedProviders = activeProviders.sort(([,a], [,b]) => (a.priority || 999) - (b.priority || 999));
+      const sortedProviders = activeProviders.sort(
+        ([, a], [, b]) => (a.priority || 999) - (b.priority || 999)
+      );
 
       for (const [providerId, provider] of sortedProviders) {
         try {
           loggerService.info(`Fetching forecast from ${provider.name}`);
-          
+
           if (providerId === 'mdsaad') {
-            forecastData = await this.getMdsaadWeatherForecast(resolvedLocation, { units, lang, days });
+            forecastData = await this.getMdsaadWeatherForecast(
+              resolvedLocation,
+              { units, lang, days }
+            );
           } else if (providerId === 'openweathermap') {
-            forecastData = await this.getOpenWeatherMapForecast(resolvedLocation, { units, lang, days });
+            forecastData = await this.getOpenWeatherMapForecast(
+              resolvedLocation,
+              { units, lang, days }
+            );
           } else if (providerId === 'weatherapi') {
-            forecastData = await this.getWeatherAPIForecast(resolvedLocation, { units, lang, days });
+            forecastData = await this.getWeatherAPIForecast(resolvedLocation, {
+              units,
+              lang,
+              days,
+            });
           }
 
           if (forecastData) {
             // Cache successful response
-            await cacheService.set('weather', cacheKey, forecastData, this.cacheTtl);
-            
+            await cacheService.set(
+              'weather',
+              cacheKey,
+              forecastData,
+              this.cacheTtl
+            );
+
             loggerService.info(`Forecast data retrieved from ${provider.name}`);
             return forecastData;
           }
-
         } catch (error) {
-          loggerService.warn(`${provider.name} forecast failed:`, error.message);
+          loggerService.warn(
+            `${provider.name} forecast failed:`,
+            error.message
+          );
           continue;
         }
       }
 
-      throw new Error('All weather providers failed or no providers configured');
-
+      throw new Error(
+        'All weather providers failed or no providers configured'
+      );
     } catch (error) {
       loggerService.error('Failed to get weather forecast:', error);
       throw error;
@@ -245,7 +294,7 @@ class WeatherService {
         lat: parseFloat(coordMatch[1]),
         lon: parseFloat(coordMatch[2]),
         name: 'Custom Location',
-        country: 'N/A'
+        country: 'N/A',
       };
     }
 
@@ -261,7 +310,12 @@ class WeatherService {
       if (this.providers.mdsaad.isActive) {
         const resolved = await this.geocodeWithMdsaad(location);
         if (resolved) {
-          await cacheService.set('geocoding', cacheKey, resolved, 24 * 60 * 60 * 1000); // Cache for 24 hours
+          await cacheService.set(
+            'geocoding',
+            cacheKey,
+            resolved,
+            24 * 60 * 60 * 1000
+          ); // Cache for 24 hours
           return resolved;
         }
       }
@@ -270,7 +324,12 @@ class WeatherService {
       if (this.providers.openweathermap.isActive) {
         const resolved = await this.geocodeWithOpenWeatherMap(location);
         if (resolved) {
-          await cacheService.set('geocoding', cacheKey, resolved, 24 * 60 * 60 * 1000);
+          await cacheService.set(
+            'geocoding',
+            cacheKey,
+            resolved,
+            24 * 60 * 60 * 1000
+          );
           return resolved;
         }
       }
@@ -279,13 +338,17 @@ class WeatherService {
       if (this.providers.weatherapi.isActive) {
         const resolved = await this.geocodeWithWeatherAPI(location);
         if (resolved) {
-          await cacheService.set('geocoding', cacheKey, resolved, 24 * 60 * 60 * 1000);
+          await cacheService.set(
+            'geocoding',
+            cacheKey,
+            resolved,
+            24 * 60 * 60 * 1000
+          );
           return resolved;
         }
       }
 
       return null;
-
     } catch (error) {
       loggerService.error('Location resolution failed:', error);
       return null;
@@ -307,14 +370,16 @@ class WeatherService {
       }
 
       // Check if we have active providers first
-      const activeProviders = Object.entries(this.providers).filter(([, provider]) => provider.isActive);
+      const activeProviders = Object.entries(this.providers).filter(
+        ([, provider]) => provider.isActive
+      );
       if (activeProviders.length === 0) {
         return []; // No alerts available without providers
       }
 
       // Check cache first
       const cacheKey = `alerts:${resolvedLocation.lat}:${resolvedLocation.lon}`;
-      
+
       try {
         const cached = await cacheService.get('weather', cacheKey);
         if (cached && cached.data) {
@@ -326,7 +391,9 @@ class WeatherService {
       }
 
       let alertData = null;
-      const sortedProviders = activeProviders.sort(([,a], [,b]) => (a.priority || 999) - (b.priority || 999));
+      const sortedProviders = activeProviders.sort(
+        ([, a], [, b]) => (a.priority || 999) - (b.priority || 999)
+      );
 
       for (const [providerId, provider] of sortedProviders) {
         try {
@@ -339,11 +406,15 @@ class WeatherService {
           }
 
           if (alertData) {
-            await cacheService.set('weather', cacheKey, alertData, this.cacheTtl);
-            
+            await cacheService.set(
+              'weather',
+              cacheKey,
+              alertData,
+              this.cacheTtl
+            );
+
             return alertData;
           }
-
         } catch (error) {
           loggerService.warn(`${provider.name} alerts failed:`, error.message);
           continue;
@@ -351,7 +422,6 @@ class WeatherService {
       }
 
       return []; // No alerts or providers failed
-
     } catch (error) {
       loggerService.error('Failed to get weather alerts:', error);
       return [];
@@ -367,8 +437,8 @@ class WeatherService {
       const response = await axios.get('https://ipapi.co/json/', {
         timeout: 5000,
         headers: {
-          'User-Agent': 'MDSAAD CLI Tool'
-        }
+          'User-Agent': 'MDSAAD CLI Tool',
+        },
       });
 
       if (response.data && response.data.latitude && response.data.longitude) {
@@ -376,13 +446,13 @@ class WeatherService {
           lat: response.data.latitude,
           lon: response.data.longitude,
           name: response.data.city || 'Current Location',
-          country: response.data.country_name || response.data.country || 'Unknown',
-          region: response.data.region || null
+          country:
+            response.data.country_name || response.data.country || 'Unknown',
+          region: response.data.region || null,
         };
       }
 
       return null;
-
     } catch (error) {
       loggerService.warn('Auto location detection failed:', error.message);
       return null;
@@ -395,79 +465,83 @@ class WeatherService {
   async getMdsaadWeatherCurrent(location, options = {}) {
     const { units, lang } = options;
     const url = `${this.providers.mdsaad.baseUrl}/current`;
-    
+
     const params = {
       lat: location.lat,
       lon: location.lon,
       units: units || 'metric',
-      lang: lang || 'en'
+      lang: lang || 'en',
     };
 
     try {
-      const response = await axios.get(url, { 
-        params, 
+      const response = await axios.get(url, {
+        params,
         timeout: 10000,
         headers: {
-          'Authorization': `Bearer ${mdsaadKeys.weather.apiKey}`,
+          Authorization: `Bearer ${mdsaadKeys.weather.apiKey}`,
           'User-Agent': 'MDSAAD CLI Tool v1.0.0',
-          'X-Client': 'mdsaad-cli'
-        }
+          'X-Client': 'mdsaad-cli',
+        },
       });
-      
+
       return this.normalizeCurrentWeather(response.data, 'mdsaad', location);
     } catch (error) {
       // If MDSAAD API fails, throw to try fallback providers
-      throw new Error(`MDSAAD API failed: ${error.response?.status || error.message}`);
+      throw new Error(
+        `MDSAAD API failed: ${error.response?.status || error.message}`
+      );
     }
   }
 
   async getMdsaadWeatherForecast(location, options = {}) {
     const { units, lang, days } = options;
     const url = `${this.providers.mdsaad.baseUrl}/forecast`;
-    
+
     const params = {
       lat: location.lat,
       lon: location.lon,
       units: units || 'metric',
       lang: lang || 'en',
-      days: Math.min(days || 5, 7) // MDSAAD API supports up to 7 days
+      days: Math.min(days || 5, 7), // MDSAAD API supports up to 7 days
     };
 
     try {
-      const response = await axios.get(url, { 
-        params, 
+      const response = await axios.get(url, {
+        params,
         timeout: 10000,
         headers: {
-          'Authorization': 'Bearer YOUR_WEATHER_API_KEY_HERE', // Replace with your actual weather API key
+          Authorization: 'Bearer YOUR_WEATHER_API_KEY_HERE', // Replace with your actual weather API key
           'User-Agent': 'MDSAAD CLI Tool v1.0.0',
-          'X-Client': 'mdsaad-cli'
-        }
+          'X-Client': 'mdsaad-cli',
+        },
       });
-      
+
       return this.normalizeForecast(response.data, 'mdsaad', location);
     } catch (error) {
-      throw new Error(`MDSAAD Forecast API failed: ${error.response?.status || error.message}`);
+      throw new Error(
+        `MDSAAD Forecast API failed: ${error.response?.status || error.message}`
+      );
     }
   }
 
   async getMdsaadWeatherAlerts(location) {
     const url = `${this.providers.mdsaad.baseUrl}/alerts`;
-    
+
     const params = {
       lat: location.lat,
-      lon: location.lon
+      lon: location.lon,
     };
 
     try {
-      const response = await axios.get(url, { 
-        params, 
+      const response = await axios.get(url, {
+        params,
         timeout: 10000,
         headers: {
           'User-Agent': 'MDSAAD CLI Tool v1.0.0',
-          'X-Client': 'mdsaad-cli'
-        }
+          'X-Client': 'mdsaad-cli',
+        },
       });
-      
+
       return response.data.alerts || [];
     } catch (error) {
       // Alerts are optional, return empty array if failed
@@ -478,30 +552,34 @@ class WeatherService {
 
   async geocodeWithMdsaad(locationName) {
     const url = `${this.providers.mdsaad.baseUrl}/geocode`;
-    
+
     const params = {
       q: locationName,
-      limit: 1
+      limit: 1,
     };
 
     try {
-      const response = await axios.get(url, { 
-        params, 
+      const response = await axios.get(url, {
+        params,
         timeout: 10000,
         headers: {
           'User-Agent': 'MDSAAD CLI Tool v1.0.0',
-          'X-Client': 'mdsaad-cli'
-        }
+          'X-Client': 'mdsaad-cli',
+        },
       });
-      
-      if (response.data && response.data.results && response.data.results.length > 0) {
+
+      if (
+        response.data &&
+        response.data.results &&
+        response.data.results.length > 0
+      ) {
         const result = response.data.results[0];
         return {
           lat: result.lat,
           lon: result.lon,
           name: result.name,
           country: result.country,
-          state: result.state || result.region || null
+          state: result.state || result.region || null,
         };
       }
 
@@ -518,46 +596,50 @@ class WeatherService {
   async getOpenWeatherMapCurrent(location, options = {}) {
     const { units, lang } = options;
     const url = `${this.providers.openweathermap.baseUrl}/weather`;
-    
-    const params = {
-      lat: location.lat,
-      lon: location.lon,
-      appid: this.providers.openweathermap.apiKey,
-      units: units,
-      lang: lang
-    };
 
-    const response = await axios.get(url, { params, timeout: 10000 });
-    
-    return this.normalizeCurrentWeather(response.data, 'openweathermap', location);
-  }
-
-  async getOpenWeatherMapForecast(location, options = {}) {
-    const { units, lang, days } = options;
-    const url = `${this.providers.openweathermap.baseUrl}/forecast`;
-    
     const params = {
       lat: location.lat,
       lon: location.lon,
       appid: this.providers.openweathermap.apiKey,
       units: units,
       lang: lang,
-      cnt: Math.min(days * 8, 40) // 8 forecasts per day (3-hour intervals), max 40
     };
 
     const response = await axios.get(url, { params, timeout: 10000 });
-    
+
+    return this.normalizeCurrentWeather(
+      response.data,
+      'openweathermap',
+      location
+    );
+  }
+
+  async getOpenWeatherMapForecast(location, options = {}) {
+    const { units, lang, days } = options;
+    const url = `${this.providers.openweathermap.baseUrl}/forecast`;
+
+    const params = {
+      lat: location.lat,
+      lon: location.lon,
+      appid: this.providers.openweathermap.apiKey,
+      units: units,
+      lang: lang,
+      cnt: Math.min(days * 8, 40), // 8 forecasts per day (3-hour intervals), max 40
+    };
+
+    const response = await axios.get(url, { params, timeout: 10000 });
+
     return this.normalizeForecast(response.data, 'openweathermap', location);
   }
 
   async getOpenWeatherMapAlerts(location) {
     const url = `${this.providers.openweathermap.baseUrl}/onecall`;
-    
+
     const params = {
       lat: location.lat,
       lon: location.lon,
       appid: this.providers.openweathermap.apiKey,
-      exclude: 'minutely,hourly,daily'
+      exclude: 'minutely,hourly,daily',
     };
 
     try {
@@ -571,15 +653,15 @@ class WeatherService {
 
   async geocodeWithOpenWeatherMap(locationName) {
     const url = `${this.providers.openweathermap.geocodingUrl}/direct`;
-    
+
     const params = {
       q: locationName,
       limit: 1,
-      appid: this.providers.openweathermap.apiKey
+      appid: this.providers.openweathermap.apiKey,
     };
 
     const response = await axios.get(url, { params, timeout: 10000 });
-    
+
     if (response.data && response.data.length > 0) {
       const result = response.data[0];
       return {
@@ -587,7 +669,7 @@ class WeatherService {
         lon: result.lon,
         name: result.name,
         country: result.country,
-        state: result.state || null
+        state: result.state || null,
       };
     }
 
@@ -599,25 +681,32 @@ class WeatherService {
    */
   async getWeatherAPICurrent(location, options = {}) {
     const url = `${this.providers.weatherapi.baseUrl}/current.json`;
-    
+
     const params = {
       key: this.providers.weatherapi.apiKey,
       q: `${location.lat},${location.lon}`,
-      aqi: 'yes'
+      aqi: 'yes',
     };
 
-    loggerService.verbose(`WeatherAPI request: ${url} with params:`, JSON.stringify(params));
+    loggerService.verbose(
+      `WeatherAPI request: ${url} with params:`,
+      JSON.stringify(params)
+    );
 
     try {
       const response = await axios.get(url, { params, timeout: 10000 });
-      return this.normalizeCurrentWeather(response.data, 'weatherapi', location);
+      return this.normalizeCurrentWeather(
+        response.data,
+        'weatherapi',
+        location
+      );
     } catch (error) {
       loggerService.error(`WeatherAPI request failed:`, {
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
         url: url,
-        params: params
+        params: params,
       });
       throw error;
     }
@@ -626,16 +715,19 @@ class WeatherService {
   async getWeatherAPIForecast(location, options = {}) {
     const { days } = options;
     const url = `${this.providers.weatherapi.baseUrl}/forecast.json`;
-    
+
     const params = {
       key: this.providers.weatherapi.apiKey,
       q: `${location.lat},${location.lon}`,
       days: Math.min(days, 10), // WeatherAPI supports up to 10 days
       aqi: 'yes',
-      alerts: 'yes'
+      alerts: 'yes',
     };
 
-    loggerService.verbose(`WeatherAPI forecast request: ${url} with params:`, JSON.stringify(params));
+    loggerService.verbose(
+      `WeatherAPI forecast request: ${url} with params:`,
+      JSON.stringify(params)
+    );
 
     try {
       const response = await axios.get(url, { params, timeout: 10000 });
@@ -646,7 +738,7 @@ class WeatherService {
         statusText: error.response?.statusText,
         data: error.response?.data,
         url: url,
-        params: params
+        params: params,
       });
       throw error;
     }
@@ -654,7 +746,9 @@ class WeatherService {
 
   async getWeatherAPIAlerts(location) {
     try {
-      const forecastData = await this.getWeatherAPIForecast(location, { days: 1 });
+      const forecastData = await this.getWeatherAPIForecast(location, {
+        days: 1,
+      });
       return forecastData.alerts || [];
     } catch (error) {
       return [];
@@ -663,14 +757,14 @@ class WeatherService {
 
   async geocodeWithWeatherAPI(locationName) {
     const url = `${this.providers.weatherapi.baseUrl}/search.json`;
-    
+
     const params = {
       key: this.providers.weatherapi.apiKey,
-      q: locationName
+      q: locationName,
     };
 
     const response = await axios.get(url, { params, timeout: 10000 });
-    
+
     if (response.data && response.data.length > 0) {
       const result = response.data[0];
       return {
@@ -678,7 +772,7 @@ class WeatherService {
         lon: result.lon,
         name: result.name,
         country: result.country,
-        region: result.region || null
+        region: result.region || null,
       };
     }
 
@@ -693,7 +787,7 @@ class WeatherService {
       provider: provider,
       location: location,
       timestamp: Date.now(),
-      current: {}
+      current: {},
     };
 
     if (provider === 'mdsaad') {
@@ -711,14 +805,14 @@ class WeatherService {
         wind: {
           speed: Math.round(data.wind?.speed || 0),
           direction: data.wind?.direction || null,
-          gust: Math.round(data.wind?.gust || 0)
+          gust: Math.round(data.wind?.gust || 0),
         },
         clouds: data.clouds || 0,
         rain: data.precipitation?.rain || 0,
         snow: data.precipitation?.snow || 0,
         sunrise: data.sunrise ? new Date(data.sunrise) : null,
         sunset: data.sunset ? new Date(data.sunset) : null,
-        airQuality: data.airQuality || null
+        airQuality: data.airQuality || null,
       };
     } else if (provider === 'openweathermap') {
       normalized.current = {
@@ -734,13 +828,13 @@ class WeatherService {
         wind: {
           speed: Math.round(data.wind?.speed || 0),
           direction: data.wind?.deg || null,
-          gust: Math.round(data.wind?.gust || 0)
+          gust: Math.round(data.wind?.gust || 0),
         },
         clouds: data.clouds?.all || 0,
         rain: data.rain?.['1h'] || 0,
         snow: data.snow?.['1h'] || 0,
         sunrise: data.sys?.sunrise ? new Date(data.sys.sunrise * 1000) : null,
-        sunset: data.sys?.sunset ? new Date(data.sys.sunset * 1000) : null
+        sunset: data.sys?.sunset ? new Date(data.sys.sunset * 1000) : null,
       };
     } else if (provider === 'weatherapi') {
       normalized.current = {
@@ -756,21 +850,23 @@ class WeatherService {
         wind: {
           speed: Math.round(data.current.wind_kph / 3.6), // Convert to m/s
           direction: data.current.wind_degree,
-          gust: Math.round(data.current.gust_kph / 3.6)
+          gust: Math.round(data.current.gust_kph / 3.6),
         },
         clouds: data.current.cloud,
         rain: data.current.precip_mm || 0,
         snow: 0, // WeatherAPI doesn't separate rain/snow
-        airQuality: data.current.air_quality ? {
-          co: data.current.air_quality.co,
-          no2: data.current.air_quality.no2,
-          o3: data.current.air_quality.o3,
-          so2: data.current.air_quality.so2,
-          pm2_5: data.current.air_quality.pm2_5,
-          pm10: data.current.air_quality.pm10,
-          usEpaIndex: data.current.air_quality['us-epa-index'],
-          gbDefraIndex: data.current.air_quality['gb-defra-index']
-        } : null
+        airQuality: data.current.air_quality
+          ? {
+              co: data.current.air_quality.co,
+              no2: data.current.air_quality.no2,
+              o3: data.current.air_quality.o3,
+              so2: data.current.air_quality.so2,
+              pm2_5: data.current.air_quality.pm2_5,
+              pm10: data.current.air_quality.pm10,
+              usEpaIndex: data.current.air_quality['us-epa-index'],
+              gbDefraIndex: data.current.air_quality['gb-defra-index'],
+            }
+          : null,
       };
 
       // Add sunrise/sunset if available
@@ -792,7 +888,7 @@ class WeatherService {
       provider: provider,
       location: location,
       timestamp: Date.now(),
-      forecast: []
+      forecast: [],
     };
 
     if (provider === 'mdsaad') {
@@ -803,7 +899,7 @@ class WeatherService {
           current: Math.round(item.temperature?.current || 0),
           min: Math.round(item.temperature?.min || 0),
           max: Math.round(item.temperature?.max || 0),
-          feelsLike: Math.round(item.temperature?.feelsLike || 0)
+          feelsLike: Math.round(item.temperature?.feelsLike || 0),
         },
         condition: item.condition || 'Unknown',
         conditionCode: item.conditionCode || 0,
@@ -813,7 +909,7 @@ class WeatherService {
         wind: {
           speed: Math.round(item.wind?.speed || 0),
           direction: item.wind?.direction || null,
-          gust: Math.round(item.wind?.gust || 0)
+          gust: Math.round(item.wind?.gust || 0),
         },
         clouds: item.clouds || 0,
         rain: item.precipitation?.rain || 0,
@@ -821,7 +917,7 @@ class WeatherService {
         pop: item.precipitationChance || 0,
         uvIndex: item.uvIndex || null,
         sunrise: item.sunrise ? new Date(item.sunrise) : null,
-        sunset: item.sunset ? new Date(item.sunset) : null
+        sunset: item.sunset ? new Date(item.sunset) : null,
       }));
     } else if (provider === 'openweathermap') {
       normalized.forecast = data.list.map(item => ({
@@ -830,7 +926,7 @@ class WeatherService {
           current: Math.round(item.main.temp),
           min: Math.round(item.main.temp_min),
           max: Math.round(item.main.temp_max),
-          feelsLike: Math.round(item.main.feels_like)
+          feelsLike: Math.round(item.main.feels_like),
         },
         condition: item.weather[0].description,
         conditionCode: item.weather[0].id,
@@ -840,16 +936,16 @@ class WeatherService {
         wind: {
           speed: Math.round(item.wind?.speed || 0),
           direction: item.wind?.deg || null,
-          gust: Math.round(item.wind?.gust || 0)
+          gust: Math.round(item.wind?.gust || 0),
         },
         clouds: item.clouds?.all || 0,
         rain: item.rain?.['3h'] || 0,
         snow: item.snow?.['3h'] || 0,
-        pop: Math.round((item.pop || 0) * 100) // Probability of precipitation
+        pop: Math.round((item.pop || 0) * 100), // Probability of precipitation
       }));
     } else if (provider === 'weatherapi') {
       normalized.forecast = [];
-      
+
       data.forecast.forecastday.forEach(day => {
         // Daily forecast
         normalized.forecast.push({
@@ -857,7 +953,7 @@ class WeatherService {
           temperature: {
             min: Math.round(day.day.mintemp_c),
             max: Math.round(day.day.maxtemp_c),
-            current: Math.round(day.day.avgtemp_c)
+            current: Math.round(day.day.avgtemp_c),
           },
           condition: day.day.condition.text,
           conditionCode: day.day.condition.code,
@@ -865,14 +961,14 @@ class WeatherService {
           humidity: day.day.avghumidity,
           wind: {
             speed: Math.round(day.day.maxwind_kph / 3.6),
-            direction: null
+            direction: null,
           },
           rain: day.day.totalprecip_mm || 0,
           snow: day.day.totalsnow_cm || 0,
           pop: day.day.daily_chance_of_rain || 0,
           uvIndex: day.day.uv,
           sunrise: this.parseTimeString(day.astro.sunrise),
-          sunset: this.parseTimeString(day.astro.sunset)
+          sunset: this.parseTimeString(day.astro.sunset),
         });
       });
     }
@@ -885,22 +981,21 @@ class WeatherService {
    */
   parseTimeString(timeStr) {
     if (!timeStr) return null;
-    
+
     try {
       const [time, period] = timeStr.split(' ');
       const [hours, minutes] = time.split(':').map(Number);
-      
+
       let hour24 = hours;
       if (period === 'PM' && hours !== 12) {
         hour24 += 12;
       } else if (period === 'AM' && hours === 12) {
         hour24 = 0;
       }
-      
+
       const date = new Date();
       date.setHours(hour24, minutes, 0, 0);
       return date;
-      
     } catch (error) {
       return null;
     }
@@ -917,8 +1012,10 @@ class WeatherService {
    * Get weather service statistics
    */
   getStats() {
-    const activeProviders = Object.values(this.providers).filter(p => p.isActive);
-    
+    const activeProviders = Object.values(this.providers).filter(
+      p => p.isActive
+    );
+
     return {
       isInitialized: this.isInitialized,
       activeProviders: activeProviders.length,
@@ -930,8 +1027,8 @@ class WeatherService {
         alerts: true,
         geocoding: true,
         autoLocation: true,
-        airQuality: activeProviders.some(p => p.name === 'WeatherAPI')
-      }
+        airQuality: activeProviders.some(p => p.name === 'WeatherAPI'),
+      },
     };
   }
 
@@ -945,13 +1042,13 @@ class WeatherService {
 
     // Save to config
     await configService.set(`weather.${provider}.apiKey`, apiKey);
-    
+
     // Update provider state
     this.providers[provider].apiKey = apiKey;
     this.providers[provider].isActive = true;
-    
+
     loggerService.info(`API key set for ${this.providers[provider].name}`);
-    
+
     return true;
   }
 
@@ -964,7 +1061,7 @@ class WeatherService {
       name: provider.name,
       isActive: provider.isActive,
       hasApiKey: !!provider.apiKey,
-      requiresApiKey: provider.requiresApiKey
+      requiresApiKey: provider.requiresApiKey,
     }));
   }
 }

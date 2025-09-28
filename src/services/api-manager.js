@@ -30,16 +30,16 @@ class APIManager {
     try {
       // Load API configurations
       await this.loadProviderConfigurations();
-      
+
       // Initialize rate limiters
       this.initializeRateLimiters();
-      
+
       // Initialize circuit breakers
       this.initializeCircuitBreakers();
-      
+
       // Start monitoring background tasks
       this.startMonitoring();
-      
+
       this.initialized = true;
       loggerService.info('API Manager initialized successfully');
     } catch (error) {
@@ -63,12 +63,12 @@ class APIManager {
       rateLimit: config.rateLimit || { requests: 100, window: 3600000 }, // 100 req/hour default
       priority: config.priority || 1,
       healthCheck: config.healthCheck,
-      enabled: config.enabled !== false
+      enabled: config.enabled !== false,
     };
 
     this.providers.set(name, provider);
     this.initializeProviderTracking(name);
-    
+
     loggerService.info(`API Provider registered: ${name}`);
     return provider;
   }
@@ -81,7 +81,7 @@ class APIManager {
     this.rateLimiters.set(providerName, {
       requests: [],
       blocked: false,
-      blockedUntil: null
+      blockedUntil: null,
     });
 
     // Request counting
@@ -89,21 +89,21 @@ class APIManager {
       total: 0,
       successful: 0,
       failed: 0,
-      lastRequest: null
+      lastRequest: null,
     });
 
     // Failure tracking for circuit breaker
     this.failureTracking.set(providerName, {
       consecutiveFailures: 0,
       lastFailure: null,
-      totalFailures: 0
+      totalFailures: 0,
     });
 
     // Circuit breaker state
     this.circuitBreakers.set(providerName, {
       state: 'CLOSED', // CLOSED, OPEN, HALF_OPEN
       openedAt: null,
-      nextAttemptAt: null
+      nextAttemptAt: null,
     });
   }
 
@@ -121,11 +121,11 @@ class APIManager {
       headers = {},
       timeout = null,
       preferredProvider = null,
-      maxRetries = 3
+      maxRetries = 3,
     } = options;
 
     let providers = this.getAvailableProviders(service);
-    
+
     // Sort providers by priority and health
     providers = this.sortProvidersByPriority(providers);
 
@@ -133,7 +133,10 @@ class APIManager {
     if (preferredProvider && this.providers.has(preferredProvider)) {
       const preferred = this.providers.get(preferredProvider);
       if (preferred.enabled && this.isProviderHealthy(preferredProvider)) {
-        providers = [preferredProvider, ...providers.filter(p => p !== preferredProvider)];
+        providers = [
+          preferredProvider,
+          ...providers.filter(p => p !== preferredProvider),
+        ];
       }
     }
 
@@ -143,13 +146,17 @@ class APIManager {
       try {
         // Check rate limits
         if (!this.checkRateLimit(providerName)) {
-          loggerService.warn(`Rate limit exceeded for provider: ${providerName}`);
+          loggerService.warn(
+            `Rate limit exceeded for provider: ${providerName}`
+          );
           continue;
         }
 
         // Check circuit breaker
         if (!this.isCircuitClosed(providerName)) {
-          loggerService.warn(`Circuit breaker open for provider: ${providerName}`);
+          loggerService.warn(
+            `Circuit breaker open for provider: ${providerName}`
+          );
           continue;
         }
 
@@ -157,25 +164,26 @@ class APIManager {
           method,
           data,
           headers,
-          timeout
+          timeout,
         });
 
         // Record successful request
         this.recordSuccess(providerName);
-        
-        return result;
 
+        return result;
       } catch (error) {
         lastError = error;
         this.recordFailure(providerName, error);
-        
+
         loggerService.warn(`Provider ${providerName} failed:`, error.message);
-        
+
         // If this was the last provider, throw the error
         if (providers.indexOf(providerName) === providers.length - 1) {
-          throw new Error(`All API providers failed. Last error: ${error.message}`);
+          throw new Error(
+            `All API providers failed. Last error: ${error.message}`
+          );
         }
-        
+
         // Continue to next provider
         continue;
       }
@@ -190,16 +198,16 @@ class APIManager {
   async executeRequest(providerName, endpoint, options) {
     const provider = this.providers.get(providerName);
     const requestId = this.generateRequestId();
-    
+
     const requestConfig = {
       method: options.method,
       url: `${provider.baseURL}${endpoint}`,
       headers: {
         ...provider.headers,
-        ...options.headers
+        ...options.headers,
       },
       timeout: options.timeout || provider.timeout,
-      data: options.data
+      data: options.data,
     };
 
     // Add API key if available
@@ -208,20 +216,27 @@ class APIManager {
     }
 
     const startTime = Date.now();
-    
+
     try {
       loggerService.debug(`Making request to ${providerName}:`, {
         requestId,
         method: options.method,
         endpoint,
-        provider: providerName
+        provider: providerName,
       });
 
       const response = await axios(requestConfig);
       const duration = Date.now() - startTime;
 
       // Log successful request
-      await this.logRequest(requestId, providerName, endpoint, options, response, duration);
+      await this.logRequest(
+        requestId,
+        providerName,
+        endpoint,
+        options,
+        response,
+        duration
+      );
 
       return {
         data: response.data,
@@ -229,15 +244,22 @@ class APIManager {
         headers: response.headers,
         provider: providerName,
         requestId,
-        duration
+        duration,
       };
-
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       // Log failed request
-      await this.logRequest(requestId, providerName, endpoint, options, null, duration, error);
-      
+      await this.logRequest(
+        requestId,
+        providerName,
+        endpoint,
+        options,
+        null,
+        duration,
+        error
+      );
+
       throw error;
     }
   }
@@ -248,15 +270,15 @@ class APIManager {
   checkRateLimit(providerName) {
     const provider = this.providers.get(providerName);
     const limiter = this.rateLimiters.get(providerName);
-    
+
     if (!provider || !limiter) return false;
 
     const now = Date.now();
     const windowStart = now - provider.rateLimit.window;
-    
+
     // Clean old requests
     limiter.requests = limiter.requests.filter(time => time > windowStart);
-    
+
     // Check if we're blocked
     if (limiter.blocked && limiter.blockedUntil > now) {
       return false;
@@ -273,7 +295,7 @@ class APIManager {
     limiter.requests.push(now);
     limiter.blocked = false;
     limiter.blockedUntil = null;
-    
+
     return true;
   }
 
@@ -283,7 +305,7 @@ class APIManager {
   isCircuitClosed(providerName) {
     const breaker = this.circuitBreakers.get(providerName);
     const failure = this.failureTracking.get(providerName);
-    
+
     if (!breaker || !failure) return true;
 
     const now = Date.now();
@@ -291,19 +313,21 @@ class APIManager {
     switch (breaker.state) {
       case 'CLOSED':
         return true;
-        
+
       case 'OPEN':
         // Check if we should transition to HALF_OPEN
         if (breaker.nextAttemptAt && now >= breaker.nextAttemptAt) {
           breaker.state = 'HALF_OPEN';
-          loggerService.info(`Circuit breaker transitioning to HALF_OPEN: ${providerName}`);
+          loggerService.info(
+            `Circuit breaker transitioning to HALF_OPEN: ${providerName}`
+          );
           return true;
         }
         return false;
-        
+
       case 'HALF_OPEN':
         return true;
-        
+
       default:
         return true;
     }
@@ -329,7 +353,9 @@ class APIManager {
 
     if (breaker && breaker.state === 'HALF_OPEN') {
       breaker.state = 'CLOSED';
-      loggerService.info(`Circuit breaker closed after successful request: ${providerName}`);
+      loggerService.info(
+        `Circuit breaker closed after successful request: ${providerName}`
+      );
     }
   }
 
@@ -358,8 +384,10 @@ class APIManager {
       breaker.state = 'OPEN';
       breaker.openedAt = Date.now();
       breaker.nextAttemptAt = Date.now() + 60000; // 1 minute
-      
-      loggerService.warn(`Circuit breaker opened due to consecutive failures: ${providerName}`);
+
+      loggerService.warn(
+        `Circuit breaker opened due to consecutive failures: ${providerName}`
+      );
     }
   }
 
@@ -379,7 +407,7 @@ class APIManager {
   isProviderHealthy(providerName) {
     const breaker = this.circuitBreakers.get(providerName);
     const limiter = this.rateLimiters.get(providerName);
-    
+
     // Check circuit breaker
     if (breaker && breaker.state === 'OPEN') {
       return false;
@@ -400,16 +428,16 @@ class APIManager {
     return providers.sort((a, b) => {
       const providerA = this.providers.get(a);
       const providerB = this.providers.get(b);
-      
+
       // Higher priority first
       if (providerA.priority !== providerB.priority) {
         return providerB.priority - providerA.priority;
       }
-      
+
       // Then by health (less failures first)
       const failuresA = this.failureTracking.get(a)?.consecutiveFailures || 0;
       const failuresB = this.failureTracking.get(b)?.consecutiveFailures || 0;
-      
+
       return failuresA - failuresB;
     });
   }
@@ -417,7 +445,15 @@ class APIManager {
   /**
    * Log request details
    */
-  async logRequest(requestId, providerName, endpoint, options, response, duration, error = null) {
+  async logRequest(
+    requestId,
+    providerName,
+    endpoint,
+    options,
+    response,
+    duration,
+    error = null
+  ) {
     const logEntry = {
       requestId,
       timestamp: new Date().toISOString(),
@@ -427,13 +463,18 @@ class APIManager {
       duration,
       success: !error,
       status: response ? response.status : null,
-      error: error ? error.message : null
+      error: error ? error.message : null,
     };
 
     try {
       // Cache the log entry for monitoring
-      await cacheService.set(`api_log_${requestId}`, logEntry, 'logs', 86400000); // 24 hours
-      
+      await cacheService.set(
+        `api_log_${requestId}`,
+        logEntry,
+        'logs',
+        86400000
+      ); // 24 hours
+
       // Also log to console in debug mode
       if (configService.get('debug', false)) {
         loggerService.debug('API Request Log:', logEntry);
@@ -461,8 +502,8 @@ class APIManager {
         successfulRequests: 0,
         failedRequests: 0,
         averageResponseTime: 0,
-        uptime: Date.now() - this.initTime || 0
-      }
+        uptime: Date.now() - this.initTime || 0,
+      },
     };
 
     for (const [name, provider] of this.providers) {
@@ -478,7 +519,7 @@ class APIManager {
         failures: failures || { consecutiveFailures: 0, totalFailures: 0 },
         circuitBreaker: breaker?.state || 'CLOSED',
         rateLimited: limiter?.blocked || false,
-        healthy: this.isProviderHealthy(name)
+        healthy: this.isProviderHealthy(name),
       };
 
       if (counts) {
@@ -496,7 +537,7 @@ class APIManager {
    */
   async loadProviderConfigurations() {
     const providers = configService.get('apiProviders', {});
-    
+
     for (const [name, config] of Object.entries(providers)) {
       if (config.enabled !== false) {
         this.registerProvider(name, config);
@@ -518,20 +559,20 @@ class APIManager {
         baseURL: 'https://generativelanguage.googleapis.com/v1beta',
         rateLimit: { requests: 60, window: 60000 }, // 60 req/min
         priority: 5,
-        enabled: false
+        enabled: false,
       },
       openrouter: {
         baseURL: 'https://openrouter.ai/api/v1',
         rateLimit: { requests: 100, window: 60000 }, // 100 req/min
         priority: 4,
-        enabled: false
+        enabled: false,
       },
       deepseek: {
         baseURL: 'https://api.deepseek.com/beta',
         rateLimit: { requests: 50, window: 60000 }, // 50 req/min
         priority: 3,
-        enabled: false
-      }
+        enabled: false,
+      },
     };
 
     for (const [name, config] of Object.entries(defaultProviders)) {
@@ -580,7 +621,7 @@ class APIManager {
    */
   cleanupRateLimitData() {
     const now = Date.now();
-    
+
     for (const [providerName, limiter] of this.rateLimiters) {
       const provider = this.providers.get(providerName);
       if (provider) {
@@ -600,9 +641,9 @@ class APIManager {
           await axios({
             method: 'GET',
             url: provider.healthCheck,
-            timeout: 5000
+            timeout: 5000,
           });
-          
+
           loggerService.debug(`Health check passed: ${name}`);
         } catch (error) {
           loggerService.warn(`Health check failed: ${name}`, error.message);
@@ -619,7 +660,9 @@ class APIManager {
     const provider = this.providers.get(providerName);
     if (provider) {
       provider.enabled = enabled;
-      loggerService.info(`Provider ${providerName} ${enabled ? 'enabled' : 'disabled'}`);
+      loggerService.info(
+        `Provider ${providerName} ${enabled ? 'enabled' : 'disabled'}`
+      );
     }
   }
 
@@ -643,17 +686,17 @@ class APIManager {
   resetCircuitBreaker(providerName) {
     const breaker = this.circuitBreakers.get(providerName);
     const failures = this.failureTracking.get(providerName);
-    
+
     if (breaker) {
       breaker.state = 'CLOSED';
       breaker.openedAt = null;
       breaker.nextAttemptAt = null;
     }
-    
+
     if (failures) {
       failures.consecutiveFailures = 0;
     }
-    
+
     loggerService.info(`Circuit breaker reset for provider: ${providerName}`);
   }
 }

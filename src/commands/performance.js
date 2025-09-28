@@ -26,7 +26,7 @@ class PerformanceCommand {
       cache: 'Manage offline cache',
       gc: 'Force garbage collection',
       benchmark: 'Run performance benchmarks',
-      status: 'Show overall performance status'
+      status: 'Show overall performance status',
     };
   }
 
@@ -48,37 +48,44 @@ class PerformanceCommand {
       switch (action) {
         case 'monitor':
           return await this.handleMonitor(options);
-        
+
         case 'report':
           return await this.handleReport(options);
-        
+
         case 'optimize':
           return await this.handleOptimize(options);
-        
+
         case 'startup':
           return await this.handleStartup(options);
-        
+
         case 'memory':
           return await this.handleMemory(options);
-        
+
         case 'cache':
           return await this.handleCache(options);
-        
+
         case 'gc':
           return await this.handleGarbageCollection(options);
-        
+
         case 'benchmark':
           return await this.handleBenchmark(options);
-        
+
         case 'status':
           return await this.handleStatus(options);
-        
+
         default:
-          return outputFormatter.error(`Unknown action: ${action}. Use 'mdsaad performance' to see available actions.`);
+          return outputFormatter.error(
+            `Unknown action: ${action}. Use 'mdsaad performance' to see available actions.`
+          );
       }
     } catch (error) {
-      debugService.debug('Performance command error', { error: error.message, stack: error.stack });
-      return outputFormatter.error(`Performance command failed: ${error.message}`);
+      debugService.debug('Performance command error', {
+        error: error.message,
+        stack: error.stack,
+      });
+      return outputFormatter.error(
+        `Performance command failed: ${error.message}`
+      );
     }
   }
 
@@ -92,38 +99,38 @@ class PerformanceCommand {
       output: null,
       watch: false,
       duration: 10,
-      threshold: null
+      threshold: null,
     };
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      
+
       switch (arg) {
         case '-v':
         case '--verbose':
           options.verbose = true;
           break;
-        
+
         case '-f':
         case '--format':
           options.format = args[++i] || 'table';
           break;
-        
+
         case '-o':
         case '--output':
           options.output = args[++i];
           break;
-        
+
         case '-w':
         case '--watch':
           options.watch = true;
           break;
-        
+
         case '-d':
         case '--duration':
           options.duration = parseInt(args[++i]) || 10;
           break;
-        
+
         case '-t':
         case '--threshold':
           options.threshold = parseFloat(args[++i]);
@@ -141,15 +148,15 @@ class PerformanceCommand {
     if (!performanceService.isInitialized) {
       await performanceService.initialize();
     }
-    
+
     if (!resourceManager.isInitialized) {
       await resourceManager.initialize();
     }
-    
+
     if (!offlineManager.isInitialized) {
       await offlineManager.initialize();
     }
-    
+
     if (!startupOptimizer.isInitialized) {
       await startupOptimizer.initialize();
     }
@@ -166,11 +173,11 @@ class PerformanceCommand {
 
       // Start monitoring for specified duration
       const monitoringResult = await this.runMonitoring(options.duration);
-      
+
       if (options.format === 'json') {
         return outputFormatter.json(monitoringResult);
       }
-      
+
       return this.displayMonitoringResults(monitoringResult, options);
     } catch (error) {
       return outputFormatter.error(`Monitoring failed: ${error.message}`);
@@ -183,32 +190,33 @@ class PerformanceCommand {
   async startWatchMode(options) {
     outputFormatter.info(`Starting performance monitoring (watch mode)...`);
     outputFormatter.info(`Press Ctrl+C to stop monitoring`);
-    
+
     let monitoringCount = 0;
     const interval = setInterval(async () => {
       monitoringCount++;
-      
+
       try {
         const snapshot = await performanceService.capturePerformanceSnapshot();
-        
+
         // Clear screen and show updated stats
         if (process.stdout.isTTY) {
           process.stdout.write('\x1Bc'); // Clear screen
         }
-        
-        outputFormatter.info(`Performance Monitor - Update #${monitoringCount}`);
+
+        outputFormatter.info(
+          `Performance Monitor - Update #${monitoringCount}`
+        );
         outputFormatter.info(`Time: ${new Date().toLocaleTimeString()}`);
         outputFormatter.separator();
-        
+
         this.displayPerformanceSnapshot(snapshot);
-        
+
         // Check for performance issues
         const issues = this.detectPerformanceIssues(snapshot);
         if (issues.length > 0) {
           outputFormatter.warning('\nPerformance Issues Detected:');
           issues.forEach(issue => outputFormatter.warning(`• ${issue}`));
         }
-        
       } catch (error) {
         outputFormatter.error(`Monitoring error: ${error.message}`);
       }
@@ -230,11 +238,11 @@ class PerformanceCommand {
       duration: duration,
       snapshots: [],
       summary: {},
-      issues: []
+      issues: [],
     };
 
     outputFormatter.info(`Monitoring performance for ${duration} seconds...`);
-    
+
     const interval = Math.max(1, Math.floor(duration / 10)); // Take up to 10 snapshots
     const snapshots = [];
 
@@ -243,9 +251,9 @@ class PerformanceCommand {
       snapshots.push({
         timestamp: Date.now(),
         second: i,
-        ...snapshot
+        ...snapshot,
       });
-      
+
       if (i < duration) {
         await new Promise(resolve => setTimeout(resolve, interval * 1000));
       }
@@ -265,12 +273,20 @@ class PerformanceCommand {
     // Memory usage
     const memoryData = [
       ['Metric', 'Value', 'Status'],
-      ['Heap Used', this.formatBytes(snapshot.memory.heapUsed), this.getMemoryStatus(snapshot.memory.heapUsed)],
+      [
+        'Heap Used',
+        this.formatBytes(snapshot.memory.heapUsed),
+        this.getMemoryStatus(snapshot.memory.heapUsed),
+      ],
       ['Heap Total', this.formatBytes(snapshot.memory.heapTotal), ''],
       ['External', this.formatBytes(snapshot.memory.external), ''],
-      ['RSS', this.formatBytes(snapshot.memory.rss), this.getRSSStatus(snapshot.memory.rss)]
+      [
+        'RSS',
+        this.formatBytes(snapshot.memory.rss),
+        this.getRSSStatus(snapshot.memory.rss),
+      ],
     ];
-    
+
     outputFormatter.table(memoryData, 'Memory Usage');
 
     // CPU and performance
@@ -278,27 +294,32 @@ class PerformanceCommand {
       const performanceData = [
         ['Metric', 'Value'],
         ['CPU Usage', `${snapshot.cpu.usage.toFixed(2)}%`],
-        ['Load Average', snapshot.cpu.loadAverage ? snapshot.cpu.loadAverage.join(', ') : 'N/A'],
+        [
+          'Load Average',
+          snapshot.cpu.loadAverage
+            ? snapshot.cpu.loadAverage.join(', ')
+            : 'N/A',
+        ],
         ['Active Handles', snapshot.activeHandles?.toString() || 'N/A'],
-        ['Active Requests', snapshot.activeRequests?.toString() || 'N/A']
+        ['Active Requests', snapshot.activeRequests?.toString() || 'N/A'],
       ];
-      
+
       outputFormatter.table(performanceData, 'System Performance');
     }
 
     // Resource usage if available
     if (resourceManager.isInitialized) {
       const resourceStats = resourceManager.getResourceStats();
-      
+
       const resourceData = [
         ['Pool', 'Used/Max', 'Utilization'],
         ...Object.entries(resourceStats.pools).map(([name, stats]) => [
           name,
           `${stats.size}/${stats.maxSize}`,
-          `${stats.utilization}%`
-        ])
+          `${stats.utilization}%`,
+        ]),
       ];
-      
+
       outputFormatter.table(resourceData, 'Resource Pools');
     }
   }
@@ -309,19 +330,23 @@ class PerformanceCommand {
   async handleReport(options) {
     try {
       const report = await this.generateComprehensiveReport(options);
-      
+
       if (options.output) {
         await this.saveReportToFile(report, options.output);
-        return outputFormatter.success(`Performance report saved to: ${options.output}`);
+        return outputFormatter.success(
+          `Performance report saved to: ${options.output}`
+        );
       }
-      
+
       if (options.format === 'json') {
         return outputFormatter.json(report);
       }
-      
+
       return this.displayPerformanceReport(report, options);
     } catch (error) {
-      return outputFormatter.error(`Report generation failed: ${error.message}`);
+      return outputFormatter.error(
+        `Report generation failed: ${error.message}`
+      );
     }
   }
 
@@ -337,7 +362,7 @@ class PerformanceCommand {
       resources: {},
       startup: {},
       offline: {},
-      recommendations: []
+      recommendations: [],
     };
 
     // Performance metrics
@@ -345,14 +370,14 @@ class PerformanceCommand {
     report.performance = {
       current: snapshot,
       measurements: performanceService.getAllMeasurements(),
-      statistics: performanceService.getPerformanceStatistics()
+      statistics: performanceService.getPerformanceStatistics(),
     };
 
     // Memory analysis
     report.memory = {
       usage: snapshot.memory,
       gc: performanceService.getGarbageCollectionStats(),
-      trends: this.analyzeMemoryTrends()
+      trends: this.analyzeMemoryTrends(),
     };
 
     // Resource manager stats
@@ -384,20 +409,42 @@ class PerformanceCommand {
    */
   displayPerformanceReport(report, options) {
     outputFormatter.title('📊 Performance Report');
-    outputFormatter.info(`Generated: ${new Date(report.timestamp).toLocaleString()}`);
+    outputFormatter.info(
+      `Generated: ${new Date(report.timestamp).toLocaleString()}`
+    );
     outputFormatter.separator();
 
     // Summary
     if (report.summary) {
       const summaryData = [
         ['Metric', 'Value', 'Status'],
-        ['Overall Score', `${report.summary.score}/100`, this.getScoreStatus(report.summary.score)],
-        ['Memory Usage', this.formatBytes(report.performance.current.memory.heapUsed), this.getMemoryStatus(report.performance.current.memory.heapUsed)],
-        ['Startup Time', `${report.startup.totalTime || 'N/A'}ms`, this.getStartupStatus(report.startup.totalTime)],
-        ['Active Handles', report.performance.current.activeHandles || 'N/A', ''],
-        ['Cache Entries', report.offline?.cacheStats?.totalEntries || 'N/A', '']
+        [
+          'Overall Score',
+          `${report.summary.score}/100`,
+          this.getScoreStatus(report.summary.score),
+        ],
+        [
+          'Memory Usage',
+          this.formatBytes(report.performance.current.memory.heapUsed),
+          this.getMemoryStatus(report.performance.current.memory.heapUsed),
+        ],
+        [
+          'Startup Time',
+          `${report.startup.totalTime || 'N/A'}ms`,
+          this.getStartupStatus(report.startup.totalTime),
+        ],
+        [
+          'Active Handles',
+          report.performance.current.activeHandles || 'N/A',
+          '',
+        ],
+        [
+          'Cache Entries',
+          report.offline?.cacheStats?.totalEntries || 'N/A',
+          '',
+        ],
       ];
-      
+
       outputFormatter.table(summaryData, 'Performance Summary');
     }
 
@@ -405,12 +452,16 @@ class PerformanceCommand {
     if (options.verbose && report.memory) {
       const memoryData = [
         ['Type', 'Size', 'Percentage'],
-        ['Heap Used', this.formatBytes(report.memory.usage.heapUsed), `${((report.memory.usage.heapUsed / report.memory.usage.heapTotal) * 100).toFixed(1)}%`],
+        [
+          'Heap Used',
+          this.formatBytes(report.memory.usage.heapUsed),
+          `${((report.memory.usage.heapUsed / report.memory.usage.heapTotal) * 100).toFixed(1)}%`,
+        ],
         ['Heap Total', this.formatBytes(report.memory.usage.heapTotal), ''],
         ['External', this.formatBytes(report.memory.usage.external), ''],
-        ['Buffer', this.formatBytes(report.memory.usage.arrayBuffers || 0), '']
+        ['Buffer', this.formatBytes(report.memory.usage.arrayBuffers || 0), ''],
       ];
-      
+
       outputFormatter.table(memoryData, 'Memory Breakdown');
     }
 
@@ -421,10 +472,10 @@ class PerformanceCommand {
         ...Object.entries(report.startup.phases).map(([name, phase]) => [
           name,
           phase.duration?.toString() || 'N/A',
-          phase.percentage ? `${phase.percentage}%` : 'N/A'
-        ])
+          phase.percentage ? `${phase.percentage}%` : 'N/A',
+        ]),
       ];
-      
+
       outputFormatter.table(startupData, 'Startup Performance');
     }
 
@@ -436,10 +487,10 @@ class PerformanceCommand {
           name,
           `${stats.size}/${stats.maxSize}`,
           `${stats.utilization}%`,
-          stats.totalAccesses?.toString() || '0'
-        ])
+          stats.totalAccesses?.toString() || '0',
+        ]),
       ];
-      
+
       outputFormatter.table(resourceData, 'Resource Pools');
     }
 
@@ -466,7 +517,7 @@ class PerformanceCommand {
   async handleOptimize(options) {
     try {
       outputFormatter.info('Running performance optimizations...');
-      
+
       const optimizations = [];
 
       // Apply startup optimizations
@@ -478,14 +529,18 @@ class PerformanceCommand {
       // Optimize resource usage
       if (resourceManager.isInitialized) {
         const cacheResult = await resourceManager.optimizeCaches();
-        optimizations.push(`Cache optimization: ${cacheResult.itemsEvicted} items evicted, ${this.formatBytes(cacheResult.memoryFreed)} freed`);
+        optimizations.push(
+          `Cache optimization: ${cacheResult.itemsEvicted} items evicted, ${this.formatBytes(cacheResult.memoryFreed)} freed`
+        );
       }
 
       // Force garbage collection if available
       if (global.gc) {
         const gcResult = resourceManager.forceGarbageCollection();
         if (gcResult.success) {
-          optimizations.push(`Garbage collection: ${this.formatBytes(gcResult.freedBytes)} freed`);
+          optimizations.push(
+            `Garbage collection: ${this.formatBytes(gcResult.freedBytes)} freed`
+          );
         }
       }
 
@@ -494,9 +549,11 @@ class PerformanceCommand {
       await this.applyMemoryOptimizations();
       const memoryAfter = process.memoryUsage();
       const memoryFreed = memoryBefore.heapUsed - memoryAfter.heapUsed;
-      
+
       if (memoryFreed > 0) {
-        optimizations.push(`Memory optimization: ${this.formatBytes(memoryFreed)} freed`);
+        optimizations.push(
+          `Memory optimization: ${this.formatBytes(memoryFreed)} freed`
+        );
       }
 
       // Display results
@@ -523,7 +580,7 @@ class PerformanceCommand {
       }
 
       const startupReport = startupOptimizer.getStartupReport();
-      
+
       if (options.format === 'json') {
         return outputFormatter.json(startupReport);
       }
@@ -539,17 +596,20 @@ class PerformanceCommand {
    */
   displayStartupAnalysis(report, options) {
     outputFormatter.title('🚀 Startup Performance Analysis');
-    
+
     // Overall stats
     const summaryData = [
       ['Metric', 'Value'],
       ['Total Startup Time', `${report.totalTime}ms`],
       ['Phases Tracked', Object.keys(report.phases).length],
-      ['Lazy Loaders', `${report.lazyLoaders.loaded}/${report.lazyLoaders.total}`],
+      [
+        'Lazy Loaders',
+        `${report.lazyLoaders.loaded}/${report.lazyLoaders.total}`,
+      ],
       ['Preloaded Assets', report.preloadedAssets.length],
-      ['Optimizations Applied', report.optimizations.length]
+      ['Optimizations Applied', report.optimizations.length],
     ];
-    
+
     outputFormatter.table(summaryData, 'Startup Summary');
 
     // Phase breakdown
@@ -561,10 +621,10 @@ class PerformanceCommand {
           .map(([name, phase]) => [
             name,
             `${phase.duration}ms`,
-            `${phase.percentage}%`
-          ])
+            `${phase.percentage}%`,
+          ]),
       ];
-      
+
       outputFormatter.table(phaseData, 'Phase Breakdown (Sorted by Duration)');
     }
 
@@ -590,7 +650,7 @@ class PerformanceCommand {
   async handleMemory(options) {
     try {
       const memoryInfo = await this.getDetailedMemoryInfo();
-      
+
       if (options.format === 'json') {
         return outputFormatter.json(memoryInfo);
       }
@@ -606,17 +666,25 @@ class PerformanceCommand {
    */
   displayMemoryAnalysis(memoryInfo, options) {
     outputFormatter.title('💾 Memory Usage Analysis');
-    
+
     // Current memory usage
     const memoryData = [
       ['Type', 'Size', 'Percentage of Total'],
-      ['Heap Used', this.formatBytes(memoryInfo.current.heapUsed), `${memoryInfo.heapUsagePercent.toFixed(1)}%`],
+      [
+        'Heap Used',
+        this.formatBytes(memoryInfo.current.heapUsed),
+        `${memoryInfo.heapUsagePercent.toFixed(1)}%`,
+      ],
       ['Heap Total', this.formatBytes(memoryInfo.current.heapTotal), ''],
       ['External', this.formatBytes(memoryInfo.current.external), ''],
-      ['Array Buffers', this.formatBytes(memoryInfo.current.arrayBuffers || 0), ''],
-      ['RSS (Total)', this.formatBytes(memoryInfo.current.rss), '']
+      [
+        'Array Buffers',
+        this.formatBytes(memoryInfo.current.arrayBuffers || 0),
+        '',
+      ],
+      ['RSS (Total)', this.formatBytes(memoryInfo.current.rss), ''],
     ];
-    
+
     outputFormatter.table(memoryData, 'Current Memory Usage');
 
     // Memory trends if available
@@ -627,10 +695,12 @@ class PerformanceCommand {
           trend.period,
           this.formatBytes(trend.average),
           this.formatBytes(trend.peak),
-          trend.growthRate > 0 ? `+${trend.growthRate.toFixed(2)}%` : `${trend.growthRate.toFixed(2)}%`
-        ])
+          trend.growthRate > 0
+            ? `+${trend.growthRate.toFixed(2)}%`
+            : `${trend.growthRate.toFixed(2)}%`,
+        ]),
       ];
-      
+
       outputFormatter.table(trendData, 'Memory Usage Trends');
     }
 
@@ -641,9 +711,14 @@ class PerformanceCommand {
         ['Total Collections', memoryInfo.gc.collections],
         ['Time Spent in GC', `${memoryInfo.gc.totalTime}ms`],
         ['Average GC Time', `${memoryInfo.gc.averageTime.toFixed(2)}ms`],
-        ['Last Collection', memoryInfo.gc.lastCollection ? new Date(memoryInfo.gc.lastCollection).toLocaleString() : 'N/A']
+        [
+          'Last Collection',
+          memoryInfo.gc.lastCollection
+            ? new Date(memoryInfo.gc.lastCollection).toLocaleString()
+            : 'N/A',
+        ],
       ];
-      
+
       outputFormatter.table(gcData, 'Garbage Collection Stats');
     }
 
@@ -669,22 +744,22 @@ class PerformanceCommand {
       }
 
       const subAction = options._?.[0] || 'status';
-      
+
       switch (subAction) {
         case 'clear':
           const clearResult = await offlineManager.clearCache();
-          return clearResult.success 
+          return clearResult.success
             ? outputFormatter.success(clearResult.message)
             : outputFormatter.error(clearResult.error);
-        
+
         case 'status':
         default:
           const status = offlineManager.getOfflineStatus();
-          
+
           if (options.format === 'json') {
             return outputFormatter.json(status);
           }
-          
+
           return this.displayCacheStatus(status);
       }
     } catch (error) {
@@ -697,16 +772,19 @@ class PerformanceCommand {
    */
   displayCacheStatus(status) {
     outputFormatter.title('💾 Cache Status');
-    
+
     // Overall status
     const statusData = [
       ['Metric', 'Value'],
       ['Network Status', status.isOnline ? '🟢 Online' : '🔴 Offline'],
-      ['Last Network Check', new Date(status.lastNetworkCheck).toLocaleString()],
+      [
+        'Last Network Check',
+        new Date(status.lastNetworkCheck).toLocaleString(),
+      ],
       ['Total Cache Entries', status.cacheStats.totalEntries],
-      ['Cache Directory', status.cacheStats.cacheDirectory]
+      ['Cache Directory', status.cacheStats.cacheDirectory],
     ];
-    
+
     outputFormatter.table(statusData, 'Cache Overview');
 
     // Capability status
@@ -716,10 +794,10 @@ class PerformanceCommand {
         feature,
         capability.canWorkOffline ? '✅' : '❌',
         capability.hasCachedData ? '✅' : '❌',
-        capability.fallbackStrategy
-      ])
+        capability.fallbackStrategy,
+      ]),
     ];
-    
+
     outputFormatter.table(capabilityData, 'Offline Capabilities');
 
     return outputFormatter.success('Cache status displayed');
@@ -731,34 +809,62 @@ class PerformanceCommand {
   async handleGarbageCollection(options) {
     try {
       if (!global.gc) {
-        return outputFormatter.warning('Garbage collection not available. Run with --expose-gc flag to enable.');
+        return outputFormatter.warning(
+          'Garbage collection not available. Run with --expose-gc flag to enable.'
+        );
       }
 
       const memoryBefore = process.memoryUsage();
-      
+
       outputFormatter.info('Forcing garbage collection...');
-      
+
       const gcResult = resourceManager.forceGarbageCollection();
-      
+
       if (gcResult.success) {
         const memoryAfter = process.memoryUsage();
-        
+
         const resultData = [
           ['Metric', 'Before', 'After', 'Freed'],
-          ['Heap Used', this.formatBytes(memoryBefore.heapUsed), this.formatBytes(memoryAfter.heapUsed), this.formatBytes(gcResult.freedBytes)],
-          ['Heap Total', this.formatBytes(memoryBefore.heapTotal), this.formatBytes(memoryAfter.heapTotal), ''],
-          ['External', this.formatBytes(memoryBefore.external), this.formatBytes(memoryAfter.external), ''],
-          ['RSS', this.formatBytes(memoryBefore.rss), this.formatBytes(memoryAfter.rss), '']
+          [
+            'Heap Used',
+            this.formatBytes(memoryBefore.heapUsed),
+            this.formatBytes(memoryAfter.heapUsed),
+            this.formatBytes(gcResult.freedBytes),
+          ],
+          [
+            'Heap Total',
+            this.formatBytes(memoryBefore.heapTotal),
+            this.formatBytes(memoryAfter.heapTotal),
+            '',
+          ],
+          [
+            'External',
+            this.formatBytes(memoryBefore.external),
+            this.formatBytes(memoryAfter.external),
+            '',
+          ],
+          [
+            'RSS',
+            this.formatBytes(memoryBefore.rss),
+            this.formatBytes(memoryAfter.rss),
+            '',
+          ],
         ];
-        
+
         outputFormatter.table(resultData, 'Garbage Collection Results');
-        
-        return outputFormatter.success(`Garbage collection completed. Freed ${this.formatBytes(gcResult.freedBytes)}`);
+
+        return outputFormatter.success(
+          `Garbage collection completed. Freed ${this.formatBytes(gcResult.freedBytes)}`
+        );
       } else {
-        return outputFormatter.error(`Garbage collection failed: ${gcResult.error}`);
+        return outputFormatter.error(
+          `Garbage collection failed: ${gcResult.error}`
+        );
       }
     } catch (error) {
-      return outputFormatter.error(`Garbage collection failed: ${error.message}`);
+      return outputFormatter.error(
+        `Garbage collection failed: ${error.message}`
+      );
     }
   }
 
@@ -768,13 +874,13 @@ class PerformanceCommand {
   async handleBenchmark(options) {
     try {
       outputFormatter.info('Running performance benchmarks...');
-      
+
       const benchmarks = await this.runBenchmarks();
-      
+
       if (options.format === 'json') {
         return outputFormatter.json(benchmarks);
       }
-      
+
       return this.displayBenchmarkResults(benchmarks);
     } catch (error) {
       return outputFormatter.error(`Benchmark failed: ${error.message}`);
@@ -787,11 +893,11 @@ class PerformanceCommand {
   async handleStatus(options) {
     try {
       const status = await this.getOverallStatus();
-      
+
       if (options.format === 'json') {
         return outputFormatter.json(status);
       }
-      
+
       return this.displayStatusOverview(status);
     } catch (error) {
       return outputFormatter.error(`Status check failed: ${error.message}`);
@@ -803,15 +909,15 @@ class PerformanceCommand {
    */
   showHelp() {
     outputFormatter.title('Performance Command Help');
-    
+
     outputFormatter.subtitle('Usage:');
     outputFormatter.info(this.usage);
-    
+
     outputFormatter.subtitle('Actions:');
     Object.entries(this.actions).forEach(([action, description]) => {
       outputFormatter.info(`  ${action.padEnd(12)} ${description}`);
     });
-    
+
     outputFormatter.subtitle('Options:');
     outputFormatter.info('  -v, --verbose     Show detailed information');
     outputFormatter.info('  -f, --format      Output format (table, json)');
@@ -819,14 +925,14 @@ class PerformanceCommand {
     outputFormatter.info('  -w, --watch       Enable watch mode');
     outputFormatter.info('  -d, --duration    Monitoring duration in seconds');
     outputFormatter.info('  -t, --threshold   Performance threshold');
-    
+
     outputFormatter.subtitle('Examples:');
     outputFormatter.info('  mdsaad performance status');
     outputFormatter.info('  mdsaad performance monitor -d 30 -v');
     outputFormatter.info('  mdsaad performance report -f json -o report.json');
     outputFormatter.info('  mdsaad performance optimize');
     outputFormatter.info('  mdsaad performance cache clear');
-    
+
     return outputFormatter.success('Help displayed');
   }
 
@@ -909,7 +1015,7 @@ class PerformanceCommand {
     const current = process.memoryUsage();
     return Promise.resolve({
       current,
-      heapUsagePercent: (current.heapUsed / current.heapTotal) * 100
+      heapUsagePercent: (current.heapUsed / current.heapTotal) * 100,
     });
   }
 

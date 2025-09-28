@@ -28,17 +28,19 @@ class PlatformService {
       await this.detectTerminalFeatures();
       await this.detectPackageManagers();
       await this.setupPlatformPaths();
-      
+
       this.isInitialized = true;
       debugService.debug('Platform service initialized', {
         platform: this.platform,
         arch: this.arch,
-        terminalFeatures: this.terminalFeatures
+        terminalFeatures: this.terminalFeatures,
       });
-      
+
       return true;
     } catch (error) {
-      debugService.debug('Platform service initialization failed', { error: error.message });
+      debugService.debug('Platform service initialization failed', {
+        error: error.message,
+      });
       return false;
     }
   }
@@ -53,7 +55,7 @@ class PlatformService {
       interactivity: this.supportsInteractivity(),
       tabCompletion: await this.detectTabCompletionSupport(),
       shell: this.detectShell(),
-      terminalType: this.detectTerminalType()
+      terminalType: this.detectTerminalType(),
     };
   }
 
@@ -80,12 +82,18 @@ class PlatformService {
       // Windows 10 version 1511+ supports ANSI colors
       const release = os.release();
       const version = release.split('.').map(Number);
-      if (version[0] > 10 || (version[0] === 10 && version[1] >= 0 && version[2] >= 10586)) {
+      if (
+        version[0] > 10 ||
+        (version[0] === 10 && version[1] >= 0 && version[2] >= 10586)
+      ) {
         return true;
       }
-      
+
       // Check for Windows Terminal, ConEmu, etc.
-      const terminal = process.env.TERM_PROGRAM || process.env.WT_SESSION || process.env.ConEmuPID;
+      const terminal =
+        process.env.TERM_PROGRAM ||
+        process.env.WT_SESSION ||
+        process.env.ConEmuPID;
       return Boolean(terminal);
     }
 
@@ -103,9 +111,13 @@ class PlatformService {
    */
   supportsUnicode() {
     // Check environment locale
-    const locale = process.env.LC_ALL || process.env.LC_CTYPE || process.env.LANG || '';
-    
-    if (locale.toLowerCase().includes('utf-8') || locale.toLowerCase().includes('utf8')) {
+    const locale =
+      process.env.LC_ALL || process.env.LC_CTYPE || process.env.LANG || '';
+
+    if (
+      locale.toLowerCase().includes('utf-8') ||
+      locale.toLowerCase().includes('utf8')
+    ) {
       return true;
     }
 
@@ -162,7 +174,7 @@ class PlatformService {
       { env: 'TERM_PROGRAM', name: process.env.TERM_PROGRAM },
       { env: 'ITERM_SESSION_ID', name: 'iTerm2' },
       { env: 'GNOME_TERMINAL_SCREEN', name: 'GNOME Terminal' },
-      { env: 'KONSOLE_VERSION', name: 'Konsole' }
+      { env: 'KONSOLE_VERSION', name: 'Konsole' },
     ];
 
     for (const terminal of terminals) {
@@ -179,14 +191,17 @@ class PlatformService {
    */
   async detectTabCompletionSupport() {
     const shell = this.detectShell();
-    
+
     const supportMap = {
       bash: { supported: true, configFile: '.bashrc' },
       zsh: { supported: true, configFile: '.zshrc' },
       fish: { supported: true, configFile: 'config.fish' },
-      powershell: { supported: true, configFile: 'Microsoft.PowerShell_profile.ps1' },
+      powershell: {
+        supported: true,
+        configFile: 'Microsoft.PowerShell_profile.ps1',
+      },
       pwsh: { supported: true, configFile: 'Microsoft.PowerShell_profile.ps1' },
-      cmd: { supported: false, configFile: null }
+      cmd: { supported: false, configFile: null },
     };
 
     return supportMap[shell] || { supported: false, configFile: null };
@@ -201,22 +216,22 @@ class PlatformService {
 
     for (const manager of managers) {
       try {
-        const version = execSync(`${manager} --version`, { 
-          encoding: 'utf8', 
+        const version = execSync(`${manager} --version`, {
+          encoding: 'utf8',
           timeout: 5000,
-          stdio: 'pipe'
+          stdio: 'pipe',
         }).trim();
-        
+
         this.availablePackageManagers[manager] = {
           available: true,
           version,
-          global: await this.checkGlobalInstallation(manager)
+          global: await this.checkGlobalInstallation(manager),
         };
       } catch (error) {
         this.availablePackageManagers[manager] = {
           available: false,
           version: null,
-          global: false
+          global: false,
         };
       }
     }
@@ -242,10 +257,10 @@ class PlatformService {
           return false;
       }
 
-      const output = execSync(command, { 
-        encoding: 'utf8', 
+      const output = execSync(command, {
+        encoding: 'utf8',
         timeout: 10000,
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       return output.includes('mdsaad@');
@@ -264,7 +279,7 @@ class PlatformService {
       cache: this.getCacheDirectory(),
       temp: this.getTempDirectory(),
       logs: this.getLogsDirectory(),
-      completion: this.getCompletionDirectory()
+      completion: this.getCompletionDirectory(),
     };
 
     // Ensure all directories exist
@@ -273,7 +288,10 @@ class PlatformService {
         try {
           await fs.ensureDir(dirPath);
         } catch (error) {
-          debugService.debug(`Failed to create ${name} directory`, { path: dirPath, error: error.message });
+          debugService.debug(`Failed to create ${name} directory`, {
+            path: dirPath,
+            error: error.message,
+          });
         }
       }
     }
@@ -286,10 +304,18 @@ class PlatformService {
     if (this.isWindows) {
       return path.join(process.env.APPDATA || this.homeDir, 'mdsaad');
     } else if (this.isMacOS) {
-      return path.join(this.homeDir, 'Library', 'Application Support', 'mdsaad');
+      return path.join(
+        this.homeDir,
+        'Library',
+        'Application Support',
+        'mdsaad'
+      );
     } else {
       // Linux and other Unix-like systems
-      return path.join(process.env.XDG_CONFIG_HOME || path.join(this.homeDir, '.config'), 'mdsaad');
+      return path.join(
+        process.env.XDG_CONFIG_HOME || path.join(this.homeDir, '.config'),
+        'mdsaad'
+      );
     }
   }
 
@@ -298,12 +324,19 @@ class PlatformService {
    */
   getCacheDirectory() {
     if (this.isWindows) {
-      return path.join(process.env.LOCALAPPDATA || this.homeDir, 'mdsaad', 'cache');
+      return path.join(
+        process.env.LOCALAPPDATA || this.homeDir,
+        'mdsaad',
+        'cache'
+      );
     } else if (this.isMacOS) {
       return path.join(this.homeDir, 'Library', 'Caches', 'mdsaad');
     } else {
       // Linux and other Unix-like systems
-      return path.join(process.env.XDG_CACHE_HOME || path.join(this.homeDir, '.cache'), 'mdsaad');
+      return path.join(
+        process.env.XDG_CACHE_HOME || path.join(this.homeDir, '.cache'),
+        'mdsaad'
+      );
     }
   }
 
@@ -320,12 +353,20 @@ class PlatformService {
    */
   getLogsDirectory() {
     if (this.isWindows) {
-      return path.join(process.env.LOCALAPPDATA || this.homeDir, 'mdsaad', 'logs');
+      return path.join(
+        process.env.LOCALAPPDATA || this.homeDir,
+        'mdsaad',
+        'logs'
+      );
     } else if (this.isMacOS) {
       return path.join(this.homeDir, 'Library', 'Logs', 'mdsaad');
     } else {
       // Linux and other Unix-like systems
-      return path.join(process.env.XDG_STATE_HOME || path.join(this.homeDir, '.local', 'state'), 'mdsaad');
+      return path.join(
+        process.env.XDG_STATE_HOME ||
+          path.join(this.homeDir, '.local', 'state'),
+        'mdsaad'
+      );
     }
   }
 
@@ -339,7 +380,11 @@ class PlatformService {
       return path.join(this.homeDir, '.local', 'share', 'mdsaad', 'completion');
     } else {
       // Linux and other Unix-like systems
-      return path.join(process.env.XDG_DATA_HOME || path.join(this.homeDir, '.local', 'share'), 'mdsaad', 'completion');
+      return path.join(
+        process.env.XDG_DATA_HOME || path.join(this.homeDir, '.local', 'share'),
+        'mdsaad',
+        'completion'
+      );
     }
   }
 
@@ -359,7 +404,11 @@ class PlatformService {
         return stats.isFile();
       }
     } catch (error) {
-      debugService.debug('Failed to set file permissions', { filePath, permissions, error: error.message });
+      debugService.debug('Failed to set file permissions', {
+        filePath,
+        permissions,
+        error: error.message,
+      });
       return false;
     }
   }
@@ -373,7 +422,10 @@ class PlatformService {
       await this.setFilePermissions(scriptPath, '755');
       return true;
     } catch (error) {
-      debugService.debug('Failed to create executable script', { scriptPath, error: error.message });
+      debugService.debug('Failed to create executable script', {
+        scriptPath,
+        error: error.message,
+      });
       return false;
     }
   }
@@ -384,7 +436,7 @@ class PlatformService {
   async openWithDefault(target) {
     try {
       let command;
-      
+
       if (this.isWindows) {
         command = `start "" "${target}"`;
       } else if (this.isMacOS) {
@@ -396,7 +448,10 @@ class PlatformService {
       execSync(command, { stdio: 'ignore' });
       return true;
     } catch (error) {
-      debugService.debug('Failed to open with default application', { target, error: error.message });
+      debugService.debug('Failed to open with default application', {
+        target,
+        error: error.message,
+      });
       return false;
     }
   }
@@ -419,7 +474,7 @@ class PlatformService {
       environment: this.getEnvironmentSummary(),
       paths: this.paths,
       terminalFeatures: this.terminalFeatures,
-      packageManagers: this.availablePackageManagers
+      packageManagers: this.availablePackageManagers,
     };
   }
 
@@ -437,7 +492,7 @@ class PlatformService {
           .map(addr => ({
             family: addr.family,
             address: addr.address,
-            netmask: addr.netmask
+            netmask: addr.netmask,
           }));
       }
 
@@ -452,9 +507,22 @@ class PlatformService {
    */
   getEnvironmentSummary() {
     const relevantVars = [
-      'NODE_ENV', 'PATH', 'HOME', 'USER', 'USERNAME', 'SHELL', 'TERM',
-      'LANG', 'LC_ALL', 'APPDATA', 'LOCALAPPDATA', 'XDG_CONFIG_HOME',
-      'XDG_CACHE_HOME', 'XDG_DATA_HOME', 'WT_SESSION', 'TERM_PROGRAM'
+      'NODE_ENV',
+      'PATH',
+      'HOME',
+      'USER',
+      'USERNAME',
+      'SHELL',
+      'TERM',
+      'LANG',
+      'LC_ALL',
+      'APPDATA',
+      'LOCALAPPDATA',
+      'XDG_CONFIG_HOME',
+      'XDG_CACHE_HOME',
+      'XDG_DATA_HOME',
+      'WT_SESSION',
+      'TERM_PROGRAM',
     ];
 
     const summary = {};
@@ -475,7 +543,7 @@ class PlatformService {
       config: { readable: false, writable: false, executable: false },
       cache: { readable: false, writable: false, executable: false },
       temp: { readable: false, writable: false, executable: false },
-      logs: { readable: false, writable: false, executable: false }
+      logs: { readable: false, writable: false, executable: false },
     };
 
     for (const [name, dirPath] of Object.entries(this.paths)) {
@@ -494,7 +562,10 @@ class PlatformService {
         await fs.access(dirPath, fs.constants.X_OK);
         results[name].executable = true;
       } catch (error) {
-        debugService.debug(`File system access check failed for ${name}`, { path: dirPath, error: error.message });
+        debugService.debug(`File system access check failed for ${name}`, {
+          path: dirPath,
+          error: error.message,
+        });
       }
     }
 
@@ -510,20 +581,20 @@ class PlatformService {
         global: 'npm install -g mdsaad',
         local: 'npm install mdsaad',
         update: 'npm update -g mdsaad',
-        uninstall: 'npm uninstall -g mdsaad'
+        uninstall: 'npm uninstall -g mdsaad',
       },
       yarn: {
         global: 'yarn global add mdsaad',
         local: 'yarn add mdsaad',
         update: 'yarn global upgrade mdsaad',
-        uninstall: 'yarn global remove mdsaad'
+        uninstall: 'yarn global remove mdsaad',
       },
       pnpm: {
         global: 'pnpm add -g mdsaad',
         local: 'pnpm add mdsaad',
         update: 'pnpm update -g mdsaad',
-        uninstall: 'pnpm remove -g mdsaad'
-      }
+        uninstall: 'pnpm remove -g mdsaad',
+      },
     };
 
     // Add platform-specific notes
@@ -531,19 +602,19 @@ class PlatformService {
       instructions.notes = [
         'Run PowerShell or Command Prompt as Administrator for global installation',
         'Windows Defender might scan the package during installation',
-        'Make sure Node.js is in your PATH environment variable'
+        'Make sure Node.js is in your PATH environment variable',
       ];
     } else if (this.isMacOS) {
       instructions.notes = [
         'You might need to use sudo for global installation: sudo npm install -g mdsaad',
         'Consider using a Node version manager like nvm or n',
-        'Homebrew users can install Node.js via: brew install node'
+        'Homebrew users can install Node.js via: brew install node',
       ];
     } else {
       instructions.notes = [
         'You might need to use sudo for global installation: sudo npm install -g mdsaad',
-        'Consider using your distribution\'s package manager to install Node.js',
-        'Some distributions require nodejs-npm package separately'
+        "Consider using your distribution's package manager to install Node.js",
+        'Some distributions require nodejs-npm package separately',
       ];
     }
 
@@ -560,36 +631,48 @@ class PlatformService {
     // Check Node.js version
     const nodeVersion = process.version;
     const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
-    
+
     if (majorVersion < 16) {
-      issues.push(`Node.js ${nodeVersion} is not supported. Please upgrade to Node.js 16 or later.`);
+      issues.push(
+        `Node.js ${nodeVersion} is not supported. Please upgrade to Node.js 16 or later.`
+      );
     } else if (majorVersion < 18) {
-      warnings.push(`Node.js ${nodeVersion} is supported but Node.js 18+ is recommended.`);
+      warnings.push(
+        `Node.js ${nodeVersion} is supported but Node.js 18+ is recommended.`
+      );
     }
 
     // Check platform support
     if (!['win32', 'darwin', 'linux'].includes(this.platform)) {
-      warnings.push(`Platform ${this.platform} is not officially tested but may work.`);
+      warnings.push(
+        `Platform ${this.platform} is not officially tested but may work.`
+      );
     }
 
     // Check architecture support
     if (!['x64', 'arm64'].includes(this.arch)) {
-      warnings.push(`Architecture ${this.arch} is not officially tested but may work.`);
+      warnings.push(
+        `Architecture ${this.arch} is not officially tested but may work.`
+      );
     }
 
     // Check terminal features
     if (!this.terminalFeatures.colors) {
-      warnings.push('Terminal does not support colors. Output may be less readable.');
+      warnings.push(
+        'Terminal does not support colors. Output may be less readable.'
+      );
     }
 
     if (!this.terminalFeatures.unicode) {
-      warnings.push('Terminal does not support Unicode. Some symbols may not display correctly.');
+      warnings.push(
+        'Terminal does not support Unicode. Some symbols may not display correctly.'
+      );
     }
 
     return {
       compatible: issues.length === 0,
       issues,
-      warnings
+      warnings,
     };
   }
 
@@ -608,23 +691,23 @@ class PlatformService {
     if (process.env.SHELL) {
       const shellPath = process.env.SHELL;
       const shellName = path.basename(shellPath);
-      
+
       // Map common shell names
       const shellMap = {
-        'bash': 'bash',
-        'zsh': 'zsh', 
-        'fish': 'fish',
-        'pwsh': 'powershell',
-        'powershell': 'powershell',
-        'cmd': 'cmd',
-        'cmd.exe': 'cmd'
+        bash: 'bash',
+        zsh: 'zsh',
+        fish: 'fish',
+        pwsh: 'powershell',
+        powershell: 'powershell',
+        cmd: 'cmd',
+        'cmd.exe': 'cmd',
       };
-      
+
       if (shellMap[shellName]) {
         return shellMap[shellName];
       }
     }
-    
+
     // Check parent process on Windows
     if (this.platform === 'win32') {
       if (process.env.PSModulePath) {
@@ -636,7 +719,7 @@ class PlatformService {
       // Default to powershell on Windows
       return 'powershell';
     }
-    
+
     // Default to bash on Unix-like systems
     return 'bash';
   }
@@ -648,7 +731,7 @@ class PlatformService {
     const permissions = {
       readable: false,
       writable: false,
-      executable: false
+      executable: false,
     };
 
     try {
@@ -663,7 +746,6 @@ class PlatformService {
       // Check execute permission (for directories, this means ability to list contents)
       await fs.access(dirPath, fs.constants.X_OK);
       permissions.executable = true;
-
     } catch (error) {
       // Some permissions failed, but readable might still be true
       try {
