@@ -94,7 +94,18 @@ function trackUsage(clientId, service, tokens = 0) {
   stats.lastUsed = today;
 }
 
-// Health check
+// Health check endpoints
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'online',
+    services: {
+      ai: !!API_KEYS.OPENROUTER_API_KEY,
+      weather: !!API_KEYS.WEATHERAPI_KEY
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/v1/status', (req, res) => {
   res.json({
     status: 'online',
