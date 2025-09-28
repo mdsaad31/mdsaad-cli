@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "language": "العربية",
+    "locale": "ar",
+    "version": "1.0.0",
+    "direction": "rtl"
+  },
+  "global": {
+    "appName": "أداة mdsaad CLI",
+    "tagline": "رفيقك الشخصي للإنتاجية",
+    "version": "عرض معلومات الإصدار",
+    "language": "تعيين لغة الواجهة",
+    "verbose": "تمكين المخرجات التفصيلية",
+    "debug": "تمكين وضع التشخيص",
+    "help": "عرض معلومات المساعدة",
+    "config": "إعدادات التكوين",
+    "cache": "إدارة التخزين المؤقت",
+    "success": "نجح",
+    "error": "خطأ",
+    "warning": "تحذير",
+    "info": "معلومات",
+    "loading": "جاري التحميل...",
+    "done": "تم",
+    "canceled": "تم الإلغاء",
+    "yes": "نعم",
+    "no": "لا",
+    "continue": "متابعة",
+    "exit": "خروج",
+    "save": "حفظ",
+    "delete": "حذف",
+    "clear": "مسح",
+    "reset": "إعادة تعيين"
+  },
+  "commands": {
+    "calculate": {
+      "description": "إجراء العمليات الحسابية",
+      "usage": "الاستخدام: mdsaad calculate <التعبير> [خيارات]",
+      "precision": "عدد الخانات العشرية",
+      "verbose": "إظهار الحساب خطوة بخطوة",
+      "examples": {
+        "basic": "العمليات الأساسية: mdsaad calculate '2 + 3 * 4'",
+        "scientific": "الدوال العلمية: mdsaad calculate 'sin(pi/2)'",
+        "precision": "تحديد الدقة: mdsaad calculate '1/3' --precision 10"
+      },
+      "result": "النتيجة: {{value}}",
+      "steps": "خطوات الحساب:",
+      "invalidExpression": "تعبير رياضي غير صحيح"
+    },
+    "ai": {
+      "description": "التفاعل مع نماذج الذكاء الاصطناعي",
+      "usage": "الاستخدام: mdsaad ai <الطلب> [خيارات]",
+      "model": "نموذج الذكاء الاصطناعي المراد استخدامه",
+      "stream": "تدفق الاستجابة في الوقت الفعلي",
+      "temperature": "إبداعية الاستجابة (0.0-1.0)",
+      "maxTokens": "أقصى طول للاستجابة",
+      "context": "سياق المحادثة",
+      "examples": {
+        "question": "طرح سؤال: mdsaad ai 'ما هو الحوسبة الكمية؟'",
+        "creative": "الكتابة الإبداعية: mdsaad ai 'اكتب قصيدة' --temperature 0.9",
+        "code": "مساعدة في البرمجة: mdsaad ai 'اشرح JavaScript Promises'"
+      },
+      "response": "استجابة الذكاء الاصطناعي:",
+      "thinking": "جاري التفكير...",
+      "noApiKey": "مفتاح API للذكاء الاصطناعي غير مكوَّن. استخدم 'mdsaad config' لتكوينه."
+    },
+    "show": {
+      "description": "عرض فن ASCII",
+      "usage": "الاستخدام: mdsaad show <النص> [خيارات]",
+      "animated": "عرض النسخة المتحركة",
+      "color": "نظام الألوان المطلوب تطبيقه",
+      "width": "عرض العرض",
+      "examples": {
+        "basic": "النص الأساسي: mdsaad show 'مرحبا بالعالم'",
+        "colored": "المخرجات الملونة: mdsaad show 'أهلا وسهلا' --color rainbow",
+        "animated": "النص المتحرك: mdsaad show 'جاري التحميل' --animated"
+      }
+    },
+    "weather": {
+      "description": "الحصول على معلومات الطقس",
+      "usage": "الاستخدام: mdsaad weather [الموقع] [خيارات]",
+      "detailed": "عرض معلومات الطقس التفصيلية",
+      "units": "وحدات درجة الحرارة (metric/imperial)",
+      "alerts": "عرض تنبيهات الطقس",
+      "examples": {
+        "current": "الطقس الحالي: mdsaad weather",
+        "location": "موقع محدد: mdsaad weather 'الرياض'",
+        "detailed": "معلومات مفصلة: mdsaad weather --detailed"
+      },
+      "current": "الطقس الحالي",
+      "forecast": "التوقعات",
+      "temperature": "درجة الحرارة",
+      "humidity": "الرطوبة",
+      "windSpeed": "سرعة الرياح",
+      "pressure": "الضغط الجوي",
+      "visibility": "مدى الرؤية",
+      "noApiKey": "مفتاح API للطقس غير مكوَّن. استخدم 'mdsaad config' لتكوينه."
+    },
+    "convert": {
+      "description": "تحويل العملات والوحدات",
+      "usage": "الاستخدام: mdsaad convert <المبلغ> <من> <إلى> [خيارات]",
+      "date": "التاريخ التاريخي للتحويل",
+      "batch": "معالجة تحويلات متعددة",
+      "examples": {
+        "currency": "العملة: mdsaad convert 100 USD SAR",
+        "units": "الوحدات: mdsaad convert 10 km miles",
+        "historical": "تاريخي: mdsaad convert 100 USD SAR --date 2023-01-01"
+      },
+      "result": "{{amount}} {{from}} = {{value}} {{to}}",
+      "rate": "سعر الصرف: {{rate}}",
+      "lastUpdated": "آخر تحديث: {{date}}"
+    },
+    "version": {
+      "description": "عرض معلومات الإصدار",
+      "usage": "الاستخدام: mdsaad version"
+    }
+  },
+  "config": {
+    "title": "إدارة التكوين",
+    "current": "التكوين الحالي:",
+    "apiKeys": "إعداد مفاتيح API",
+    "preferences": "تفضيلات المستخدم",
+    "cache": "إعدادات التخزين المؤقت",
+    "language": "إعدادات اللغة",
+    "enterValue": "أدخل {{field}}:",
+    "saved": "تم حفظ التكوين بنجاح",
+    "reset": "تم إعادة تعيين التكوين إلى القيم الافتراضية",
+    "exported": "تم تصدير التكوين إلى {{file}}",
+    "imported": "تم استيراد التكوين من {{file}}",
+    "validation": {
+      "required": "{{field}} مطلوب",
+      "invalid": "تنسيق {{field}} غير صحيح",
+      "tooShort": "يجب أن يكون {{field}} على الأقل {{min}} حروف",
+      "tooLong": "يجب ألا يتجاوز {{field}} {{max}} حرف"
+    }
+  },
+  "cache": {
+    "title": "إدارة التخزين المؤقت",
+    "statistics": "إحصائيات التخزين المؤقت",
+    "size": "الحجم: {{size}}",
+    "entries": "الإدخالات: {{count}}",
+    "hitRate": "معدل النجاح: {{rate}}%",
+    "cleared": "تم مسح التخزين المؤقت بنجاح",
+    "cleaned": "تم حذف {{count}} إدخال منتهي الصلاحية",
+    "test": "اختبار أداء التخزين المؤقت...",
+    "testResult": "اكتمل اختبار التخزين المؤقت: {{operations}} عملية في {{time}}مث"
+  },
+  "errors": {
+    "commandFailed": "فشل الأمر: {{error}}",
+    "invalidInput": "تم تقديم مدخلات غير صحيحة",
+    "networkError": "فشل اتصال الشبكة",
+    "apiError": "فشل طلب API: {{message}}",
+    "fileNotFound": "لم يتم العثور على الملف: {{file}}",
+    "permissionDenied": "تم رفض الإذن: {{action}}",
+    "configError": "خطأ في التكوين: {{message}}",
+    "cacheError": "خطأ في التخزين المؤقت: {{message}}",
+    "validationError": "خطأ في التحقق: {{message}}",
+    "unexpectedError": "حدث خطأ غير متوقع"
+  },
+  "success": {
+    "operationComplete": "اكتملت العملية بنجاح",
+    "dataSaved": "تم حفظ البيانات بنجاح",
+    "cacheUpdated": "تم تحديث التخزين المؤقت بنجاح",
+    "configUpdated": "تم تحديث التكوين بنجاح"
+  },
+  "prompts": {
+    "confirm": "هل أنت متأكد؟",
+    "selectOption": "اختر خياراً:",
+    "enterValue": "أدخل قيمة:",
+    "selectLanguage": "اختر لغتك المفضلة:",
+    "setupApiKey": "هل تريد إعداد مفتاح API لـ {{service}}؟",
+    "continueSetup": "متابعة الإعداد؟"
+  },
+  "update": {
+    "available": "تحديث متوفر: {{current}} ← {{latest}}",
+    "checking": "فحص التحديثات...",
+    "upToDate": "أنت تستخدم أحدث إصدار",
+    "downloading": "تنزيل التحديث...",
+    "installing": "تثبيت التحديث...",
+    "completed": "اكتمل التحديث بنجاح",
+    "failed": "فشل التحديث: {{error}}"
+  }
+}

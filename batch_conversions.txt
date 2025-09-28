@@ -1,0 +1,8 @@
+# Batch Conversion Examples
+# Format: amount from to
+100 USD EUR
+32 F C
+1 KM MI
+10 KG LB
+1000 ML L
+100 C K

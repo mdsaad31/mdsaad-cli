@@ -1,0 +1,9 @@
+{
+  "name": "system-info",
+  "version": "1.0.0",
+  "description": "System information plugin for MDSAAD CLI",
+  "main": "index.js",
+  "keywords": ["mdsaad-plugin", "system", "info"],
+  "author": "MDSAAD",
+  "license": "MIT"
+}

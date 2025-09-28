@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "language": "日本語",
+    "locale": "ja",
+    "version": "1.0.0",
+    "direction": "ltr"
+  },
+  "global": {
+    "appName": "mdsaad CLIツール",
+    "tagline": "あなたの個人的な生産性コンパニオン",
+    "version": "バージョン情報を表示",
+    "language": "インターフェース言語を設定",
+    "verbose": "詳細出力を有効にする",
+    "debug": "デバッグモードを有効にする",
+    "help": "ヘルプ情報を表示",
+    "config": "設定",
+    "cache": "キャッシュ管理",
+    "success": "成功",
+    "error": "エラー",
+    "warning": "警告",
+    "info": "情報",
+    "loading": "読み込み中...",
+    "done": "完了",
+    "canceled": "キャンセルされました",
+    "yes": "はい",
+    "no": "いいえ",
+    "continue": "続行",
+    "exit": "終了",
+    "save": "保存",
+    "delete": "削除",
+    "clear": "クリア",
+    "reset": "リセット"
+  },
+  "commands": {
+    "calculate": {
+      "description": "数学計算を実行",
+      "usage": "使用法: mdsaad calculate <式> [オプション]",
+      "precision": "小数点以下の桁数",
+      "verbose": "ステップバイステップの計算を表示",
+      "examples": {
+        "basic": "基本算術: mdsaad calculate '2 + 3 * 4'",
+        "scientific": "科学関数: mdsaad calculate 'sin(pi/2)'",
+        "precision": "精度設定: mdsaad calculate '1/3' --precision 10"
+      },
+      "result": "結果: {{value}}",
+      "steps": "計算ステップ:",
+      "invalidExpression": "無効な数式"
+    },
+    "ai": {
+      "description": "AIモデルとの対話",
+      "usage": "使用法: mdsaad ai <プロンプト> [オプション]",
+      "model": "使用するAIモデル",
+      "stream": "リアルタイムで応答をストリーム",
+      "temperature": "応答の創造性 (0.0-1.0)",
+      "maxTokens": "最大応答長",
+      "context": "会話コンテキスト",
+      "examples": {
+        "question": "質問: mdsaad ai '量子コンピューティングとは何ですか？'",
+        "creative": "創造的執筆: mdsaad ai '詩を書いて' --temperature 0.9",
+        "code": "コードヘルプ: mdsaad ai 'JavaScript Promisesを説明して'"
+      },
+      "response": "AI応答:",
+      "thinking": "考え中...",
+      "noApiKey": "AI APIキーが設定されていません。'mdsaad config'を使用して設定してください。"
+    },
+    "show": {
+      "description": "ASCIIアートを表示",
+      "usage": "使用法: mdsaad show <テキスト> [オプション]",
+      "animated": "アニメーション版を表示",
+      "color": "適用する色スキーム",
+      "width": "表示幅",
+      "examples": {
+        "basic": "基本テキスト: mdsaad show 'Hello World'",
+        "colored": "カラー出力: mdsaad show 'ようこそ' --color rainbow",
+        "animated": "アニメーションテキスト: mdsaad show 'ロード中' --animated"
+      }
+    },
+    "weather": {
+      "description": "天気情報を取得",
+      "usage": "使用法: mdsaad weather [場所] [オプション]",
+      "detailed": "詳細な天気情報を表示",
+      "units": "温度単位 (metric/imperial)",
+      "alerts": "天気警報を表示",
+      "examples": {
+        "current": "現在の天気: mdsaad weather",
+        "location": "特定の場所: mdsaad weather '東京'",
+        "detailed": "詳細情報: mdsaad weather --detailed"
+      },
+      "current": "現在の天気",
+      "forecast": "予報",
+      "temperature": "気温",
+      "humidity": "湿度",
+      "windSpeed": "風速",
+      "pressure": "気圧",
+      "visibility": "視程",
+      "noApiKey": "天気APIキーが設定されていません。'mdsaad config'を使用して設定してください。"
+    },
+    "convert": {
+      "description": "通貨と単位を変換",
+      "usage": "使用法: mdsaad convert <金額> <から> <へ> [オプション]",
+      "date": "変換の履歴日付",
+      "batch": "複数の変換を処理",
+      "examples": {
+        "currency": "通貨: mdsaad convert 100 USD JPY",
+        "units": "単位: mdsaad convert 10 km miles",
+        "historical": "履歴: mdsaad convert 100 USD JPY --date 2023-01-01"
+      },
+      "result": "{{amount}} {{from}} = {{value}} {{to}}",
+      "rate": "為替レート: {{rate}}",
+      "lastUpdated": "最終更新: {{date}}"
+    },
+    "version": {
+      "description": "バージョン情報を表示",
+      "usage": "使用法: mdsaad version"
+    }
+  },
+  "config": {
+    "title": "設定管理",
+    "current": "現在の設定:",
+    "apiKeys": "APIキー設定",
+    "preferences": "ユーザー設定",
+    "cache": "キャッシュ設定",
+    "language": "言語設定",
+    "enterValue": "{{field}}を入力:",
+    "saved": "設定が正常に保存されました",
+    "reset": "設定がデフォルト値にリセットされました",
+    "exported": "設定が{{file}}にエクスポートされました",
+    "imported": "設定が{{file}}からインポートされました",
+    "validation": {
+      "required": "{{field}}は必須です",
+      "invalid": "無効な{{field}}形式",
+      "tooShort": "{{field}}は少なくとも{{min}}文字である必要があります",
+      "tooLong": "{{field}}は{{max}}文字を超えてはいけません"
+    }
+  },
+  "cache": {
+    "title": "キャッシュ管理",
+    "statistics": "キャッシュ統計",
+    "size": "サイズ: {{size}}",
+    "entries": "エントリ: {{count}}",
+    "hitRate": "ヒット率: {{rate}}%",
+    "cleared": "キャッシュが正常にクリアされました",
+    "cleaned": "{{count}}個の期限切れエントリが削除されました",
+    "test": "キャッシュパフォーマンステスト中...",
+    "testResult": "キャッシュテスト完了: {{operations}}ops、{{time}}ms"
+  },
+  "errors": {
+    "commandFailed": "コマンド失敗: {{error}}",
+    "invalidInput": "無効な入力が提供されました",
+    "networkError": "ネットワーク接続に失敗しました",
+    "apiError": "APIリクエストに失敗: {{message}}",
+    "fileNotFound": "ファイルが見つかりません: {{file}}",
+    "permissionDenied": "権限が拒否されました: {{action}}",
+    "configError": "設定エラー: {{message}}",
+    "cacheError": "キャッシュエラー: {{message}}",
+    "validationError": "検証エラー: {{message}}",
+    "unexpectedError": "予期しないエラーが発生しました"
+  },
+  "success": {
+    "operationComplete": "操作が正常に完了しました",
+    "dataSaved": "データが正常に保存されました",
+    "cacheUpdated": "キャッシュが正常に更新されました",
+    "configUpdated": "設定が正常に更新されました"
+  },
+  "prompts": {
+    "confirm": "よろしいですか？",
+    "selectOption": "オプションを選択してください:",
+    "enterValue": "値を入力してください:",
+    "selectLanguage": "優先言語を選択してください:",
+    "setupApiKey": "{{service}} APIキーを設定しますか？",
+    "continueSetup": "設定を続行しますか？"
+  },
+  "update": {
+    "available": "アップデートが利用可能: {{current}} → {{latest}}",
+    "checking": "アップデートを確認中...",
+    "upToDate": "最新バージョンを使用しています",
+    "downloading": "アップデートをダウンロード中...",
+    "installing": "アップデートをインストール中...",
+    "completed": "アップデートが正常に完了しました",
+    "failed": "アップデートに失敗: {{error}}"
+  }
+}

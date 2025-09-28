@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "language": "Français",
+    "locale": "fr",
+    "version": "1.0.0",
+    "direction": "ltr"
+  },
+  "global": {
+    "appName": "Outil CLI mdsaad",
+    "tagline": "Votre compagnon personnel de productivité",
+    "version": "Afficher les informations de version",
+    "language": "Définir la langue d'interface",
+    "verbose": "Activer la sortie détaillée",
+    "debug": "Activer le mode débogage",
+    "help": "Afficher l'aide",
+    "config": "Paramètres de configuration",
+    "cache": "Gestion du cache",
+    "success": "Succès",
+    "error": "Erreur",
+    "warning": "Avertissement",
+    "info": "Information",
+    "loading": "Chargement...",
+    "done": "Terminé",
+    "canceled": "Annulé",
+    "yes": "Oui",
+    "no": "Non",
+    "continue": "Continuer",
+    "exit": "Quitter",
+    "save": "Sauvegarder",
+    "delete": "Supprimer",
+    "clear": "Effacer",
+    "reset": "Réinitialiser"
+  },
+  "commands": {
+    "calculate": {
+      "description": "Effectuer des calculs mathématiques",
+      "usage": "Usage : mdsaad calculate <expression> [options]",
+      "precision": "Nombre de décimales",
+      "verbose": "Afficher le calcul étape par étape",
+      "examples": {
+        "basic": "Arithmétique de base : mdsaad calculate '2 + 3 * 4'",
+        "scientific": "Fonctions scientifiques : mdsaad calculate 'sin(pi/2)'",
+        "precision": "Définir la précision : mdsaad calculate '1/3' --precision 10"
+      },
+      "result": "Résultat : {{value}}",
+      "steps": "Étapes du calcul :",
+      "invalidExpression": "Expression mathématique invalide"
+    },
+    "ai": {
+      "description": "Interagir avec les modèles d'IA",
+      "usage": "Usage : mdsaad ai <prompt> [options]",
+      "model": "Modèle d'IA à utiliser",
+      "stream": "Diffuser la réponse en temps réel",
+      "temperature": "Créativité de la réponse (0.0-1.0)",
+      "maxTokens": "Longueur maximale de la réponse",
+      "context": "Contexte de conversation",
+      "examples": {
+        "question": "Poser une question : mdsaad ai 'Qu'est-ce que l'informatique quantique ?'",
+        "creative": "Écriture créative : mdsaad ai 'Écris un poème' --temperature 0.9",
+        "code": "Aide au code : mdsaad ai 'Explique les promesses JavaScript'"
+      },
+      "response": "Réponse de l'IA :",
+      "thinking": "Réflexion...",
+      "noApiKey": "Clé API IA non configurée. Utilisez 'mdsaad config' pour la configurer."
+    },
+    "show": {
+      "description": "Afficher l'art ASCII",
+      "usage": "Usage : mdsaad show <texte> [options]",
+      "animated": "Afficher la version animée",
+      "color": "Schéma de couleurs à appliquer",
+      "width": "Largeur d'affichage",
+      "examples": {
+        "basic": "Texte de base : mdsaad show 'Bonjour Monde'",
+        "colored": "Sortie colorée : mdsaad show 'Bienvenue' --color rainbow",
+        "animated": "Texte animé : mdsaad show 'Chargement' --animated"
+      }
+    },
+    "weather": {
+      "description": "Obtenir des informations météorologiques",
+      "usage": "Usage : mdsaad weather [location] [options]",
+      "detailed": "Afficher les informations météo détaillées",
+      "units": "Unités de température (metric/imperial)",
+      "alerts": "Afficher les alertes météo",
+      "examples": {
+        "current": "Météo actuelle : mdsaad weather",
+        "location": "Lieu spécifique : mdsaad weather 'Paris'",
+        "detailed": "Informations détaillées : mdsaad weather --detailed"
+      },
+      "current": "Météo Actuelle",
+      "forecast": "Prévisions",
+      "temperature": "Température",
+      "humidity": "Humidité",
+      "windSpeed": "Vitesse du Vent",
+      "pressure": "Pression",
+      "visibility": "Visibilité",
+      "noApiKey": "Clé API météo non configurée. Utilisez 'mdsaad config' pour la configurer."
+    },
+    "convert": {
+      "description": "Convertir devises et unités",
+      "usage": "Usage : mdsaad convert <montant> <de> <vers> [options]",
+      "date": "Date historique pour la conversion",
+      "batch": "Traiter plusieurs conversions",
+      "examples": {
+        "currency": "Devise : mdsaad convert 100 USD EUR",
+        "units": "Unités : mdsaad convert 10 km miles",
+        "historical": "Historique : mdsaad convert 100 USD EUR --date 2023-01-01"
+      },
+      "result": "{{amount}} {{from}} = {{value}} {{to}}",
+      "rate": "Taux de change : {{rate}}",
+      "lastUpdated": "Dernière mise à jour : {{date}}"
+    },
+    "version": {
+      "description": "Afficher les informations de version",
+      "usage": "Usage : mdsaad version"
+    }
+  },
+  "config": {
+    "title": "Gestion de la Configuration",
+    "current": "Configuration Actuelle :",
+    "apiKeys": "Configuration des Clés API",
+    "preferences": "Préférences Utilisateur",
+    "cache": "Paramètres de Cache",
+    "language": "Paramètres de Langue",
+    "enterValue": "Entrez {{field}} :",
+    "saved": "Configuration sauvegardée avec succès",
+    "reset": "Configuration réinitialisée aux valeurs par défaut",
+    "exported": "Configuration exportée vers {{file}}",
+    "imported": "Configuration importée depuis {{file}}",
+    "validation": {
+      "required": "{{field}} est requis",
+      "invalid": "Format {{field}} invalide",
+      "tooShort": "{{field}} doit avoir au moins {{min}} caractères",
+      "tooLong": "{{field}} ne doit pas dépasser {{max}} caractères"
+    }
+  },
+  "cache": {
+    "title": "Gestion du Cache",
+    "statistics": "Statistiques du Cache",
+    "size": "Taille : {{size}}",
+    "entries": "Entrées : {{count}}",
+    "hitRate": "Taux de Réussite : {{rate}}%",
+    "cleared": "Cache effacé avec succès",
+    "cleaned": "{{count}} entrées expirées supprimées",
+    "test": "Test de performance du cache...",
+    "testResult": "Test de cache terminé : {{operations}} ops en {{time}}ms"
+  },
+  "errors": {
+    "commandFailed": "Commande échouée : {{error}}",
+    "invalidInput": "Entrée invalide fournie",
+    "networkError": "Échec de la connexion réseau",
+    "apiError": "Échec de la requête API : {{message}}",
+    "fileNotFound": "Fichier non trouvé : {{file}}",
+    "permissionDenied": "Permission refusée : {{action}}",
+    "configError": "Erreur de configuration : {{message}}",
+    "cacheError": "Erreur de cache : {{message}}",
+    "validationError": "Erreur de validation : {{message}}",
+    "unexpectedError": "Une erreur inattendue s'est produite"
+  },
+  "success": {
+    "operationComplete": "Opération terminée avec succès",
+    "dataSaved": "Données sauvegardées avec succès",
+    "cacheUpdated": "Cache mis à jour avec succès",
+    "configUpdated": "Configuration mise à jour avec succès"
+  },
+  "prompts": {
+    "confirm": "Êtes-vous sûr ?",
+    "selectOption": "Sélectionnez une option :",
+    "enterValue": "Entrez une valeur :",
+    "selectLanguage": "Sélectionnez votre langue préférée :",
+    "setupApiKey": "Souhaitez-vous configurer votre clé API {{service}} ?",
+    "continueSetup": "Continuer la configuration ?"
+  },
+  "update": {
+    "available": "Mise à jour disponible : {{current}} → {{latest}}",
+    "checking": "Vérification des mises à jour...",
+    "upToDate": "Vous utilisez la dernière version",
+    "downloading": "Téléchargement de la mise à jour...",
+    "installing": "Installation de la mise à jour...",
+    "completed": "Mise à jour terminée avec succès",
+    "failed": "Échec de la mise à jour : {{error}}"
+  }
+}

@@ -1,0 +1,221 @@
+{
+  "meta": {
+    "language": "English",
+    "locale": "en",
+    "version": "1.0.0",
+    "direction": "ltr"
+  },
+  "global": {
+    "appName": "mdsaad CLI Tool",
+    "tagline": "Your personal productivity companion",
+    "version": "Show version information",
+    "language": "Set interface language",
+    "verbose": "Enable verbose output",
+    "debug": "Enable debug mode",
+    "help": "Show help information",
+    "config": "Configuration settings",
+    "cache": "Cache management",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information",
+    "loading": "Loading...",
+    "done": "Done",
+    "canceled": "Canceled",
+    "yes": "Yes",
+    "no": "No",
+    "continue": "Continue",
+    "exit": "Exit",
+    "save": "Save",
+    "delete": "Delete",
+    "clear": "Clear",
+    "reset": "Reset"
+  },
+  "commands": {
+    "calculate": {
+      "description": "Perform mathematical calculations",
+      "usage": "Usage: mdsaad calculate <expression> [options]",
+      "precision": "Number of decimal places",
+      "verbose": "Show step-by-step calculation",
+      "examples": {
+        "basic": "Basic arithmetic: mdsaad calculate '2 + 3 * 4'",
+        "scientific": "Scientific functions: mdsaad calculate 'sin(pi/2)'",
+        "precision": "Set precision: mdsaad calculate '1/3' --precision 10"
+      },
+      "result": "Result: {{value}}",
+      "steps": "Calculation steps:",
+      "invalidExpression": "Invalid mathematical expression"
+    },
+    "ai": {
+      "description": "Interact with AI models",
+      "usage": "Usage: mdsaad ai <prompt> [options]",
+      "model": "AI model to use",
+      "stream": "Stream response in real-time",
+      "temperature": "Response creativity (0.0-1.0)",
+      "maxTokens": "Maximum response length",
+      "context": "Conversation context",
+      "examples": {
+        "question": "Ask a question: mdsaad ai 'What is quantum computing?'",
+        "creative": "Creative writing: mdsaad ai 'Write a poem' --temperature 0.9",
+        "code": "Code help: mdsaad ai 'Explain JavaScript promises'"
+      },
+      "response": "AI Response:",
+      "thinking": "Thinking...",
+      "noApiKey": "AI API key not configured. Use 'mdsaad config' to set it up."
+    },
+    "show": {
+      "description": "Display ASCII art",
+      "usage": "Usage: mdsaad show <text> [options]",
+      "animated": "Show animated version",
+      "color": "Color scheme to apply",
+      "width": "Display width",
+      "examples": {
+        "basic": "Basic text: mdsaad show 'Hello World'",
+        "colored": "Colored output: mdsaad show 'Welcome' --color rainbow",
+        "animated": "Animated text: mdsaad show 'Loading' --animated"
+      }
+    },
+    "weather": {
+      "description": "Get weather information",
+      "usage": "Usage: mdsaad weather [location] [options]",
+      "detailed": "Show detailed weather info",
+      "units": "Temperature units (metric/imperial)",
+      "alerts": "Show weather alerts",
+      "examples": {
+        "current": "Current weather: mdsaad weather",
+        "location": "Specific location: mdsaad weather 'New York'",
+        "detailed": "Detailed info: mdsaad weather --detailed"
+      },
+      "current": "Current Weather",
+      "forecast": "Forecast",
+      "temperature": "Temperature",
+      "humidity": "Humidity",
+      "windSpeed": "Wind Speed",
+      "pressure": "Pressure",
+      "visibility": "Visibility",
+      "noApiKey": "Weather API key not configured. Use 'mdsaad config' to set it up."
+    },
+    "convert": {
+      "description": "Convert currencies and units",
+      "usage": "Usage: mdsaad convert <amount> <from> <to> [options]",
+      "date": "Historical date for conversion",
+      "batch": "Process multiple conversions",
+      "examples": {
+        "currency": "Currency: mdsaad convert 100 USD EUR",
+        "units": "Units: mdsaad convert 10 km miles",
+        "historical": "Historical: mdsaad convert 100 USD EUR --date 2023-01-01"
+      },
+      "result": "{{amount}} {{from}} = {{value}} {{to}}",
+      "rate": "Exchange rate: {{rate}}",
+      "lastUpdated": "Last updated: {{date}}"
+    },
+    "version": {
+      "description": "Show version information",
+      "usage": "Usage: mdsaad version"
+    }
+  },
+  "config": {
+    "title": "Configuration Management",
+    "current": "Current Configuration:",
+    "apiKeys": "API Keys Setup",
+    "preferences": "User Preferences",
+    "cache": "Cache Settings",
+    "language": "Language Settings",
+    "enterValue": "Enter {{field}}:",
+    "saved": "Configuration saved successfully",
+    "reset": "Configuration reset to defaults",
+    "exported": "Configuration exported to {{file}}",
+    "imported": "Configuration imported from {{file}}",
+    "validation": {
+      "required": "{{field}} is required",
+      "invalid": "Invalid {{field}} format",
+      "tooShort": "{{field}} must be at least {{min}} characters",
+      "tooLong": "{{field}} must not exceed {{max}} characters"
+    }
+  },
+  "cache": {
+    "title": "Cache Management",
+    "statistics": "Cache Statistics",
+    "size": "Size: {{size}}",
+    "entries": "Entries: {{count}}",
+    "hitRate": "Hit Rate: {{rate}}%",
+    "cleared": "Cache cleared successfully",
+    "cleaned": "{{count}} expired entries removed",
+    "test": "Testing cache performance...",
+    "testResult": "Cache test completed: {{operations}} ops in {{time}}ms"
+  },
+  "errors": {
+    "commandFailed": "Command failed: {{error}}",
+    "invalidInput": "Invalid input provided",
+    "networkError": "Network connection failed",
+    "apiError": "API request failed: {{message}}",
+    "fileNotFound": "File not found: {{file}}",
+    "permissionDenied": "Permission denied: {{action}}",
+    "configError": "Configuration error: {{message}}",
+    "cacheError": "Cache error: {{message}}",
+    "validationError": "Validation error: {{message}}",
+    "unexpectedError": "An unexpected error occurred"
+  },
+  "success": {
+    "operationComplete": "Operation completed successfully",
+    "dataSaved": "Data saved successfully",
+    "cacheUpdated": "Cache updated successfully",
+    "configUpdated": "Configuration updated successfully"
+  },
+  "calculate": {
+    "expression": "Expression",
+    "result": "Result",
+    "executionTime": "Execution time",
+    "alternativeFormats": "Alternative formats",
+    "help": {
+      "title": "Mathematical Calculator Help",
+      "basicOperations": "Basic Operations:",
+      "constants": "Available Constants:",
+      "functions": "Available Functions:",
+      "specialCommands": "Special Commands:",
+      "showHelp": "Show this help message",
+      "showHistory": "Show calculation history",
+      "showConstants": "Show all constants",
+      "showFunctions": "Show all functions",
+      "clearHistory": "Clear calculation history"
+    },
+    "history": {
+      "title": "Calculation History",
+      "empty": "No calculations in history yet",
+      "cleared": "Calculation history cleared"
+    },
+    "constants": {
+      "title": "Available Mathematical Constants"
+    },
+    "functions": {
+      "title": "Available Mathematical Functions"
+    },
+    "errors": {
+      "invalidExpression": "Please provide a valid mathematical expression",
+      "calculationFailed": "Calculation failed",
+      "undefinedSymbol": "Unknown function or constant used",
+      "syntaxError": "Syntax error in expression",
+      "divisionByZero": "Division by zero is not allowed",
+      "checkSpelling": "Please check spelling of functions and constants",
+      "checkSyntax": "Please check the syntax of your expression",
+      "helpHint": "Type 'mdsaad calculate help' for usage examples"
+    }
+  },
+  "prompts": {
+    "confirm": "Are you sure?",
+    "selectOption": "Select an option:",
+    "enterValue": "Enter a value:",
+    "selectLanguage": "Select your preferred language:",
+    "setupApiKey": "Would you like to set up your {{service}} API key?",
+    "continueSetup": "Continue with setup?"
+  },
+  "update": {
+    "available": "Update available: {{current}} → {{latest}}",
+    "checking": "Checking for updates...",
+    "upToDate": "You're using the latest version",
+    "downloading": "Downloading update...",
+    "installing": "Installing update...",
+    "completed": "Update completed successfully",
+    "failed": "Update failed: {{error}}"
+  }
+}

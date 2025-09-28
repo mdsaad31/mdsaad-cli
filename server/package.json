@@ -1,0 +1,32 @@
+{
+  "name": "mdsaad-proxy-api",
+  "version": "1.0.0",
+  "description": "Proxy API server for MDSAAD CLI tool",
+  "main": "api-server.js",
+  "scripts": {
+    "start": "node api-server.js",
+    "dev": "nodemon api-server.js",
+    "test": "echo \"Tests coming soon\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^6.7.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "api",
+    "proxy",
+    "cli",
+    "ai",
+    "weather"
+  ],
+  "author": "Mohammed Saad <mohammedsaad0462@gmail.com>",
+  "license": "MIT"
+}

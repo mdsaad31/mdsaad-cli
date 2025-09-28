@@ -1,0 +1,64 @@
+# Test files and directories
+tests/
+coverage/
+*.test.js
+*.spec.js
+__tests__/
+benchmarks/
+
+# Development files
+.github/
+.vscode/
+.idea/
+*.log
+.env*
+.DS_Store
+Thumbs.db
+
+# Build and temporary files
+dist/
+build/
+tmp/
+temp/
+
+# Configuration files
+jest.config.js
+.eslintrc*
+.prettierrc*
+nodemon.json
+
+# SECURITY: Exclude any files that might contain API keys
+config.json
+user-config.json
+api-keys.json
+.mdsaad/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Documentation development
+docs/development/
+docs/internal/
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# NPM files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# Manual testing files
+MANUAL_TESTING_REPORT.md
+NPM_PUBLISHING_GUIDE.md
+
+# Kiro specs (internal)
+.kiro/
+
+# Lock files (let users choose their package manager)
+package-lock.json
+yarn.lock
