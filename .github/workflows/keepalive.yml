@@ -1,0 +1,85 @@
+name: Keep Proxy API Alive
+
+on:
+  schedule:
+    # Ping every 10 minutes to prevent Render from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Ping Health Endpoint
+      run: |
+        echo "🏓 Pinging MDSAAD Proxy API to prevent cold starts..."
+        
+        # Ping health endpoint
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://mdsaad-proxy-api.onrender.com/health)
+        
+        if [ "$response" = "200" ]; then
+          echo "✅ Health check successful (HTTP $response)"
+        else
+          echo "❌ Health check failed (HTTP $response)"
+          exit 1
+        fi
+        
+    - name: Test AI Endpoint
+      run: |
+        echo "🤖 Testing AI endpoint..."
+        
+        # Test AI endpoint with OpenAI compatible format
+        response=$(curl -s -X POST \
+          https://mdsaad-proxy-api.onrender.com/v1/chat/completions \
+          -H "Content-Type: application/json" \
+          -H "User-Agent: GitHub-Actions-KeepAlive/1.0" \
+          -d '{
+            "model": "gpt-3.5-turbo",
+            "messages": [{"role": "user", "content": "Hi"}],
+            "max_tokens": 5,
+            "temperature": 0
+          }' \
+          -w "%{http_code}" -o ai_response.json)
+        
+        echo "📊 AI Response Code: $response"
+        
+        if [ -f ai_response.json ]; then
+          echo "📋 AI Response Body:"
+          cat ai_response.json | jq . 2>/dev/null || cat ai_response.json
+        fi
+        
+        if [ "$response" = "200" ]; then
+          echo "✅ AI endpoint test successful (HTTP $response)"
+        else
+          echo "⚠️ AI endpoint test failed (HTTP $response)"
+          # Check if it's a known error
+          if cat ai_response.json | jq -e '.error' > /dev/null 2>&1; then
+            error_type=$(cat ai_response.json | jq -r '.error.type // "unknown"')
+            error_msg=$(cat ai_response.json | jq -r '.error.message // "No message"')
+            echo "🔍 Error Type: $error_type"
+            echo "💬 Error Message: $error_msg"
+          fi
+        fi
+        
+    - name: Test Weather Endpoint  
+      run: |
+        echo "🌤️ Testing weather endpoint..."
+        
+        # Test weather endpoint
+        response=$(curl -s \
+          "https://mdsaad-proxy-api.onrender.com/v1/weather/current?location=London&client_id=github-keepalive" \
+          -w "%{http_code}" -o weather.json)
+        
+        if [ "$response" = "200" ]; then
+          echo "✅ Weather endpoint test successful (HTTP $response)"
+          cat weather.json | jq -r '.location.name' || echo "Weather data received"
+        else
+          echo "⚠️ Weather endpoint test failed (HTTP $response)" 
+          # Don't fail the job for weather endpoint issues
+        fi
+        
+    - name: Report Status
+      run: |
+        echo "📊 Keep-alive ping completed at $(date)"
+        echo "🎯 Next ping in 10 minutes"

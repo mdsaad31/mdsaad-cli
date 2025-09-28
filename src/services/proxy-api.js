@@ -49,24 +49,34 @@ class ProxyAPIService {
       try {
         this.baseUrl = this.proxyUrls[i];
         this.currentUrlIndex = i;
+        console.log(`🔄 Trying proxy URL: ${this.proxyUrls[i]}`);
         return await requestFn();
       } catch (error) {
         lastError = error;
-        console.log(`Proxy URL ${this.proxyUrls[i]} failed, trying next...`);
+        console.log(`❌ Proxy URL ${this.proxyUrls[i]} failed: ${error.message}`);
         
         // If it's a network error, try next URL
-        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.response?.status >= 500) {
+        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || 
+            error.code === 'ETIMEDOUT' || error.response?.status >= 500) {
+          console.log(`⏭️ Trying next proxy URL...`);
           continue;
         }
         
         // If it's a client error (400-499), don't retry
         if (error.response?.status >= 400 && error.response?.status < 500) {
+          console.log(`🚫 Client error, not retrying other URLs`);
           break;
         }
       }
     }
     
-    throw lastError;
+    // Return error object instead of throwing
+    return {
+      success: false,
+      error: `All proxy URLs failed. Last error: ${lastError?.message || 'Unknown error'}`,
+      code: 'CONNECTION_ERROR',
+      fallback: true
+    };
   }
 
   /**
@@ -75,10 +85,14 @@ class ProxyAPIService {
   async aiRequest(prompt, options = {}) {
     // Check client-side rate limiting first
     if (!this.checkRateLimit('ai', 50, 3600000)) { // 50 requests per hour
-      throw new Error('Rate limit exceeded. Please wait before making more AI requests.');
+      return {
+        success: false,
+        error: 'Rate limit exceeded. Please wait before making more AI requests.',
+        code: 'RATE_LIMIT_EXCEEDED'
+      };
     }
 
-    return await this.makeRequestWithFallback(async () => {
+    const result = await this.makeRequestWithFallback(async () => {
       const response = await axios.post(`${this.baseUrl}/ai/chat`, {
         prompt: prompt,
         model: options.model || 'auto',
@@ -102,6 +116,8 @@ class ProxyAPIService {
         usage: response.data.usage
       };
     });
+
+    return result;
   }
 
   /**
@@ -109,10 +125,14 @@ class ProxyAPIService {
    */
   async weatherRequest(location, options = {}) {
     if (!this.checkRateLimit('weather', 100, 3600000)) { // 100 requests per hour
-      throw new Error('Rate limit exceeded. Please wait before making more weather requests.');
+      return {
+        success: false,
+        error: 'Rate limit exceeded. Please wait before making more weather requests.',
+        code: 'RATE_LIMIT_EXCEEDED'
+      };
     }
 
-    return await this.makeRequestWithFallback(async () => {
+    const result = await this.makeRequestWithFallback(async () => {
       const response = await axios.get(`${this.baseUrl}/weather/current`, {
         params: {
           location: location,
@@ -134,6 +154,8 @@ class ProxyAPIService {
         data: response.data
       };
     });
+
+    return result;
   }
 
   /**
