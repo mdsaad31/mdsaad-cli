@@ -38,6 +38,7 @@ const showCommand = require('./commands/show');
 const weatherCommand = require('./commands/weather');
 const convertCommand = require('./commands/convert');
 const debugCommand = require('./commands/debug');
+const diagnoseCommand = require('./commands/diagnose');
 const pluginCommand = require('./commands/plugin');
 const UpdateCommand = require('./commands/update');
 const MaintenanceCommand = require('./commands/maintenance');
@@ -393,6 +394,15 @@ class CLIApplication {
 
     // Debug command
     this.program.addCommand(debugCommand);
+
+    // Diagnose command
+    this.program
+      .command('diagnose')
+      .description('Run installation diagnostics and troubleshooting for PATH issues')
+      .option('--verbose', 'Show detailed diagnostic information')
+      .action(async (options) => {
+        await this.executeCommand(diagnoseCommand, options);
+      });
 
     // Plugin command
     this.program.addCommand(pluginCommand);
