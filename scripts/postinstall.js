@@ -1,114 +1,57 @@
 #!/usr/bin/env node
 
 /**
- * Post-installation script for mdsaad CLI
- * Sets up initial configuration and performs post-install tasks
+ * Post-install script for MDSAAD CLI
+ * Displays welcome message and setup instructions
  */
 
-const fs = require('fs-extra');
-const path = require('path');
-const os = require('os');
 const chalk = require('chalk');
 
-const CONFIG_DIR = path.join(os.homedir(), '.config', 'mdsaad');
-const CACHE_DIR = path.join(os.homedir(), '.cache', 'mdsaad');
-
-async function postInstall() {
+function showWelcomeMessage() {
   try {
-    console.log(chalk.blue('🚀 Setting up mdsaad CLI...'));
+    console.log(chalk.cyan.bold('\n🎉 MDSAAD CLI Installed Successfully!\n'));
+    console.log(chalk.white('Your powerful CLI toolkit is ready to use!'));
     
-    // Create configuration directory
-    await fs.ensureDir(CONFIG_DIR);
-    console.log(chalk.green('✅ Created configuration directory'));
-    
-    // Create cache directory
-    await fs.ensureDir(CACHE_DIR);
-    console.log(chalk.green('✅ Created cache directory'));
-    
-    // Create default configuration if it doesn't exist
-    const configFile = path.join(CONFIG_DIR, 'config.json');
-    if (!(await fs.pathExists(configFile))) {
-      const defaultConfig = {
-        language: 'en',
-        theme: 'default',
-        security: {
-          rateLimit: {
-            enabled: true,
-            requests: 100,
-            window: 60000
-          }
-        },
-        performance: {
-          enableOptimizations: true,
-          cacheSize: '50MB'
-        }
-      };
-      
-      await fs.writeJSON(configFile, defaultConfig, { spaces: 2 });
-      console.log(chalk.green('✅ Created default configuration'));
-    }
-    
-    // Set appropriate permissions (Unix systems)
-    if (os.platform() !== 'win32') {
-      try {
-        await fs.chmod(CONFIG_DIR, 0o700); // rwx------
-        console.log(chalk.green('✅ Set secure directory permissions'));
-      } catch (error) {
-        console.log(chalk.yellow('⚠️ Could not set directory permissions (non-critical)'));
-      }
-    }
-    
-    console.log(chalk.green('\n🎉 mdsaad CLI installation completed successfully!'));
-    
-    console.log(chalk.yellow('\n⚠️  IMPORTANT: API Keys Required'));
-    console.log(chalk.white('   MDSAAD needs API keys for AI and weather features.'));
-    console.log(chalk.white('   No keys are included for security reasons.\n'));
+    console.log(chalk.yellow.bold('\n🚀 Quick Start:'));
+    console.log(chalk.white('  mdsaad help              ') + chalk.gray('# View all commands'));
+    console.log(chalk.white('  mdsaad ai "Hello!"        ') + chalk.gray('# Chat with AI'));
+    console.log(chalk.white('  mdsaad weather London     ') + chalk.gray('# Get weather info'));
+    console.log(chalk.white('  mdsaad calc "2+2"         ') + chalk.gray('# Math calculator'));
+    console.log(chalk.white('  mdsaad ascii "Hello"      ') + chalk.gray('# ASCII art'));
 
-    console.log(chalk.cyan('� Quick Setup (Required):'));
-    console.log(chalk.white('  mdsaad config setup           # Interactive API key configuration'));
-    console.log(chalk.white('  mdsaad config show            # Check configuration status'));
+    console.log(chalk.yellow.bold('\n✨ Features:'));
+    console.log(chalk.white('• 20+ Commands available'));
+    console.log(chalk.white('• No API keys required'));
+    console.log(chalk.white('• Works through secure proxy'));
+    console.log(chalk.white('• Cross-platform support'));
 
-    console.log(chalk.cyan('\n🆓 Get Free API Keys:'));
-    console.log(chalk.white('  • OpenRouter (AI): https://openrouter.ai/'));
-    console.log(chalk.white('  • Groq (Fast AI):  https://groq.com/'));  
-    console.log(chalk.white('  • WeatherAPI:      https://weatherapi.com/'));
+    console.log(chalk.yellow.bold('\n📚 Resources:'));
+    console.log(chalk.white('• GitHub: ') + chalk.cyan('https://github.com/mdsaad31/mdsaad-cli'));
+    console.log(chalk.white('• Issues: ') + chalk.cyan('https://github.com/mdsaad31/mdsaad-cli/issues'));
+    console.log(chalk.white('• NPM:    ') + chalk.cyan('https://npmjs.com/package/mdsaad-cli'));
 
-    console.log(chalk.cyan('\n🚀 Features (No API Key Required):'));
-    console.log(chalk.white('  mdsaad calculate "2+2*3"      # Mathematical calculations'));
-    console.log(chalk.white('  mdsaad convert 100 USD EUR    # Currency conversion'));
-    console.log(chalk.white('  mdsaad show batman            # ASCII art'));
-    console.log(chalk.white('  mdsaad --help                 # Show all commands'));
-
-    console.log(chalk.cyan('\n🤖 AI & Weather (API Key Required):'));
-    console.log(chalk.white('  mdsaad ai "Hello world"       # AI interactions'));
-    console.log(chalk.white('  mdsaad weather London         # Weather information'));
-    
-    console.log(chalk.cyan('\n🔐 Security & Privacy:'));
-    console.log(chalk.white('  • API keys stored locally and encrypted'));
-    console.log(chalk.white('  • No telemetry or data collection'));
-    console.log(chalk.white('  • Run "mdsaad security status" for audit'));
-    
-    console.log(chalk.cyan('\n📖 Documentation:'));
-    console.log(chalk.white('  README.md          # Complete setup guide'));
-    console.log(chalk.white('  docs/API.md        # API reference'));
-    console.log(chalk.white('  CONTRIBUTING.md    # Contributing guidelines'));
-
-    console.log(chalk.green('\n💡 Next Steps:'));
-    console.log(chalk.white('  1. Run: mdsaad config setup'));
-    console.log(chalk.white('  2. Get free API keys from above providers'));
-    console.log(chalk.white('  3. Enjoy all features!'));
+    console.log(chalk.green('\nHappy coding! 🎯\n'));
     
   } catch (error) {
-    console.error(chalk.red('❌ Post-installation setup failed:'), error.message);
-    console.log(chalk.yellow('⚠️ The CLI should still work, but some features may be limited.'));
-    console.log(chalk.white('💡 You can manually create the configuration directory at:'), CONFIG_DIR);
-    process.exit(0); // Don't fail the installation
+    // Fallback if chalk fails
+    console.log('\n🎉 MDSAAD CLI installed successfully!');
+    console.log('Run "mdsaad help" to get started.\n');
   }
 }
 
-// Only run if this script is executed directly
-if (require.main === module) {
-  postInstall();
+// Only show message if installed globally or as dependency
+if (process.env.npm_config_global === 'true' || 
+    process.argv.includes('--global') || 
+    process.argv.includes('-g') ||
+    require.main === module) {
+  showWelcomeMessage();
+} else {
+  // Silent install for local dependencies
+  try {
+    console.log(require('chalk').green('✅ MDSAAD CLI ready! Run: npx mdsaad help'));
+  } catch {
+    console.log('✅ MDSAAD CLI ready! Run: npx mdsaad help');
+  }
 }
 
-module.exports = postInstall;
+module.exports = showWelcomeMessage;

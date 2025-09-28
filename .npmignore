@@ -59,6 +59,16 @@ NPM_PUBLISHING_GUIDE.md
 # Kiro specs (internal)
 .kiro/
 
+# Server directory (not needed for CLI)
+server/
+
+# Status file (internal)
+STATUS.md
+
+# Development utilities
+utils/dev-*
+utils/test-*
+
 # Lock files (let users choose their package manager)
 package-lock.json
 yarn.lock
