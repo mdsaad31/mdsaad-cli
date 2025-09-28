@@ -15,7 +15,8 @@ module.exports = [
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         setInterval: 'readonly',
-        clearInterval: 'readonly'
+        clearInterval: 'readonly',
+        URL: 'readonly'
       },
       ecmaVersion: 2021,
       sourceType: 'commonjs'
@@ -59,7 +60,8 @@ module.exports = [
         afterEach: 'readonly',
         beforeAll: 'readonly',
         afterAll: 'readonly',
-        jest: 'readonly'
+        jest: 'readonly',
+        URL: 'readonly'
       },
       ecmaVersion: 2021,
       sourceType: 'commonjs'
