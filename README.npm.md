@@ -54,6 +54,24 @@ mdsaad currency 100 USD EUR
 mdsaad help
 ```
 
+### 🚨 **Troubleshooting: Command Not Found**
+
+If you get `'mdsaad' is not recognized` after installation:
+
+**Quick Fix (Works Everywhere):**
+```bash
+npx mdsaad-cli --version
+npx mdsaad-cli ai "Hello!"
+```
+
+**Permanent Fix:**
+- **Windows**: Restart your terminal, or download our [fix script](https://github.com/mdsaad31/mdsaad-cli/raw/main/scripts/fix-windows.bat)
+- **macOS/Linux**: Run `echo 'export PATH=$(npm config get prefix)/bin:$PATH' >> ~/.bashrc && source ~/.bashrc`
+
+**Why This Happens**: npm's global directory isn't in your system PATH. Our fix scripts resolve this automatically.
+
+📖 **Full troubleshooting guide**: [INSTALLATION_TROUBLESHOOTING.md](https://github.com/mdsaad31/mdsaad-cli/blob/main/INSTALLATION_TROUBLESHOOTING.md)
+
 ## 🎯 **Command Categories**
 
 ### 🤖 **AI & Chat**

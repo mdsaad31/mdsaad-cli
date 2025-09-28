@@ -31,11 +31,53 @@ function showWelcomeMessage() {
     console.log(chalk.white('• NPM:    ') + chalk.cyan('https://npmjs.com/package/mdsaad-cli'));
 
     console.log(chalk.green('\nHappy coding! 🎯\n'));
+
+    // Check for common PATH issues
+    try {
+      const { execSync } = require('child_process');
+      const os = require('os');
+      
+      if (process.env.npm_config_global === 'true') {
+        console.log(chalk.blue.bold('🔍 Checking installation...'));
+        
+        // Get npm prefix
+        const npmPrefix = execSync('npm config get prefix', { encoding: 'utf8' }).trim();
+        console.log(chalk.gray(`NPM Global Directory: ${npmPrefix}`));
+        
+        // Check PATH on different platforms
+        const platform = os.platform();
+        const pathSeparator = platform === 'win32' ? ';' : ':';
+        const currentPath = process.env.PATH || '';
+        
+        if (!currentPath.includes(npmPrefix)) {
+          console.log(chalk.yellow.bold('\n⚠️  IMPORTANT: PATH Setup Required'));
+          console.log(chalk.white('The global npm directory is not in your PATH.'));
+          
+          if (platform === 'win32') {
+            console.log(chalk.white('\n🔧 Windows Fix Options:'));
+            console.log(chalk.white('1. Restart your terminal (may fix automatically)'));
+            console.log(chalk.white('2. Run: npm install -g mdsaad-cli (if still not working)'));
+            console.log(chalk.white('3. Use: npx mdsaad-cli instead of mdsaad'));
+          } else {
+            console.log(chalk.white('\n🔧 macOS/Linux Fix:'));
+            console.log(chalk.white(`Add this to your ~/.bashrc or ~/.zshrc:`));
+            console.log(chalk.cyan(`export PATH="${npmPrefix}/bin:$PATH"`));
+            console.log(chalk.white('Then run: source ~/.bashrc'));
+          }
+          
+          console.log(chalk.cyan.bold('\n💡 Quick Test:'));
+          console.log(chalk.white('Try: npx mdsaad-cli --version'));
+        }
+      }
+    } catch (error) {
+      // Silently continue if PATH check fails
+    }
     
   } catch (error) {
     // Fallback if chalk fails
     console.log('\n🎉 MDSAAD CLI installed successfully!');
     console.log('Run "mdsaad help" to get started.\n');
+    console.log('If "mdsaad" command is not found, try: npx mdsaad-cli help');
   }
 }
 
