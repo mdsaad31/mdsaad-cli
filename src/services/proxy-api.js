@@ -84,7 +84,7 @@ class ProxyAPIService {
    */
   async aiRequest(prompt, options = {}) {
     // Check client-side rate limiting first
-    if (!this.checkRateLimit('ai', 50, 3600000)) { // 50 requests per hour
+    if (!this.checkRateLimit('ai', 100, 3600000)) { // 100 requests per hour (matching server)
       return {
         success: false,
         error: 'Rate limit exceeded. Please wait before making more AI requests.',
@@ -93,13 +93,14 @@ class ProxyAPIService {
     }
 
     const result = await this.makeRequestWithFallback(async () => {
-      const response = await axios.post(`${this.baseUrl}/ai/chat`, {
-        prompt: prompt,
-        model: options.model || 'auto',
+      // Use OpenAI compatible format
+      const response = await axios.post(`${this.baseUrl}/chat/completions`, {
+        model: options.model || 'gpt-3.5-turbo',
+        messages: [
+          { role: 'user', content: prompt }
+        ],
         max_tokens: options.maxTokens || 1000,
-        temperature: options.temperature || 0.7,
-        client_id: this.clientId,
-        version: require('../../package.json').version
+        temperature: options.temperature || 0.7
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -111,8 +112,8 @@ class ProxyAPIService {
 
       return {
         success: true,
-        data: response.data.response,
-        model: response.data.model_used,
+        data: response.data.choices[0]?.message?.content || 'No response',
+        model: response.data.model,
         usage: response.data.usage
       };
     });
