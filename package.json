@@ -1,6 +1,6 @@
 {
   "name": "mdsaad-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "🚀 A powerful CLI toolkit with 20+ commands: AI chat, weather, math calculations, ASCII art, currency conversion, and more - all without API keys required!",
   "main": "src/cli.js",
   "bin": {
