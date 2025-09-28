@@ -12,7 +12,7 @@ const cacheService = require('./cache');
 class AsciiArtDatabase {
   constructor() {
     this.artPath = path.join(__dirname, '..', 'assets', 'ascii-art');
-    this.categories = ['superheroes', 'logos', 'animals'];
+    this.categories = ['superheroes', 'logos', 'animals', 'maps'];
     this.artCache = new Map();
     this.metadata = new Map();
     this.initialized = false;
